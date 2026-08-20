@@ -15,14 +15,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install postgresql-client
+      # The Supabase server runs Postgres 17. Ubuntu's default apt repo
+      # only carries postgresql-client 16 (it lags behind upstream
+      # releases), and an older client talking to a newer server can
+      # fail outright — so pull postgresql-client-17 specifically from
+      # the official PostgreSQL apt repository (apt.postgresql.org)
+      # instead of the generic "postgresql-client" package.
+      - name: Install PostgreSQL 17 client tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          sudo apt-get install -y curl ca-certificates gnupg
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            | sudo gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+          echo "Installed: $(/usr/lib/postgresql/17/bin/pg_dump --version)"
 
       - name: Run backup
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # Multiple pg_dump versions can end up on PATH on this runner —
+          # pin the exact versioned binary rather than trust PATH
+          # ordering, so there's no ambiguity about which one runs.
+          PG_DUMP_BIN: /usr/lib/postgresql/17/bin/pg_dump
         run: |
           chmod +x scripts/backup-db.sh
           scripts/backup-db.sh
