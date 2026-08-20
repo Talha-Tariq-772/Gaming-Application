@@ -1,0 +1,53 @@
+name: Nightly Database Backup
+
+# Runs at 22:00 UTC = ~3am PKT (this app's stated business hours are
+# 9am-9pm PKT), well outside any real traffic window. Also runnable
+# on demand from the Actions tab for testing.
+on:
+  schedule:
+    - cron: "0 22 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install postgresql-client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Run backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          chmod +x scripts/backup-db.sh
+          scripts/backup-db.sh
+
+      # ---------------------------------------------------------------
+      # NOTE on this backup strategy:
+      #
+      # GitHub Actions artifacts are convenient — no new accounts, no
+      # extra infrastructure, free within GitHub's normal usage limits
+      # for a project this size. They are NOT a substitute for a real
+      # offsite backup strategy at production scale: artifacts live
+      # inside GitHub's own storage, are capped at the retention window
+      # below, aren't encrypted-at-rest under your own key, and aren't
+      # easily automatable for point-in-time restores.
+      #
+      # This is the right tradeoff for a free-tier project just
+      # starting out. Once there's real revenue and real customer data
+      # worth protecting more robustly, revisit this — move backups to
+      # an independent object store (e.g. Cloudflare R2 or AWS S3) with
+      # its own retention/versioning policy, decoupled from GitHub.
+      # ---------------------------------------------------------------
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backups/*.sql.gz
+          retention-days: 14
+          if-no-files-found: error

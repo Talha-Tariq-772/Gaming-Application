@@ -1,0 +1,31 @@
+import { useEffect, useState } from "react";
+
+/**
+ * Tracks navigator.onLine, updated live via the online/offline events.
+ * Starts true (matches SSR, where there's no navigator) — the same
+ * SSR/hydration-mismatch precaution as useHydrated, since the real value
+ * can only be known client-side.
+ */
+export function useOnlineStatus(): boolean {
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+
+    function handleOnline() {
+      setIsOnline(true);
+    }
+    function handleOffline() {
+      setIsOnline(false);
+    }
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  return isOnline;
+}
