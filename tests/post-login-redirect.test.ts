@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { resolvePostLoginRedirect, type PostLoginProfile } from "@/src/lib/auth/post-login-redirect";
+import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
 
 const ORIGIN = "https://example.com";
 
@@ -58,15 +59,6 @@ describe("resolvePostLoginRedirect — fed real profile rows from the database",
     return client;
   }
 
-  async function cleanup(makeRequest: () => PromiseLike<{ error: unknown }>, label: string, retries = 5) {
-    for (let attempt = 0; ; attempt++) {
-      const { error } = await makeRequest();
-      if (!error) return;
-      if (attempt >= retries) throw new Error(`cleanup failed (${label}): ${JSON.stringify(error)}`);
-      await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
-    }
-  }
-
   const run = randomUUID().slice(0, 8);
   const password = `PostLoginTest!${randomUUID()}`;
 
@@ -94,9 +86,21 @@ describe("resolvePostLoginRedirect — fed real profile rows from the database",
   });
 
   afterAll(async () => {
-    if (adminUser?.id) await cleanup(() => service.auth.admin.deleteUser(adminUser.id), "adminUser");
-    if (customerUser?.id) await cleanup(() => service.auth.admin.deleteUser(customerUser.id), "customerUser");
-  });
+    await runCleanupSteps([
+      {
+        label: "adminUser",
+        run: async () => {
+          if (adminUser?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(adminUser.id), "adminUser");
+        },
+      },
+      {
+        label: "customerUser",
+        run: async () => {
+          if (customerUser?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(customerUser.id), "customerUser");
+        },
+      },
+    ]);
+  }, 30_000); // 2 independent steps, each capped at 8s worst case (see tests/helpers/cleanup.ts)
 
   it("admin: signs in, real profile row says role=admin, decision is /admin regardless of next", async () => {
     const client = await signedInClient(adminUser.email, password);

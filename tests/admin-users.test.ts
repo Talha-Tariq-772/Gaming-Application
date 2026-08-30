@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
 
 /**
  * changeUserRole/getProfilesForAdmin internally call next/headers
@@ -33,15 +34,6 @@ async function signedInClient(email: string, password: string): Promise<Supabase
   const { error } = await client.auth.signInWithPassword({ email, password });
   if (error) throw error;
   return client;
-}
-
-async function cleanup(makeRequest: () => PromiseLike<{ error: unknown }>, label: string, retries = 5) {
-  for (let attempt = 0; ; attempt++) {
-    const { error } = await makeRequest();
-    if (!error) return;
-    if (attempt >= retries) throw new Error(`cleanup failed (${label}): ${JSON.stringify(error)}`);
-    await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
-  }
 }
 
 const run = randomUUID().slice(0, 8);
@@ -101,13 +93,39 @@ beforeAll(async () => {
   clientAdminSecond = await signedInClient(adminSecond.email, password);
 });
 
+// See tests/helpers/cleanup.ts for why each step below runs independently
+// instead of as one linear await chain (or, as this used to be, a for-loop
+// that stopped at the first failing deleteUser call).
 afterAll(async () => {
-  // audit_log.actor_id -> profiles(id) has no ON DELETE CASCADE.
-  if (userIds.length) await cleanup(() => service.from("audit_log").delete().in("actor_id", userIds), "audit_log");
-  for (const id of userIds) {
-    await cleanup(() => service.auth.admin.deleteUser(id), `user ${id}`);
-  }
-});
+  await runCleanupSteps([
+    {
+      // audit_log.actor_id -> profiles(id) has no ON DELETE CASCADE — must
+      // go before deleting the users themselves.
+      label: "audit_log",
+      run: async () => {
+        if (userIds.length) await deleteWithRetry(() => service.from("audit_log").delete().in("actor_id", userIds), "audit_log");
+      },
+    },
+    {
+      label: "customer",
+      run: async () => {
+        if (customer?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(customer.id), "customer");
+      },
+    },
+    {
+      label: "adminMain",
+      run: async () => {
+        if (adminMain?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(adminMain.id), "adminMain");
+      },
+    },
+    {
+      label: "adminSecond",
+      run: async () => {
+        if (adminSecond?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(adminSecond.id), "adminSecond");
+      },
+    },
+  ]);
+}, 60_000); // 4 independent steps, each capped at 8s worst case (see tests/helpers/cleanup.ts)
 
 describe("isLastAdminDemotion (pure guardrail logic)", () => {
   it("blocks when the target is the sole admin and would leave zero", () => {

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { bufferToBytea, encrypt } from "@/src/lib/crypto";
+import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
 import { collectText, findAllElementsOfType } from "./helpers/react-tree";
 
 /**
@@ -45,14 +46,6 @@ async function signedInClient(email: string, password: string): Promise<Supabase
   return client;
 }
 
-async function cleanup(makeRequest: () => PromiseLike<{ error: unknown }>, label: string, retries = 5) {
-  for (let attempt = 0; ; attempt++) {
-    const { error } = await makeRequest();
-    if (!error) return;
-    if (attempt >= retries) throw new Error(`cleanup failed (${label}): ${JSON.stringify(error)}`);
-    await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
-  }
-}
 
 async function seedGame(title: string, price: number) {
   const { data: game, error } = await service
@@ -160,21 +153,73 @@ beforeAll(async () => {
   paymentMethod = pm;
 });
 
+// See tests/helpers/cleanup.ts for why each step below runs independently
+// instead of as one linear await chain.
 afterAll(async () => {
-  if (orderIds.length) await cleanup(() => service.from("order_items").delete().in("order_id", orderIds), "order_items");
-  if (gameIds.length) await cleanup(() => service.from("game_credentials").delete().in("game_id", gameIds), "game_credentials");
-  if (orderIds.length) await cleanup(() => service.from("orders").delete().in("id", orderIds), "orders");
-  if (gameIds.length) await cleanup(() => service.from("games").delete().in("id", gameIds), "games");
-  if (paymentMethod?.id) await cleanup(() => service.from("payment_methods").delete().eq("id", paymentMethod.id), "payment_methods");
-
-  const actorIds = [customerA?.id, customerB?.id, adminUser?.id].filter((id): id is string => Boolean(id));
-  if (actorIds.length) await cleanup(() => service.from("audit_log").delete().in("actor_id", actorIds), "audit_log");
-
-  if (customerA?.id) await cleanup(() => service.auth.admin.deleteUser(customerA.id), "customerA");
-  if (customerB?.id) await cleanup(() => service.auth.admin.deleteUser(customerB.id), "customerB");
-  if (customerEmpty?.id) await cleanup(() => service.auth.admin.deleteUser(customerEmpty.id), "customerEmpty");
-  if (adminUser?.id) await cleanup(() => service.auth.admin.deleteUser(adminUser.id), "adminUser");
-});
+  await runCleanupSteps([
+    {
+      label: "order_items",
+      run: async () => {
+        if (orderIds.length) await deleteWithRetry(() => service.from("order_items").delete().in("order_id", orderIds), "order_items");
+      },
+    },
+    {
+      label: "game_credentials",
+      run: async () => {
+        if (gameIds.length) await deleteWithRetry(() => service.from("game_credentials").delete().in("game_id", gameIds), "game_credentials");
+      },
+    },
+    {
+      label: "orders",
+      run: async () => {
+        if (orderIds.length) await deleteWithRetry(() => service.from("orders").delete().in("id", orderIds), "orders");
+      },
+    },
+    {
+      label: "games",
+      run: async () => {
+        if (gameIds.length) await deleteWithRetry(() => service.from("games").delete().in("id", gameIds), "games");
+      },
+    },
+    {
+      label: "payment_methods",
+      run: async () => {
+        if (paymentMethod?.id) await deleteWithRetry(() => service.from("payment_methods").delete().eq("id", paymentMethod.id), "payment_methods");
+      },
+    },
+    {
+      label: "audit_log",
+      run: async () => {
+        const actorIds = [customerA?.id, customerB?.id, adminUser?.id].filter((id): id is string => Boolean(id));
+        if (actorIds.length) await deleteWithRetry(() => service.from("audit_log").delete().in("actor_id", actorIds), "audit_log");
+      },
+    },
+    {
+      label: "customerA",
+      run: async () => {
+        if (customerA?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(customerA.id), "customerA");
+      },
+    },
+    {
+      label: "customerB",
+      run: async () => {
+        if (customerB?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(customerB.id), "customerB");
+      },
+    },
+    {
+      label: "customerEmpty",
+      run: async () => {
+        if (customerEmpty?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(customerEmpty.id), "customerEmpty");
+      },
+    },
+    {
+      label: "adminUser",
+      run: async () => {
+        if (adminUser?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(adminUser.id), "adminUser");
+      },
+    },
+  ]);
+}, 100_000); // 10 independent steps, each capped at 8s worst case (see tests/helpers/cleanup.ts)
 
 describe("/library — real per-user isolation", () => {
   it("shows only each signed-in user's own approved games, never the other user's", async () => {

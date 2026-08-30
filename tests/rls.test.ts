@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -9,27 +10,6 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const service = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
-
-// Cleanup calls whose errors previously went unchecked leaked test rows and
-// test auth users into the live project across several runs. Every cleanup
-// call goes through this so a failure is loud instead of silent.
-async function cleanup(
-  makeRequest: () => PromiseLike<{ error: unknown }>,
-  label: string,
-  retries = 2,
-) {
-  for (let attempt = 0; ; attempt++) {
-    const { error } = await makeRequest();
-    if (!error) return;
-    if (attempt >= retries) {
-      throw new Error(`cleanup failed (${label}): ${JSON.stringify(error)}`);
-    }
-    // The Auth admin API occasionally returns a transient 500
-    // (AuthRetryableFetchError) under bursty test load — worth one retry
-    // before treating it as a real failure.
-    await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
-  }
-}
 
 async function signedInClient(email: string, password: string): Promise<SupabaseClient> {
   const client = createClient(url, anonKey, {
@@ -171,27 +151,62 @@ beforeAll(async () => {
   auditRow = auditRowData;
 });
 
+// Defensive: if beforeAll failed partway, only clean up what actually got
+// created. See tests/helpers/cleanup.ts for why each step below runs
+// independently instead of as one linear await chain.
 afterAll(async () => {
-  // Defensive: if beforeAll failed partway, only clean up what actually got created.
-  if (orderA?.id) {
-    await cleanup(() => service.from("order_items").delete().eq("order_id", orderA.id), "order_items");
-  }
-  if (auditRow?.id) await cleanup(() => service.from("audit_log").delete().eq("id", auditRow.id), "audit_log");
-  if (game?.id) {
-    await cleanup(() => service.from("game_credentials").delete().eq("game_id", game.id), "game_credentials");
-  }
-  const orderIds = [orderA?.id, orderB?.id].filter((id): id is string => Boolean(id));
-  if (orderIds.length) await cleanup(() => service.from("orders").delete().in("id", orderIds), "orders");
-  if (game?.id) await cleanup(() => service.from("games").delete().eq("id", game.id), "games");
-  if (paymentMethod?.id) {
-    await cleanup(
-      () => service.from("payment_methods").delete().eq("id", paymentMethod.id),
-      "payment_methods",
-    );
-  }
-  if (userA?.id) await cleanup(() => service.auth.admin.deleteUser(userA.id), "userA");
-  if (userB?.id) await cleanup(() => service.auth.admin.deleteUser(userB.id), "userB");
-});
+  await runCleanupSteps([
+    {
+      label: "order_items",
+      run: async () => {
+        if (orderA?.id) await deleteWithRetry(() => service.from("order_items").delete().eq("order_id", orderA.id), "order_items");
+      },
+    },
+    {
+      label: "audit_log",
+      run: async () => {
+        if (auditRow?.id) await deleteWithRetry(() => service.from("audit_log").delete().eq("id", auditRow.id), "audit_log");
+      },
+    },
+    {
+      label: "game_credentials",
+      run: async () => {
+        if (game?.id) await deleteWithRetry(() => service.from("game_credentials").delete().eq("game_id", game.id), "game_credentials");
+      },
+    },
+    {
+      label: "orders",
+      run: async () => {
+        const orderIds = [orderA?.id, orderB?.id].filter((id): id is string => Boolean(id));
+        if (orderIds.length) await deleteWithRetry(() => service.from("orders").delete().in("id", orderIds), "orders");
+      },
+    },
+    {
+      label: "games",
+      run: async () => {
+        if (game?.id) await deleteWithRetry(() => service.from("games").delete().eq("id", game.id), "games");
+      },
+    },
+    {
+      label: "payment_methods",
+      run: async () => {
+        if (paymentMethod?.id) await deleteWithRetry(() => service.from("payment_methods").delete().eq("id", paymentMethod.id), "payment_methods");
+      },
+    },
+    {
+      label: "userA",
+      run: async () => {
+        if (userA?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(userA.id), "userA");
+      },
+    },
+    {
+      label: "userB",
+      run: async () => {
+        if (userB?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(userB.id), "userB");
+      },
+    },
+  ]);
+}, 80_000); // 8 independent steps, each capped at 8s worst case (see tests/helpers/cleanup.ts)
 
 describe("RLS sanity controls (positive cases — proves denials below aren't just broken access entirely)", () => {
   it("customer A CAN select their own order", async () => {
@@ -336,8 +351,20 @@ describe("reserve_credential inventory logic", () => {
     expect(error).toBeNull();
     expect(reserved).toBeNull();
 
-    await cleanup(() => service.from("orders").delete().eq("id", fakeOrder.id), "fakeOrder");
-    await cleanup(() => service.from("games").delete().eq("id", emptyGame.id), "emptyGame");
+    await runCleanupSteps([
+      {
+        label: "fakeOrder",
+        run: async () => {
+          await deleteWithRetry(() => service.from("orders").delete().eq("id", fakeOrder.id), "fakeOrder");
+        },
+      },
+      {
+        label: "emptyGame",
+        run: async () => {
+          await deleteWithRetry(() => service.from("games").delete().eq("id", emptyGame.id), "emptyGame");
+        },
+      },
+    ]);
   });
 
   it("under concurrent calls for the same game with one credential, exactly one succeeds and one gets null", async () => {
@@ -408,11 +435,28 @@ describe("reserve_credential inventory logic", () => {
     // game_credentials.order_id -> orders(id) has no ON DELETE CASCADE, and
     // the winning reservation left raceCred pointing at whichever order won
     // — it must go before the orders it references, not after.
-    await cleanup(() => service.from("game_credentials").delete().eq("id", raceCred.id), "raceCred");
-    await cleanup(
-      () => service.from("orders").delete().in("id", [raceOrder1.id, raceOrder2.id]),
-      "raceOrders",
-    );
-    await cleanup(() => service.from("games").delete().eq("id", raceGame.id), "raceGame");
+    await runCleanupSteps([
+      {
+        label: "raceCred",
+        run: async () => {
+          await deleteWithRetry(() => service.from("game_credentials").delete().eq("id", raceCred.id), "raceCred");
+        },
+      },
+      {
+        label: "raceOrders",
+        run: async () => {
+          await deleteWithRetry(
+            () => service.from("orders").delete().in("id", [raceOrder1.id, raceOrder2.id]),
+            "raceOrders",
+          );
+        },
+      },
+      {
+        label: "raceGame",
+        run: async () => {
+          await deleteWithRetry(() => service.from("games").delete().eq("id", raceGame.id), "raceGame");
+        },
+      },
+    ]);
   });
 });

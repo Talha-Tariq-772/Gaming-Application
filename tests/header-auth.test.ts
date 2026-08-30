@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
 import { collectText, findElementOfType } from "./helpers/react-tree";
 
 /**
@@ -36,15 +37,6 @@ async function signedInClient(email: string, password: string): Promise<Supabase
   const { error } = await client.auth.signInWithPassword({ email, password });
   if (error) throw error;
   return client;
-}
-
-async function cleanup(makeRequest: () => PromiseLike<{ error: unknown }>, label: string, retries = 5) {
-  for (let attempt = 0; ; attempt++) {
-    const { error } = await makeRequest();
-    if (!error) return;
-    if (attempt >= retries) throw new Error(`cleanup failed (${label}): ${JSON.stringify(error)}`);
-    await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
-  }
 }
 
 const run = randomUUID().slice(0, 8);
@@ -113,12 +105,38 @@ beforeAll(async () => {
   clientAgent = await signedInClient(agentUser.email, password);
 });
 
+// See tests/helpers/cleanup.ts for why each step below runs independently
+// instead of as one linear await chain — that used to mean one failing
+// deleteUser call (e.g. incompleteUser) permanently blocked the rest
+// (completeUser/adminUser/agentUser), even though none of them depend on it.
 afterAll(async () => {
-  if (incompleteUser?.id) await cleanup(() => service.auth.admin.deleteUser(incompleteUser.id), "incompleteUser");
-  if (completeUser?.id) await cleanup(() => service.auth.admin.deleteUser(completeUser.id), "completeUser");
-  if (adminUser?.id) await cleanup(() => service.auth.admin.deleteUser(adminUser.id), "adminUser");
-  if (agentUser?.id) await cleanup(() => service.auth.admin.deleteUser(agentUser.id), "agentUser");
-});
+  await runCleanupSteps([
+    {
+      label: "incompleteUser",
+      run: async () => {
+        if (incompleteUser?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(incompleteUser.id), "incompleteUser");
+      },
+    },
+    {
+      label: "completeUser",
+      run: async () => {
+        if (completeUser?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(completeUser.id), "completeUser");
+      },
+    },
+    {
+      label: "adminUser",
+      run: async () => {
+        if (adminUser?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(adminUser.id), "adminUser");
+      },
+    },
+    {
+      label: "agentUser",
+      run: async () => {
+        if (agentUser?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(agentUser.id), "agentUser");
+      },
+    },
+  ]);
+}, 60_000); // 4 independent steps, each capped at 8s worst case (see tests/helpers/cleanup.ts)
 
 describe("Header — real-session auth states", () => {
   it("signed out: shows Sign In, no complete-profile link, no auth menu", async () => {
