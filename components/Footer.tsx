@@ -71,10 +71,15 @@ export default async function Footer() {
               Support
             </h2>
             <p className="mt-3 text-sm text-nova-ash">
+              {/* -my-2.5/py-2.5 reserves a 44px tap target (WCAG/platform
+                  minimum) without growing the text itself or the
+                  paragraph's line height — same pattern as the nav/social
+                  links elsewhere in this file. Was a bare inline link with
+                  no reserved height at all (measured 148x16px). */}
               <WhatsAppLink
                 href={buildGeneralWhatsAppLink()}
                 context="footer"
-                className="font-semibold text-nova-ember hover:text-nova-ember-lo"
+                className="-my-2.5 inline-flex min-h-11 items-center py-2.5 font-semibold text-nova-ember hover:text-nova-ember-lo"
               >
                 Message us on WhatsApp
               </WhatsAppLink>{" "}
