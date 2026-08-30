@@ -241,3 +241,90 @@ describe("getProfilesForAdmin — non-admin hitting /admin/users gets nothing fr
     expect(ids).toContain(adminSecond.id);
   });
 });
+
+/**
+ * changeUserRole's own last-admin check (above this file, in
+ * src/lib/actions/admin-users.ts) is a plain SELECT-then-UPDATE with no
+ * locking — advisory only. The real boundary is
+ * trg_prevent_last_admin_demotion (20260830000001_prevent_last_admin_
+ * demotion.sql), a BEFORE UPDATE trigger on profiles that locks every admin
+ * row before counting, inside the same transaction as the write. This is
+ * the only test in the suite that proves that boundary actually holds under
+ * a genuine race — two real concurrent demotions, not sequential calls,
+ * through the real server action so the app-level check races too.
+ *
+ * The count this trigger enforces is GLOBAL, not scoped to this test's own
+ * users, and this live project normally has exactly one real admin
+ * (whoever owns it). Reaching the actual critical boundary (exactly 2
+ * admins system-wide, so demoting either one is only safe if the other
+ * survives) requires temporarily including every other admin in this
+ * setup — there's no way to test a global invariant using only test-owned
+ * rows while a real admin sits underneath it, permanently satisfying the
+ * floor. Every admin this test touches is restored in a `finally`, using
+ * deleteWithRetry so the restoration itself doesn't silently fail — this
+ * is the one place in the suite where that actually matters beyond cleanup
+ * hygiene, since leaving a real account demoted would be a real incident,
+ * not just test-data debt.
+ */
+describe("prevent_last_admin_demotion trigger — real concurrency, not just sequential calls", () => {
+  it("concurrently demoting two different admins, with exactly 2 admins system-wide, lets exactly one succeed and never reaches zero", async () => {
+    const { data: allAdmins, error: allAdminsErr } = await service.from("profiles").select("id").eq("role", "admin");
+    if (allAdminsErr) throw allAdminsErr;
+    const otherAdminIds = allAdmins.map((p) => p.id).filter((id) => id !== adminMain.id && id !== adminSecond.id);
+
+    try {
+      // Bring the global admin count down to exactly 2 (adminMain +
+      // adminSecond). Each of these is done sequentially and is safe on its
+      // own — more than one admin exists at every step here, so none of
+      // them can trip the guard themselves.
+      for (const id of otherAdminIds) {
+        const { error } = await service.from("profiles").update({ role: "customer" }).eq("id", id);
+        if (error) throw error;
+      }
+
+      const { count: preRaceCount, error: preRaceErr } = await service
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "admin");
+      if (preRaceErr) throw preRaceErr;
+      expect(preRaceCount).toBe(2);
+
+      // The actual race. Both calls read sessionState.client at the moment
+      // they invoke the (mocked) session client — set once, before either
+      // is dispatched, so both act as adminMain; this test is about the
+      // database boundary holding under concurrency, not about modeling two
+      // independent human sessions.
+      sessionState.client = clientAdminMain;
+      const [resultA, resultB] = await Promise.all([
+        changeUserRole(adminMain.id, "customer", adminMain.id),
+        changeUserRole(adminSecond.id, "customer", adminMain.id),
+      ]);
+
+      const results = [resultA, resultB];
+      const successes = results.filter((r) => r.ok);
+      const failures = results.filter((r) => !r.ok);
+      expect(successes).toHaveLength(1);
+      expect(failures).toHaveLength(1);
+      expect(failures[0].ok === false && failures[0].error).toBe("LAST_ADMIN");
+
+      const { count: postRaceCount, error: postRaceErr } = await service
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "admin");
+      if (postRaceErr) throw postRaceErr;
+      expect(postRaceCount).toBe(1); // exactly one survived — never zero, and the race didn't let both through
+    } finally {
+      await deleteWithRetry(
+        () => service.from("profiles").update({ role: "admin" }).eq("id", adminMain.id),
+        "restore adminMain",
+      );
+      await deleteWithRetry(
+        () => service.from("profiles").update({ role: "admin" }).eq("id", adminSecond.id),
+        "restore adminSecond",
+      );
+      for (const id of otherAdminIds) {
+        await deleteWithRetry(() => service.from("profiles").update({ role: "admin" }).eq("id", id), `restore ${id}`);
+      }
+    }
+  }, 30_000);
+});

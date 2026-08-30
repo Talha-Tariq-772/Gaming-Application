@@ -11,6 +11,20 @@ export type ChangeRoleResult =
   | { ok: false; error: "LAST_ADMIN" | "NOT_FOUND" | "UNKNOWN"; message: string };
 
 /**
+ * SQLSTATE raised by trg_prevent_last_admin_demotion
+ * (20260830000001_prevent_last_admin_demotion.sql) — the real boundary, a
+ * BEFORE UPDATE trigger on profiles that locks and re-counts admins inside
+ * the same transaction as the write. The count check below this file is
+ * only advisory: a fast, friendly rejection in the common case, without a
+ * round trip, but not itself race-proof or safe against a stray admin row.
+ * When the trigger is what actually catches it (the advisory check passed
+ * but the DB still says no — a concurrent demotion, most likely), this code
+ * lets that surface as the same friendly LAST_ADMIN result instead of a raw
+ * Postgres error.
+ */
+const LAST_ADMIN_TRIGGER_ERRCODE = "LA001";
+
+/**
  * The security-critical admin action. Re-verifies the caller's role fresh
  * from the database via requireAdmin() — never trusts a client value —
  * and cross-checks the passed adminId against that verified session,
@@ -79,6 +93,36 @@ export async function changeUserRole(
     .single();
 
   if (updateErr || !updated) {
+    if (updateErr?.code === LAST_ADMIN_TRIGGER_ERRCODE) {
+      return {
+        ok: false,
+        error: "LAST_ADMIN",
+        message: "Cannot remove the last remaining admin. Promote someone else first.",
+      };
+    }
+
+    // Observed directly under real concurrent load (two admins demoted at
+    // once): the side of the race that the trigger's FOR UPDATE lock blocks
+    // doesn't always come back as LA001 — PostgREST can report PGRST116
+    // ("0 rows") for that specific failure instead of surfacing the
+    // trigger's own error. Since targetUserId was already confirmed to
+    // exist a few lines up and nothing else in this flow deletes profiles
+    // rows, "0 rows from an update-by-id whose id we just verified" is not
+    // a real not-found case — check the row's actual current role rather
+    // than trust the error code: if it's still oldRole, nothing was
+    // written, and the last-admin trigger is the only thing in this path
+    // that rejects a write without changing anything.
+    if (updateErr?.code === "PGRST116") {
+      const { data: recheck } = await service.from("profiles").select("role").eq("id", targetUserId).single();
+      if (recheck?.role === oldRole) {
+        return {
+          ok: false,
+          error: "LAST_ADMIN",
+          message: "Cannot remove the last remaining admin. Promote someone else first.",
+        };
+      }
+    }
+
     console.error("[changeUserRole] update", updateErr);
     return { ok: false, error: "UNKNOWN", message: "Something went wrong changing this user's role." };
   }
