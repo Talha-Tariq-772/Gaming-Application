@@ -1,6 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
+import NovaCard from "@/src/components/ui/nova/NovaCard";
 import { formatPrice } from "@/src/lib/format";
+import { priceDisplay } from "@/src/lib/price-display";
+import { gameCoverImage } from "@/src/lib/storage-image";
+import { GAME_PLATFORM_LABELS } from "@/src/types/database";
 import type { Game } from "@/src/types/database";
 import Tag from "./Tag";
 
@@ -24,32 +27,41 @@ export default function GameCard({
    * LCP for no benefit since it's already above the fold. */
   priority?: boolean;
 }) {
+  const price = priceDisplay(game);
+  const cover = game.coverPath ? gameCoverImage(game.coverPath) : null;
+
   return (
     <Link href={`/games/${game.slug}`} className="group flex flex-col gap-3">
-      <div
-        data-cursor-follow-target
-        className="relative aspect-[3/4] overflow-hidden rounded-lg border border-border bg-surface-1"
-      >
-        <Image
-          src={game.coverImageUrl}
+      <NovaCard data-cursor-follow-target className="relative aspect-3/4 overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element -- cover_path derivatives are already exact pre-sized .webp files (Session 1's upload script); next/image's optimizer would only re-fetch and re-encode them for no benefit — see storage-image.ts */}
+        <img
+          src={cover ? cover.src : game.coverImageUrl}
+          srcSet={cover?.srcSet}
+          sizes={cover ? "(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw" : undefined}
           alt={game.title}
-          fill
-          sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
-          className="scale-110 object-cover"
-          priority={priority}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : undefined}
+          className="absolute inset-0 h-full w-full scale-110 object-cover"
         />
-      </div>
+      </NovaCard>
       <div className="flex flex-col gap-1.5">
-        <h3 className="line-clamp-2 break-words font-display text-lg font-bold text-text transition-colors duration-(--duration-fast) ease-standard group-hover:text-accent">
+        <h3 className="line-clamp-2 font-sans text-[15px] font-semibold uppercase tracking-[0.06em] text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember">
           {game.title}
         </h3>
         <div className="flex flex-wrap gap-2">
           <Tag>{game.genre}</Tag>
-          <Tag>{game.platform}</Tag>
+          {game.platform && <Tag>{GAME_PLATFORM_LABELS[game.platform]}</Tag>}
         </div>
-        <span className="mt-1 text-sm font-semibold text-text">
-          {formatPrice(game.price)}
-        </span>
+        {price && (
+          <span className="mt-1 flex items-baseline gap-2">
+            <span className="text-sm font-semibold text-nova-bone">{price.label}</span>
+            {price.wasPricePkr !== null && (
+              <span className="text-xs text-nova-smoke line-through">
+                {formatPrice(price.wasPricePkr)}
+              </span>
+            )}
+          </span>
+        )}
       </div>
     </Link>
   );

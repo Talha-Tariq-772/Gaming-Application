@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import SectionErrorBoundary from "@/src/components/SectionErrorBoundary";
-import CatalogFilters from "@/src/components/games/CatalogFilters";
 import GamesGridSkeleton from "@/src/components/games/GamesGridSkeleton";
-import MobileFiltersSheet from "@/src/components/games/MobileFiltersSheet";
-import SortSelect from "@/src/components/games/SortSelect";
+import StoreFilterBar from "@/src/components/games/StoreFilterBar";
+import StoreSlider from "@/src/components/store/StoreSlider";
+import { getSliderGames } from "@/src/lib/catalog";
 import type {
   GameFilters,
   GameGenre,
@@ -56,6 +56,8 @@ function parseFilters(searchParams: RawSearchParams): GameFilters {
     maxPrice: maxPrice ? Number(maxPrice) : undefined,
     search: search || undefined,
     sort: (sort as GameSort) || "newest",
+    isNewArrival: firstValue(searchParams.newArrivals) === "1",
+    isBestSeller: firstValue(searchParams.bestSellers) === "1",
   };
 }
 
@@ -66,6 +68,7 @@ export default async function GamesPage({
 }) {
   const resolvedParams = await searchParams;
   const filters = parseFilters(resolvedParams);
+  const sliderGames = await getSliderGames();
 
   // Keyed by the raw query string so each unique filter combination is
   // treated as a fresh subtree — forcing the skeleton to reappear instead
@@ -79,37 +82,31 @@ export default async function GamesPage({
   ).toString();
 
   return (
-    <div className="mx-auto max-w-page px-4 py-16 md:px-8">
-      <div className="mb-12">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-          Store
-        </span>
-        <h1 className="mt-2 text-display-sm font-display font-extrabold text-text">
-          All Games
-        </h1>
-      </div>
+    <>
+      {/* Full-bleed — deliberately outside the max-w-page/px-4 wrapper below
+          so it runs edge to edge instead of inheriting the page's side
+          margins. */}
+      <StoreSlider games={sliderGames} />
 
-      <div className="grid gap-12 lg:grid-cols-[280px_1fr]">
-        <aside className="hidden lg:block">
-          <h2 className="mb-6 font-display text-lg font-bold text-text">
-            Filters
-          </h2>
-          <CatalogFilters />
-        </aside>
-
-        <div>
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <MobileFiltersSheet />
-            <SortSelect />
-          </div>
-
-          <SectionErrorBoundary label="games">
-            <Suspense key={suspenseKey} fallback={<GamesGridSkeleton />}>
-              <GamesResults filters={filters} />
-            </Suspense>
-          </SectionErrorBoundary>
+      <div className="mx-auto max-w-page px-4 py-16 md:px-8">
+        <div className="mb-8">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">
+            Store
+          </span>
+          <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">
+            All Games
+          </h1>
         </div>
+
+        <h2 className="sr-only">Filters</h2>
+        <StoreFilterBar />
+
+        <SectionErrorBoundary label="games">
+          <Suspense key={suspenseKey} fallback={<GamesGridSkeleton />}>
+            <GamesResults filters={filters} />
+          </Suspense>
+        </SectionErrorBoundary>
       </div>
-    </div>
+    </>
   );
 }
