@@ -26,7 +26,13 @@ for (const cfg of configs) {
     new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
         window.__lcpValue = entry.startTime;
-        window.__lcpEl = entry.element?.tagName + (entry.element?.src ? ' src=' + entry.element.src.substring(0, 80) : '');
+        // currentSrc, not src: for a responsive <img> with srcset, .src is
+        // next/image's non-srcset fallback (typically its largest
+        // candidate) and was never what the browser actually fetched —
+        // reading it here previously made every correctly-sized responsive
+        // image look like a fixed-huge-width one in this report.
+        const real = entry.element?.currentSrc || entry.element?.src;
+        window.__lcpEl = entry.element?.tagName + (real ? ' src=' + real.substring(0, 80) : '');
       }
     }).observe({ type: 'largest-contentful-paint', buffered: true });
 
