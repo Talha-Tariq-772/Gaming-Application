@@ -8,7 +8,7 @@ import {
   type GameFormErrors,
   type GameFormInput,
 } from "@/src/lib/validation";
-import { GAME_GENRES, GAME_PLATFORMS } from "@/src/types/database";
+import { GAME_GENRES, GAME_PLATFORM_LABELS, GAME_PLATFORMS } from "@/src/types/database";
 import type { Game, GameGenre, GamePlatform } from "@/src/types/database";
 
 function slugify(title: string): string {
@@ -65,7 +65,11 @@ function toFormValues(game: Game | null): FormValues {
     description: game.description,
     price: String(game.price),
     genre: game.genre,
-    platform: game.platform,
+    // Every seeded game currently has platform = null (Session 1 populated
+    // the column and its CHECK but never the values) — fall back to the
+    // first option same as the "add new game" branch above, rather than
+    // leaving the <select> on a value outside GAME_PLATFORMS.
+    platform: game.platform ?? GAME_PLATFORMS[0],
     coverImageUrl: game.coverImageUrl,
     trailerUrl: game.trailerUrl,
     setupGuide: game.setupGuide,
@@ -148,16 +152,16 @@ export default function GameFormDialog({
       <div
         onClick={onCancel}
         aria-hidden="true"
-        className="absolute inset-0 bg-bg/80"
+        className="absolute inset-0 bg-nova-void/80"
       />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={game ? "Edit game" : "Add game"}
-        className="relative flex max-h-full w-full max-w-lg flex-col overflow-y-auto rounded-lg border border-border bg-surface-1 p-6"
+        className="relative flex max-h-full w-full max-w-lg flex-col overflow-y-auto rounded-lg border border-nova-hairline bg-nova-crypt p-6"
       >
-        <h2 className="text-lg font-bold text-text">
+        <h2 className="text-lg font-bold text-nova-bone">
           {game ? "Edit Game" : "Add Game"}
         </h2>
 
@@ -165,7 +169,7 @@ export default function GameFormDialog({
           <div>
             <label
               htmlFor="game-title"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-faint"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
             >
               Title
             </label>
@@ -177,10 +181,10 @@ export default function GameFormDialog({
               onBlur={() => blur("title")}
               aria-invalid={Boolean(fieldError("title"))}
               aria-describedby={fieldError("title") ? "game-title-error" : undefined}
-              className="min-h-11 w-full rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+              className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
             />
             {fieldError("title") && (
-              <p id="game-title-error" className="mt-1 text-xs text-danger">
+              <p id="game-title-error" className="mt-1 text-xs text-nova-blood">
                 {fieldError("title")}
               </p>
             )}
@@ -189,7 +193,7 @@ export default function GameFormDialog({
           <div>
             <label
               htmlFor="game-slug"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-faint"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
             >
               Slug
             </label>
@@ -204,10 +208,10 @@ export default function GameFormDialog({
               onBlur={() => blur("slug")}
               aria-invalid={Boolean(fieldError("slug"))}
               aria-describedby={fieldError("slug") ? "game-slug-error" : undefined}
-              className="min-h-11 w-full rounded-md border border-border bg-surface-2 px-3 py-2 font-mono text-sm text-text focus:border-accent focus:outline-none"
+              className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 font-mono text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
             />
             {fieldError("slug") && (
-              <p id="game-slug-error" className="mt-1 text-xs text-danger">
+              <p id="game-slug-error" className="mt-1 text-xs text-nova-blood">
                 {fieldError("slug")}
               </p>
             )}
@@ -216,7 +220,7 @@ export default function GameFormDialog({
           <div>
             <label
               htmlFor="game-description"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-faint"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
             >
               Description
             </label>
@@ -230,10 +234,10 @@ export default function GameFormDialog({
               aria-describedby={
                 fieldError("description") ? "game-description-error" : undefined
               }
-              className="w-full rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+              className="w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
             />
             {fieldError("description") && (
-              <p id="game-description-error" className="mt-1 text-xs text-danger">
+              <p id="game-description-error" className="mt-1 text-xs text-nova-blood">
                 {fieldError("description")}
               </p>
             )}
@@ -243,7 +247,7 @@ export default function GameFormDialog({
             <div>
               <label
                 htmlFor="game-price"
-                className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-faint"
+                className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
               >
                 Price (Rs)
               </label>
@@ -256,21 +260,21 @@ export default function GameFormDialog({
                 onBlur={() => blur("price")}
                 aria-invalid={Boolean(fieldError("price"))}
                 aria-describedby={fieldError("price") ? "game-price-error" : undefined}
-                className="min-h-11 w-full rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+                className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
               />
               {fieldError("price") && (
-                <p id="game-price-error" className="mt-1 text-xs text-danger">
+                <p id="game-price-error" className="mt-1 text-xs text-nova-blood">
                   {fieldError("price")}
                 </p>
               )}
             </div>
             <div className="flex items-end">
-              <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-text-muted">
+              <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-nova-ash">
                 <input
                   type="checkbox"
                   checked={values.isActive}
                   onChange={(e) => update("isActive", e.target.checked)}
-                  className="h-4 w-4 accent-accent"
+                  className="h-4 w-4 accent-nova-ember"
                 />
                 Active
               </label>
@@ -281,7 +285,7 @@ export default function GameFormDialog({
             <div>
               <label
                 htmlFor="game-genre"
-                className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-faint"
+                className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
               >
                 Genre
               </label>
@@ -289,7 +293,7 @@ export default function GameFormDialog({
                 id="game-genre"
                 value={values.genre}
                 onChange={(e) => update("genre", e.target.value as GameGenre)}
-                className="min-h-11 w-full rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+                className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
               >
                 {GAME_GENRES.map((g) => (
                   <option key={g} value={g}>
@@ -301,7 +305,7 @@ export default function GameFormDialog({
             <div>
               <label
                 htmlFor="game-platform"
-                className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-faint"
+                className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
               >
                 Platform
               </label>
@@ -309,11 +313,11 @@ export default function GameFormDialog({
                 id="game-platform"
                 value={values.platform}
                 onChange={(e) => update("platform", e.target.value as GamePlatform)}
-                className="min-h-11 w-full rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+                className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
               >
                 {GAME_PLATFORMS.map((p) => (
                   <option key={p} value={p}>
-                    {p}
+                    {GAME_PLATFORM_LABELS[p]}
                   </option>
                 ))}
               </select>
@@ -323,7 +327,7 @@ export default function GameFormDialog({
           <div>
             <label
               htmlFor="game-cover-url"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-faint"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
             >
               Cover Image URL
             </label>
@@ -338,10 +342,10 @@ export default function GameFormDialog({
               aria-describedby={
                 fieldError("coverImageUrl") ? "game-cover-url-error" : undefined
               }
-              className="min-h-11 w-full rounded-md border border-border bg-surface-2 px-3 py-2 font-mono text-xs text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+              className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 font-mono text-xs text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
             />
             {fieldError("coverImageUrl") && (
-              <p id="game-cover-url-error" className="mt-1 text-xs text-danger">
+              <p id="game-cover-url-error" className="mt-1 text-xs text-nova-blood">
                 {fieldError("coverImageUrl")}
               </p>
             )}
@@ -350,7 +354,7 @@ export default function GameFormDialog({
           <div>
             <label
               htmlFor="game-trailer-url"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-faint"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
             >
               Trailer URL
             </label>
@@ -365,10 +369,10 @@ export default function GameFormDialog({
               aria-describedby={
                 fieldError("trailerUrl") ? "game-trailer-url-error" : undefined
               }
-              className="min-h-11 w-full rounded-md border border-border bg-surface-2 px-3 py-2 font-mono text-xs text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+              className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 font-mono text-xs text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
             />
             {fieldError("trailerUrl") && (
-              <p id="game-trailer-url-error" className="mt-1 text-xs text-danger">
+              <p id="game-trailer-url-error" className="mt-1 text-xs text-nova-blood">
                 {fieldError("trailerUrl")}
               </p>
             )}
@@ -377,7 +381,7 @@ export default function GameFormDialog({
           <div>
             <label
               htmlFor="game-setup-guide"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-text-faint"
+              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
             >
               Setup Guide
             </label>
@@ -391,24 +395,24 @@ export default function GameFormDialog({
               aria-describedby={
                 fieldError("setupGuide") ? "game-setup-guide-error" : undefined
               }
-              className="w-full rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+              className="w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
             />
             {fieldError("setupGuide") && (
-              <p id="game-setup-guide-error" className="mt-1 text-xs text-danger">
+              <p id="game-setup-guide-error" className="mt-1 text-xs text-nova-blood">
                 {fieldError("setupGuide")}
               </p>
             )}
           </div>
         </div>
 
-        {submitError && <p className="mt-4 text-sm text-danger">{submitError}</p>}
+        {submitError && <p className="mt-4 text-sm text-nova-blood">{submitError}</p>}
 
         <div className="mt-6 flex gap-3">
           <button
             type="button"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="min-h-11 flex-1 rounded-md border border-border px-4 py-2 text-sm font-medium text-text-muted hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 flex-1 rounded-md border border-nova-hairline px-4 py-2 text-sm font-medium text-nova-ash hover:text-nova-bone disabled:cursor-not-allowed disabled:opacity-40"
           >
             Cancel
           </button>
@@ -416,7 +420,7 @@ export default function GameFormDialog({
             type="button"
             disabled={isSubmitting}
             onClick={handleSave}
-            className="min-h-11 flex-1 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 flex-1 rounded-md bg-nova-ember px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-lo disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isSubmitting ? "Saving…" : game ? "Save Changes" : "Add Game"}
           </button>

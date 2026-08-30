@@ -9,6 +9,13 @@
  * Timestamps are ISO 8601 strings (as they'd arrive over JSON), not `Date`.
  */
 
+// Union of the pre-existing admin-form list (Action..Horror) and the seed's
+// genre set (supabase/migrations/20260829000004_seed_catalog.sql: Action,
+// RPG, Shooter, Sports, Racing, Horror, Fighting) — Sports and Fighting are
+// the two the seed uses that this list didn't have before. Matches the
+// games_genre_check constraint in
+// supabase/migrations/20260829000002_games_catalog_columns.sql exactly —
+// change one, change the other.
 export const GAME_GENRES = [
   "Action",
   "Adventure",
@@ -19,19 +26,26 @@ export const GAME_GENRES = [
   "Puzzle",
   "Simulation",
   "Horror",
+  "Sports",
+  "Fighting",
 ] as const;
 
 export type GameGenre = (typeof GAME_GENRES)[number];
 
-export const GAME_PLATFORMS = [
-  "PC",
-  "PlayStation 5",
-  "Xbox Series X",
-  "Xbox One",
-  "Nintendo Switch",
-] as const;
+// Matches the games_platform_check constraint in
+// supabase/migrations/20260829000002_games_catalog_columns.sql exactly —
+// change one, change the other.
+export const GAME_PLATFORMS = ["ps4", "ps5", "ps4_ps5", "xbox"] as const;
 
 export type GamePlatform = (typeof GAME_PLATFORMS)[number];
+
+/** Human-readable labels for GAME_PLATFORMS, e.g. for a <select>'s option text. */
+export const GAME_PLATFORM_LABELS: Record<GamePlatform, string> = {
+  ps4: "PS4",
+  ps5: "PS5",
+  ps4_ps5: "PS4 & PS5",
+  xbox: "Xbox",
+};
 
 export type ProductType = "game" | "membership";
 export type VariantMode = "single" | "multi";

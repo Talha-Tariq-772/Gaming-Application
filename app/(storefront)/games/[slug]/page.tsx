@@ -10,6 +10,7 @@ import { formatPrice } from "@/src/lib/format";
 import { getGameBySlug, getGames } from "@/src/lib/catalog";
 import { REDEMPTION_GUIDE_SLUG } from "@/src/lib/mock-guides";
 import { SITE_URL } from "@/src/lib/site-config";
+import { GAME_PLATFORM_LABELS } from "@/src/types/database";
 
 export async function generateStaticParams() {
   const games = await getGames();
@@ -110,7 +111,7 @@ export default async function GameDetailPage({
       />
       <div className="grid gap-12 md:grid-cols-2">
         <div className="flex flex-col gap-6">
-          <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-border bg-surface-1">
+          <div className="relative aspect-3/4 overflow-hidden rounded-lg border border-nova-hairline bg-nova-crypt">
             <Image
               src={game.coverImageUrl}
               alt={game.title}
@@ -129,43 +130,43 @@ export default async function GameDetailPage({
 
         <div className="flex flex-col gap-6">
           <div>
-            <h1 className="break-words text-display-sm font-display font-extrabold text-text">
+            <h1 className="wrap-break-word text-display-sm font-display font-extrabold text-nova-bone">
               {game.title}
             </h1>
             <div className="mt-4 flex flex-wrap gap-2">
               <Tag>{game.genre}</Tag>
-              <Tag>{game.platform}</Tag>
+              {game.platform && <Tag>{GAME_PLATFORM_LABELS[game.platform]}</Tag>}
             </div>
           </div>
 
-          <span className="text-3xl font-display font-bold text-text">
+          <span className="text-3xl font-display font-bold text-nova-bone">
             {formatPrice(game.price)}
           </span>
 
-          <p className="break-words text-base text-text-muted">
+          <p className="wrap-break-word text-base text-nova-ash">
             {game.description}
           </p>
 
           {game.isActive ? (
             <AddToCartButton game={game} />
           ) : (
-            <p className="w-fit rounded-md border border-border bg-surface-1 px-4 py-3 text-sm text-text-muted">
+            <p className="w-fit rounded-md border border-nova-hairline bg-nova-crypt px-4 py-3 text-sm text-nova-ash">
               This game is no longer available for purchase.
             </p>
           )}
 
-          <details className="group rounded-lg border border-border bg-surface-1">
-            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between p-4 text-sm font-semibold text-text">
+          <details className="group rounded-lg border border-nova-hairline bg-nova-crypt">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between p-4 text-sm font-semibold text-nova-bone">
               Setup Guide
-              <span className="text-text-muted transition-transform duration-(--duration-fast) ease-standard group-open:rotate-180">
+              <span className="text-nova-ash transition-transform duration-(--duration-fast) ease-standard group-open:rotate-180">
                 ▾
               </span>
             </summary>
             <div className="px-4 pb-4">
-              <p className="text-sm text-text-muted">{game.setupGuide}</p>
+              <p className="text-sm text-nova-ash">{game.setupGuide}</p>
               <Link
                 href={`/guides/${REDEMPTION_GUIDE_SLUG}`}
-                className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-accent hover:text-accent-strong"
+                className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
               >
                 Read the full redemption guide →
               </Link>

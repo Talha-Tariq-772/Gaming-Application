@@ -1,5 +1,6 @@
 "use server";
 
+import { isValidGamePlatform } from "@/src/lib/admin-guardrails";
 import { requireAdmin } from "@/src/lib/auth/session";
 import { mapGameRow } from "@/src/lib/catalog";
 import { createClient as createServiceClient } from "@/src/lib/supabase/server";
@@ -37,6 +38,9 @@ function toRow(input: GameInput) {
 
 export async function createGame(input: GameInput): Promise<GameActionResult> {
   await requireAdmin();
+  if (!isValidGamePlatform(input.platform)) {
+    return { ok: false, message: "Invalid platform." };
+  }
   const supabase = createServiceClient();
 
   const { data, error } = await supabase.from("games").insert(toRow(input)).select("*").single();
@@ -52,6 +56,9 @@ export async function createGame(input: GameInput): Promise<GameActionResult> {
 
 export async function updateGame(gameId: string, input: GameInput): Promise<GameActionResult> {
   await requireAdmin();
+  if (!isValidGamePlatform(input.platform)) {
+    return { ok: false, message: "Invalid platform." };
+  }
   const supabase = createServiceClient();
 
   const { data, error } = await supabase.from("games").update(toRow(input)).eq("id", gameId).select("*").single();

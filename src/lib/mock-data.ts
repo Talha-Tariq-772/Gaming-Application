@@ -32,15 +32,12 @@ function placeholderCover(title: string): string {
 
 function setupGuideFor(platform: GamePlatform): string {
   switch (platform) {
-    case "PC":
-      return "Redeem your key on Steam via Library → Activate a Product on Steam, then download and install.";
-    case "PlayStation 5":
-      return "On your PS5, go to PlayStation Store → Redeem Codes, enter your code, then install from Your Library.";
-    case "Xbox Series X":
-    case "Xbox One":
+    case "ps4":
+    case "ps5":
+    case "ps4_ps5":
+      return "On your PlayStation console, go to PlayStation Store → Redeem Codes, enter your code, then install from Your Library.";
+    case "xbox":
       return "Go to the Microsoft Store → Redeem, enter your code, then install from My Library.";
-    case "Nintendo Switch":
-      return "Open the Nintendo eShop → Enter Code, redeem your code, then download from My Downloads.";
   }
 }
 
@@ -48,7 +45,27 @@ function setupGuideFor(platform: GamePlatform): string {
 /* Games                                                                   */
 /* ---------------------------------------------------------------------- */
 
-export const MOCK_GAMES: Game[] = [
+/** Shape of the hand-written fixtures below — everything Session 1's
+ * schema added (variants, cover/wallpaper paths, slider position, etc.) is
+ * filled in uniformly by the .map() after the array, since none of it is
+ * meaningful for these fictional placeholder titles. */
+type LegacyMockGame = Pick<
+  Game,
+  | "id"
+  | "title"
+  | "slug"
+  | "description"
+  | "price"
+  | "coverImageUrl"
+  | "trailerUrl"
+  | "genre"
+  | "platform"
+  | "setupGuide"
+  | "isActive"
+  | "createdAt"
+>;
+
+const LEGACY_MOCK_GAMES: LegacyMockGame[] = [
   {
     id: "game-1",
     title: "Crimson Horizon: The Complete Definitive Ultimate Edition — Remastered for Next-Generation Hardware",
@@ -59,8 +76,8 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Crimson Horizon"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-crimson-horizon",
     genre: "Action",
-    platform: "PC",
-    setupGuide: setupGuideFor("PC"),
+    platform: "ps4",
+    setupGuide: setupGuideFor("ps4"),
     isActive: true,
     createdAt: "2026-01-08T09:15:00.000Z",
   },
@@ -74,8 +91,8 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Silent Orbit"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-silent-orbit",
     genre: "Adventure",
-    platform: "PlayStation 5",
-    setupGuide: setupGuideFor("PlayStation 5"),
+    platform: "ps5",
+    setupGuide: setupGuideFor("ps5"),
     isActive: true,
     createdAt: "2026-01-15T11:30:00.000Z",
   },
@@ -89,8 +106,8 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Ashfall Legends"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-ashfall-legends",
     genre: "RPG",
-    platform: "PC",
-    setupGuide: setupGuideFor("PC"),
+    platform: "ps4_ps5",
+    setupGuide: setupGuideFor("ps4_ps5"),
     isActive: true,
     createdAt: "2026-01-22T14:00:00.000Z",
   },
@@ -104,8 +121,8 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Turbo Rivals"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-turbo-rivals",
     genre: "Racing",
-    platform: "Xbox Series X",
-    setupGuide: setupGuideFor("Xbox Series X"),
+    platform: "xbox",
+    setupGuide: setupGuideFor("xbox"),
     isActive: true,
     createdAt: "2026-02-02T08:45:00.000Z",
   },
@@ -119,8 +136,8 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Nightfall Protocol"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-nightfall-protocol",
     genre: "Shooter",
-    platform: "PC",
-    setupGuide: setupGuideFor("PC"),
+    platform: "ps4",
+    setupGuide: setupGuideFor("ps4"),
     isActive: true,
     createdAt: "2026-02-10T16:20:00.000Z",
   },
@@ -134,8 +151,8 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Kingdoms of Veyra"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-kingdoms-of-veyra",
     genre: "Strategy",
-    platform: "PC",
-    setupGuide: setupGuideFor("PC"),
+    platform: "ps5",
+    setupGuide: setupGuideFor("ps5"),
     isActive: true,
     createdAt: "2026-02-18T10:00:00.000Z",
   },
@@ -149,8 +166,8 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Pixel Kart Championship"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-pixel-kart-championship",
     genre: "Racing",
-    platform: "Nintendo Switch",
-    setupGuide: setupGuideFor("Nintendo Switch"),
+    platform: "ps4_ps5",
+    setupGuide: setupGuideFor("ps4_ps5"),
     isActive: true,
     createdAt: "2026-03-01T09:00:00.000Z",
   },
@@ -164,8 +181,8 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Shadow Circuit"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-shadow-circuit",
     genre: "Puzzle",
-    platform: "PC",
-    setupGuide: setupGuideFor("PC"),
+    platform: "xbox",
+    setupGuide: setupGuideFor("xbox"),
     isActive: true,
     createdAt: "2026-03-05T13:40:00.000Z",
   },
@@ -179,8 +196,8 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Iron Frontier"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-iron-frontier",
     genre: "Simulation",
-    platform: "PC",
-    setupGuide: setupGuideFor("PC"),
+    platform: "ps4",
+    setupGuide: setupGuideFor("ps4"),
     isActive: true,
     createdAt: "2026-03-12T17:10:00.000Z",
   },
@@ -194,8 +211,8 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Whispering Hollow"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-whispering-hollow",
     genre: "Horror",
-    platform: "PlayStation 5",
-    setupGuide: setupGuideFor("PlayStation 5"),
+    platform: "ps5",
+    setupGuide: setupGuideFor("ps5"),
     isActive: true,
     createdAt: "2026-03-20T20:00:00.000Z",
   },
@@ -209,8 +226,8 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Skybound Tactics"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-skybound-tactics",
     genre: "Strategy",
-    platform: "Xbox One",
-    setupGuide: setupGuideFor("Xbox One"),
+    platform: "ps4_ps5",
+    setupGuide: setupGuideFor("ps4_ps5"),
     isActive: false,
     createdAt: "2026-03-28T12:00:00.000Z",
   },
@@ -224,12 +241,35 @@ export const MOCK_GAMES: Game[] = [
     coverImageUrl: placeholderCover("Velocity Drift"),
     trailerUrl: "https://www.youtube.com/watch?v=demo-velocity-drift",
     genre: "Racing",
-    platform: "PC",
-    setupGuide: setupGuideFor("PC"),
+    platform: "xbox",
+    setupGuide: setupGuideFor("xbox"),
     isActive: true,
     createdAt: "2026-04-02T15:30:00.000Z",
   },
 ];
+
+export const MOCK_GAMES: Game[] = LEGACY_MOCK_GAMES.map((g) => ({
+  ...g,
+  productType: "game",
+  releaseDate: null,
+  isNewArrival: false,
+  isBestSeller: false,
+  variantMode: "single",
+  coverPath: null,
+  wallpaperPath: null,
+  sliderPosition: null,
+  variants: [
+    {
+      id: `${g.id}-variant`,
+      gameId: g.id,
+      label: "Standard",
+      pricePkr: g.price,
+      wasPricePkr: null,
+      priceSource: "estimate",
+      sortOrder: 0,
+    },
+  ],
+}));
 
 /** Slider bounds for the price filter, rounded out to the nearest Rs 100. */
 export const PRICE_BOUNDS = {
