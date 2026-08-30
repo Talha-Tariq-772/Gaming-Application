@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { scrollTriggerAllowed } from "@/src/lib/motion-guards";
 import { useGridCursorFollow } from "@/src/lib/use-grid-cursor-follow";
 
@@ -33,6 +33,30 @@ export default function FeaturedGamesScroll({
   const track = useRef<HTMLDivElement>(null);
 
   useGridCursorFollow(track);
+
+  // Reserves the pin's scroll distance as ordinary layout height *before*
+  // GSAP ever runs, using the same distance formula ScrollTrigger's own
+  // pin-spacer will end up needing. Without this, that spacer only appears
+  // once the dynamic import below resolves and ScrollTrigger.create() runs
+  // — every layer between here and the actual page load, this container
+  // sat at its natural (short) height, then jumped by the full pin
+  // distance the moment the pin was created. That jump was the single
+  // largest contributor to this page's CLS, worse than the route-loading
+  // skeleton mismatch it was originally mistaken for. Synchronous
+  // (useLayoutEffect, before paint) and gated the same way the pin itself
+  // is, so mobile/reduced-motion never sets this and never had the problem
+  // to begin with.
+  useLayoutEffect(() => {
+    if (!scrollTriggerAllowed()) return;
+    const trackEl = track.current;
+    const containerEl = container.current;
+    if (!trackEl || !containerEl) return;
+
+    const distance = trackEl.scrollWidth - containerEl.clientWidth;
+    if (distance <= 0) return;
+
+    containerEl.style.minHeight = `${containerEl.offsetHeight + distance}px`;
+  }, []);
 
   useEffect(() => {
     if (!scrollTriggerAllowed()) return;
