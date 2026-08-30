@@ -1,0 +1,91 @@
+{
+  "/": {
+    "httpStatus": 200,
+    "consoleMessages": [
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "%c%s%c [data:games] background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   {code: PGRST200, details: Searched for a foreign key relationship between 'g…n the schema 'public', but no matches were found., hint: Perhaps you meant 'game_credentials' instead of 'game_variants'., message: Could not find a relationship between 'games' and 'game_variants' in the schema cache}"
+      },
+      {
+        "type": "error",
+        "text": "%o\n\n%s Error: Failed to load games. Please try again.\n    at safeAsync (about://React/Server/webpack-internal:///(rsc)/./src/lib/safe-async.ts?75:17:15)\n    at  FeaturedGames (about://React/Server/webpack-internal:///(rsc)/./src/components/home/FeaturedGames.tsx?76:23:19)\n    at resolveErrorDev (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2405:46)\n    at processFullStringRow (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2891:23)\n    at processFullBinaryRow (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2834:7)\n    at processBinaryChunk (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:3037:15)\n    at progress (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:3303:13) The above error occurred in the <FeaturedGames> component. It was handled by the <SectionErrorBoundaryInner> error boundary."
+      },
+      {
+        "type": "error",
+        "text": "Error: Failed to load games. Please try again.\n    at safeAsync (about://React/Server/webpack-internal:///(rsc)/./src/lib/safe-async.ts?75:17:15)\n    at  FeaturedGames (about://React/Server/webpack-internal:///(rsc)/./src/components/home/FeaturedGames.tsx?76:23:19)\n    at resolveErrorDev (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2405:46)\n    at processFullStringRow (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2891:23)\n    at processFullBinaryRow (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2834:7)\n    at processBinaryChunk (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:3037:15)\n    at progress (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:3303:13)"
+      }
+    ],
+    "pageErrors": [],
+    "requestCount": 21
+  },
+  "/games": {
+    "httpStatus": 200,
+    "consoleMessages": [
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "error",
+        "text": "%c%s%c [data:slider games] background: #e6e6e6;background: light-dark(rgba(0,0,0,0.1), rgba(255,255,255,0.25));color: #000000;color: light-dark(#000000, #ffffff);border-radius: 2px  Server   {code: PGRST200, details: Searched for a foreign key relationship between 'g…n the schema 'public', but no matches were found., hint: Perhaps you meant 'game_credentials' instead of 'game_variants'., message: Could not find a relationship between 'games' and 'game_variants' in the schema cache}"
+      },
+      {
+        "type": "error",
+        "text": "%o\n\n%s Error: Failed to load slider games. Please try again.\n    at safeAsync (about://React/Server/webpack-internal:///(rsc)/./src/lib/safe-async.ts?47:17:15)\n    at  GamesPage (about://React/Server/webpack-internal:///(rsc)/./app/(storefront)/games/page.tsx?48:68:25)\n    at resolveErrorDev (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2405:46)\n    at processFullStringRow (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2891:23)\n    at processFullBinaryRow (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2834:7)\n    at processBinaryChunk (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:3037:15)\n    at progress (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:3303:13) The above error occurred in the <GamesPage> component. It was handled by the <ErrorBoundaryHandler> error boundary."
+      },
+      {
+        "type": "error",
+        "text": "Error: Failed to load slider games. Please try again.\n    at safeAsync (about://React/Server/webpack-internal:///(rsc)/./src/lib/safe-async.ts?47:17:15)\n    at  GamesPage (about://React/Server/webpack-internal:///(rsc)/./app/(storefront)/games/page.tsx?48:68:25)\n    at resolveErrorDev (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2405:46)\n    at processFullStringRow (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2891:23)\n    at processFullBinaryRow (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2834:7)\n    at processBinaryChunk (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:3037:15)\n    at progress (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:3303:13)"
+      },
+      {
+        "type": "error",
+        "text": "Error: Failed to load slider games. Please try again.\n    at safeAsync (about://React/Server/webpack-internal:///(rsc)/./src/lib/safe-async.ts?47:17:15)\n    at  GamesPage (about://React/Server/webpack-internal:///(rsc)/./app/(storefront)/games/page.tsx?48:68:25)\n    at resolveErrorDev (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2405:46)\n    at processFullStringRow (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2891:23)\n    at processFullBinaryRow (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:2834:7)\n    at processBinaryChunk (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:3037:15)\n    at progress (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-client.browser.development.js:3303:13)"
+      }
+    ],
+    "pageErrors": [],
+    "requestCount": 19
+  },
+  "/dev/nova-hero": {
+    "httpStatus": 200,
+    "consoleMessages": [
+      {
+        "type": "info",
+        "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+      },
+      {
+        "type": "log",
+        "text": "NovaCanvas: uPointScale=6.310 at canvas height 900px"
+      },
+      {
+        "type": "log",
+        "text": "NovaCanvas: uPointScale=6.310 at canvas height 900px"
+      },
+      {
+        "type": "log",
+        "text": "NovaCanvas: uPointScale=6.310 at canvas height 900px"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x68f4012a4600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x68f4012a4600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x68f4012a4600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x68f4012a4600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+      }
+    ],
+    "pageErrors": [],
+    "requestCount": 22
+  }
+}

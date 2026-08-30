@@ -24,9 +24,9 @@ export function useFocusTrap<T extends HTMLElement>(
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   // The listener below is only (re)attached when `isOpen` flips, not on
-  // every render — that's what stops a fresh inline `onClose` (CartDrawer,
-  // MobileFiltersSheet pass a new arrow function each render) from
-  // re-running the focus/refocus setup constantly. But a caller whose
+  // every render — that's what stops a fresh inline `onClose` (CartDrawer
+  // passes a new arrow function each render) from re-running the
+  // focus/refocus setup constantly. But a caller whose
   // close behavior itself changes over time while `isOpen` stays `true`
   // the whole time (OrderDetailPanel: still open, but Escape should only
   // fire its own onClose once no nested confirm dialog is covering it)
