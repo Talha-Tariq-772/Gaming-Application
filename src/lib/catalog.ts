@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { safeAsync } from "@/src/lib/safe-async";
 import { GAME_COVER_PLACEHOLDER } from "@/src/lib/game-placeholder";
 import { createClient } from "@/src/lib/supabase/public";
@@ -177,7 +178,14 @@ export async function getGameBySlug(slug: string): Promise<Game | null> {
   });
 }
 
-export async function getPaymentMethods(): Promise<PaymentMethod[]> {
+/**
+ * React.cache-wrapped so every caller within the same request (Footer in
+ * the shared layout, checkout/page.tsx, anywhere else) shares one in-flight
+ * promise instead of firing a fresh Supabase query each time it's invoked —
+ * without this, a second render pass of Footer during streaming re-suspends
+ * on a brand-new, uncached fetch instead of reusing the already-resolved one.
+ */
+export const getPaymentMethods = cache(async (): Promise<PaymentMethod[]> => {
   return safeAsync("payment methods", async () => {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -188,7 +196,7 @@ export async function getPaymentMethods(): Promise<PaymentMethod[]> {
     if (error) throw error;
     return (data ?? []).map(mapPaymentMethodRow);
   });
-}
+});
 
 /**
  * Batch lookups for order-history display. Service role, not the public
