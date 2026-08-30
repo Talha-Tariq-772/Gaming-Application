@@ -70,7 +70,7 @@ export default function CheckoutFlow({
         <span className="sr-only">Loading…</span>
         <div
           aria-hidden="true"
-          className="h-64 rounded-lg border border-border bg-surface-1"
+          className="h-64 rounded-lg border border-nova-hairline bg-nova-crypt"
         />
       </div>
     );
@@ -79,10 +79,10 @@ export default function CheckoutFlow({
   if (step === 1 && cartItems.length === 0) {
     return (
       <div className="mx-auto flex max-w-page flex-col items-center gap-4 px-4 py-24 text-center md:px-8">
-        <h1 className="text-display-sm font-display font-extrabold text-text">
+        <h1 className="text-display-sm font-display font-extrabold text-nova-bone">
           Your cart is empty
         </h1>
-        <p className="max-w-sm text-sm text-text-muted">
+        <p className="max-w-sm text-sm text-nova-ash">
           Add a few games to your cart before checking out.
         </p>
         <Button as="a" href="/games" variant="secondary">
@@ -95,23 +95,23 @@ export default function CheckoutFlow({
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
       <div className="mb-12">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">
           Checkout
         </span>
-        <h1 className="mt-2 text-display-sm font-display font-extrabold text-text">
+        <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">
           {STEP_LABELS[step - 1]}
         </h1>
-        <ol className="mt-6 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-text-faint">
+        <ol className="mt-6 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-nova-smoke">
           {STEP_LABELS.map((label, i) => (
             <li key={label} className="flex items-center gap-3">
               <span
                 className={`flex items-center gap-2 ${
-                  i + 1 <= step ? "text-accent" : ""
+                  i + 1 <= step ? "text-nova-ember" : ""
                 }`}
               >
                 <span
                   className={`flex h-6 w-6 items-center justify-center rounded-full border ${
-                    i + 1 <= step ? "border-accent" : "border-border"
+                    i + 1 <= step ? "border-nova-ember" : "border-nova-hairline"
                   }`}
                 >
                   {i + 1}
@@ -119,7 +119,7 @@ export default function CheckoutFlow({
                 {label}
               </span>
               {i < STEP_LABELS.length - 1 && (
-                <span className="h-px w-6 bg-border" aria-hidden="true" />
+                <span className="h-px w-6 bg-nova-hairline" aria-hidden="true" />
               )}
             </li>
           ))}

@@ -93,12 +93,12 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border-t border-border py-24 first:border-t-0 first:pt-0">
+    <section className="border-t border-nova-hairline py-24 first:border-t-0 first:pt-0">
       <div className="mb-8">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">
           {eyebrow}
         </span>
-        <h2 className="mt-2 text-2xl font-display font-bold text-text">
+        <h2 className="mt-2 text-2xl font-display font-bold text-nova-bone">
           {title}
         </h2>
       </div>
@@ -111,13 +111,13 @@ export default function StyleguidePage() {
   return (
     <div className="mx-auto max-w-page px-4 py-24 md:px-8">
       <header className="mb-24">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">
           Reference
         </span>
-        <h1 className="mt-2 text-display-sm font-display font-extrabold text-text">
+        <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">
           Styleguide
         </h1>
-        <p className="mt-4 max-w-lg text-lg text-text-muted">
+        <p className="mt-4 max-w-lg text-lg text-nova-ash">
           Every color, size, and interaction token that makes up the Nova
           design system.
         </p>
@@ -128,21 +128,21 @@ export default function StyleguidePage() {
         <div className="flex flex-col gap-12">
           {COLOR_GROUPS.map((group) => (
             <div key={group.heading}>
-              <h3 className="mb-6 text-sm font-semibold uppercase tracking-[0.08em] text-text-faint">
+              <h3 className="mb-6 text-sm font-semibold uppercase tracking-[0.08em] text-nova-smoke">
                 {group.heading}
               </h3>
               <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
                 {group.swatches.map((s) => (
                   <div key={s.varName} className="flex flex-col gap-2">
                     <div
-                      className="h-20 rounded-md border border-border"
+                      className="h-20 rounded-md border border-nova-hairline"
                       style={{ background: `var(${s.varName})` }}
                     />
-                    <span className="text-sm text-text">{s.name}</span>
-                    <span className="font-mono text-xs text-text-faint">
+                    <span className="text-sm text-nova-bone">{s.name}</span>
+                    <span className="font-mono text-xs text-nova-smoke">
                       {s.varName}
                     </span>
-                    <span className="font-mono text-xs text-text-faint">
+                    <span className="font-mono text-xs text-nova-smoke">
                       {s.hex}
                     </span>
                   </div>
@@ -159,13 +159,13 @@ export default function StyleguidePage() {
           {TYPE_SCALE.map((t) => (
             <div
               key={t.token}
-              className="flex flex-col gap-2 border-b border-border pb-8 last:border-b-0"
+              className="flex flex-col gap-2 border-b border-nova-hairline pb-8 last:border-b-0"
             >
-              <span className="font-mono text-xs text-text-faint">
+              <span className="font-mono text-xs text-nova-smoke">
                 {t.token} · {t.label}
               </span>
               <span
-                className={`${t.className} font-display font-bold text-text`}
+                className={`${t.className} font-display font-bold text-nova-bone`}
               >
                 Play what&rsquo;s next
               </span>
@@ -182,14 +182,14 @@ export default function StyleguidePage() {
         <div className="flex flex-col gap-4 overflow-x-auto">
           {SPACING_SCALE.map((s) => (
             <div key={s.token} className="flex w-fit items-center gap-6">
-              <span className="w-32 shrink-0 font-mono text-xs text-text-faint">
+              <span className="w-32 shrink-0 font-mono text-xs text-nova-smoke">
                 {s.token}
               </span>
               <div
-                className="h-3 shrink-0 rounded-sm bg-accent"
+                className="h-3 shrink-0 rounded-sm bg-nova-ember"
                 style={{ width: `var(${s.token})` }}
               />
-              <span className="shrink-0 font-mono text-xs text-text-faint">
+              <span className="shrink-0 font-mono text-xs text-nova-smoke">
                 {s.px}
               </span>
             </div>
@@ -203,9 +203,9 @@ export default function StyleguidePage() {
           {RADII.map((r) => (
             <div key={r.token} className="flex flex-col items-center gap-2">
               <div
-                className={`h-20 w-20 border border-border-strong bg-surface-2 ${r.className}`}
+                className={`h-20 w-20 border border-nova-hairline bg-nova-slab ${r.className}`}
               />
-              <span className="font-mono text-xs text-text-faint">
+              <span className="font-mono text-xs text-nova-smoke">
                 {r.label}
               </span>
             </div>
@@ -219,9 +219,9 @@ export default function StyleguidePage() {
           {SHADOWS.map((s) => (
             <div key={s.token} className="flex flex-col items-center gap-4">
               <div
-                className={`h-20 w-32 rounded-md bg-surface-2 ${s.className}`}
+                className={`h-20 w-32 rounded-md bg-nova-slab ${s.className}`}
               />
-              <span className="font-mono text-xs text-text-faint">
+              <span className="font-mono text-xs text-nova-smoke">
                 {s.label}
               </span>
             </div>
@@ -231,7 +231,7 @@ export default function StyleguidePage() {
 
       {/* Motion */}
       <Section eyebrow="Foundations" title="Motion">
-        <p className="mb-8 max-w-lg text-sm text-text-muted">
+        <p className="mb-8 max-w-lg text-sm text-nova-ash">
           One easing curve, three durations. Hover each block to compare
           timing.
         </p>
@@ -243,10 +243,10 @@ export default function StyleguidePage() {
           ].map((m) => (
             <div
               key={m.label}
-              className="group flex h-20 w-32 items-center justify-center rounded-md border border-border bg-surface-2"
+              className="group flex h-20 w-32 items-center justify-center rounded-md border border-nova-hairline bg-nova-slab"
             >
               <div
-                className="h-8 w-8 rounded-full bg-accent transition-transform ease-standard group-hover:scale-150"
+                className="h-8 w-8 rounded-full bg-nova-ember transition-transform ease-standard group-hover:scale-150"
                 style={{ transitionDuration: m.duration }}
               />
               <span className="sr-only">{m.label}</span>
@@ -257,14 +257,14 @@ export default function StyleguidePage() {
 
       {/* Buttons */}
       <Section eyebrow="Components" title="Buttons">
-        <p className="mb-8 max-w-lg text-sm text-text-muted">
+        <p className="mb-8 max-w-lg text-sm text-nova-ash">
           Hover, focus, or tab to preview interactive states. Disabled
           examples are shown statically.
         </p>
         <div className="flex flex-col gap-12">
           {(["primary", "secondary", "ghost"] as const).map((variant) => (
             <div key={variant} className="flex flex-wrap items-center gap-6">
-              <span className="w-24 shrink-0 text-sm capitalize text-text-faint">
+              <span className="w-24 shrink-0 text-sm capitalize text-nova-smoke">
                 {variant}
               </span>
               <Button variant={variant}>Play Now</Button>
@@ -279,33 +279,33 @@ export default function StyleguidePage() {
       {/* Cards */}
       <Section eyebrow="Components" title="Cards">
         <div className="grid gap-8 sm:grid-cols-3">
-          <div className="rounded-lg border border-border bg-surface-1 p-8">
-            <h3 className="text-xl font-display font-bold text-text">
+          <div className="rounded-lg border border-nova-hairline bg-nova-crypt p-8">
+            <h3 className="text-xl font-display font-bold text-nova-bone">
               Default
             </h3>
-            <p className="mt-2 text-sm text-text-muted">
+            <p className="mt-2 text-sm text-nova-ash">
               Surface 1, subtle border. Used for standard content blocks.
             </p>
           </div>
 
-          <div className="rounded-lg border border-border bg-surface-2 p-8 shadow-md">
-            <h3 className="text-xl font-display font-bold text-text">
+          <div className="rounded-lg border border-nova-hairline bg-nova-slab p-8 shadow-md">
+            <h3 className="text-xl font-display font-bold text-nova-bone">
               Elevated
             </h3>
-            <p className="mt-2 text-sm text-text-muted">
+            <p className="mt-2 text-sm text-nova-ash">
               Surface 2 with shadow-md. Used for cards that sit above the
               page, like modals or popovers.
             </p>
           </div>
 
-          <div className="rounded-lg border border-accent bg-surface-1 p-8 shadow-glow">
-            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-accent">
+          <div className="rounded-lg border border-nova-ember bg-nova-crypt p-8 shadow-glow">
+            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-nova-ember">
               Featured
             </span>
-            <h3 className="mt-2 text-xl font-display font-bold text-text">
+            <h3 className="mt-2 text-xl font-display font-bold text-nova-bone">
               Accent
             </h3>
-            <p className="mt-2 text-sm text-text-muted">
+            <p className="mt-2 text-sm text-nova-ash">
               Reserved for a single highlighted item per view — never more.
             </p>
           </div>

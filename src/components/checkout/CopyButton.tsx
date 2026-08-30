@@ -28,7 +28,7 @@ export default function CopyButton({
       <button
         type="button"
         onClick={handleCopy}
-        className="flex min-h-11 shrink-0 items-center rounded-md border border-border bg-surface-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-text-muted transition-colors duration-(--duration-fast) ease-standard hover:border-border-strong hover:text-text"
+        className="flex min-h-11 shrink-0 items-center rounded-md border border-nova-hairline bg-nova-slab px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-nova-ash transition-colors duration-(--duration-fast) ease-standard hover:border-nova-ember/40 hover:text-nova-bone"
       >
         {copied ? "Copied" : label}
       </button>

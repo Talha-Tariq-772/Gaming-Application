@@ -33,7 +33,7 @@ export default function TrailerEmbed({
       <button
         type="button"
         onClick={() => setLoaded(true)}
-        className="group relative aspect-video w-full overflow-hidden rounded-lg border border-border"
+        className="group relative aspect-video w-full overflow-hidden rounded-lg border border-nova-hairline"
         aria-label={`Play trailer for ${title}`}
       >
         <Image
@@ -43,8 +43,8 @@ export default function TrailerEmbed({
           sizes="(min-width: 768px) 50vw, 100vw"
           className="object-cover"
         />
-        <span className="absolute inset-0 flex items-center justify-center bg-bg/50 transition-colors duration-(--duration-fast) ease-standard group-hover:bg-bg/30">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-on-accent">
+        <span className="absolute inset-0 flex items-center justify-center bg-nova-void/50 transition-colors duration-(--duration-fast) ease-standard group-hover:bg-nova-void/30">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-nova-ember text-on-accent">
             <svg viewBox="0 0 24 24" fill="currentColor" className="ml-1 h-6 w-6">
               <path d="M8 5v14l11-7z" />
             </svg>
@@ -55,7 +55,7 @@ export default function TrailerEmbed({
   }
 
   return (
-    <div className="aspect-video w-full overflow-hidden rounded-lg border border-border">
+    <div className="aspect-video w-full overflow-hidden rounded-lg border border-nova-hairline">
       <iframe
         src={embedUrl}
         title={`${title} trailer`}

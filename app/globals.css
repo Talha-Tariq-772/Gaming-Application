@@ -46,11 +46,42 @@
   --color-success: #34d399;
   --color-success-dim: #063d29;
 
+  /* ---- Color: nova (gothic redesign palette, spec/NOVA_DESIGN_SPEC.md #1)
+     Warm-shifted — no cool black, no pure white text. `ember` is the only
+     saturated color for general UI; `gild` is reserved for rare/premium
+     emphasis, at most one per viewport. */
+  --color-nova-void: #08060a;
+  --color-nova-pitch: #0d0a0c;
+  --color-nova-crypt: #141013;
+  --color-nova-slab: #1e1719;
+  --color-nova-hairline: #2a2124;
+
+  --color-nova-ember: #c1440e;
+  --color-nova-ember-lo: #8b2f09;
+  /* Session 6 WCAG audit: the spec's #7a1518 measured 1.6-1.9:1 as text
+     against every nova surface — invisible for danger/error copy, badly
+     failing AA's 4.5:1. Lightened via HSL (same hue/sat, L 28%->58%) to
+     4.4-5.0:1 across void/pitch/crypt/slab — per this session's own rule,
+     lightened the color rather than changing surfaces. */
+  --color-nova-blood: #e0484d;
+  --color-nova-gild: #c9a227;
+
+  --color-nova-bone: #e8dfd0;
+  --color-nova-ash: #9a8f84;
+  /* Session 6 WCAG audit: the spec's #5c544e measured 2.4-2.7:1 as text —
+     failed AA at every surface, including the large-text 3:1 floor.
+     Lightened toward bone to 4.85-5.55:1. (ash itself, the pair the spec
+     flagged as most likely to fail, actually passed: 5.6-6.4:1.) */
+  --color-nova-smoke: #8d857c;
+
   /* ---- Fonts ----
      Actual font families are injected as CSS variables by next/font in
-     layout.tsx (--font-display, --font-sans). Fallback stacks live here. */
-  --font-display: var(--font-display-loaded), "Arial Narrow", sans-serif;
-  --font-sans: var(--font-sans-loaded), system-ui, sans-serif;
+     layout.tsx (--font-display: Cinzel, --font-ui: Barlow). Fallback
+     stacks live here. --font-sans is a legacy alias of --font-ui, kept in
+     case anything outside this file still references it directly. */
+  --font-display: var(--font-display-loaded), Georgia, "Times New Roman", serif;
+  --font-ui: var(--font-ui-loaded), system-ui, sans-serif;
+  --font-sans: var(--font-ui);
 
   /* ---- Type scale ----------------------------------------------------
      Fluid via clamp() from a 320px viewport up through 4K. Display sizes
@@ -64,7 +95,12 @@
   --text-3xl: clamp(2.25rem, 1.85rem + 1.6vw, 3rem);
   --text-display-sm: clamp(2.75rem, 2rem + 3vw, 4.5rem);
   --text-display-md: clamp(3.25rem, 2.1rem + 4.5vw, 6rem);
-  --text-display-lg: clamp(3.75rem, 2rem + 6.5vw, 8rem);
+  /* NOVA_DESIGN_SPEC.md #3 "Display" role, applied verbatim. */
+  --text-display-lg: clamp(2.75rem, 9vw, 8.5rem);
+  /* NOVA_DESIGN_SPEC.md #3 "Section heading" role. No existing scale step
+     covers this range — see the .font-display.text-lg/-xl/-2xl rule below
+     for where it's actually applied without touching component markup. */
+  --text-heading: clamp(1.5rem, 3vw, 2.5rem);
 
   /* ---- Spacing scale ----------------------------------------------------
      8px rhythm throughout. Named rather than numbered so intent stays
@@ -96,7 +132,11 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
   --shadow-md: 0 8px 24px -8px rgb(0 0 0 / 0.55);
   --shadow-lg: 0 24px 48px -16px rgb(0 0 0 / 0.65);
-  --shadow-glow: 0 0 0 1px rgb(0 230 216 / 0.4), 0 0 32px 0 rgb(0 230 216 / 0.18);
+  /* Session 6: was teal (0 230 216), the old accent's RGB — updated to
+     nova.ember's RGB (193 68 14) so it matches the border-nova-ember it's
+     always paired with at every call site (contact, styleguide, and now
+     checkout's payment-instructions panel). */
+  --shadow-glow: 0 0 0 1px rgb(193 68 14 / 0.4), 0 0 32px 0 rgb(193 68 14 / 0.18);
 
   /* ---- Motion ----
      Three durations, one easing curve, used everywhere. Consistency here
@@ -152,7 +192,21 @@
   --color-success: var(--color-success);
   --color-success-dim: var(--color-success-dim);
 
+  --color-nova-void: var(--color-nova-void);
+  --color-nova-pitch: var(--color-nova-pitch);
+  --color-nova-crypt: var(--color-nova-crypt);
+  --color-nova-slab: var(--color-nova-slab);
+  --color-nova-hairline: var(--color-nova-hairline);
+  --color-nova-ember: var(--color-nova-ember);
+  --color-nova-ember-lo: var(--color-nova-ember-lo);
+  --color-nova-blood: var(--color-nova-blood);
+  --color-nova-gild: var(--color-nova-gild);
+  --color-nova-bone: var(--color-nova-bone);
+  --color-nova-ash: var(--color-nova-ash);
+  --color-nova-smoke: var(--color-nova-smoke);
+
   --font-display: var(--font-display);
+  --font-ui: var(--font-ui);
   --font-sans: var(--font-sans);
 
   --text-xs: var(--text-xs);
@@ -165,6 +219,7 @@
   --text-display-sm: var(--text-display-sm);
   --text-display-md: var(--text-display-md);
   --text-display-lg: var(--text-display-lg);
+  --text-heading: var(--text-heading);
 
   /* NOTE: --space-* tokens are intentionally NOT mapped into Tailwind's
      --spacing-* theme namespace. That namespace also backs max-w-*, w-*,
@@ -205,7 +260,7 @@
   *,
   *::before,
   *::after {
-    border-color: var(--color-border);
+    border-color: var(--color-nova-hairline);
   }
 
   html {
@@ -221,11 +276,13 @@
   }
 
   body {
-    background: var(--color-bg);
-    color: var(--color-text);
-    font-family: var(--font-sans);
+    background: var(--color-nova-void);
+    color: var(--color-nova-bone);
+    font-family: var(--font-ui);
     font-size: var(--text-base);
-    line-height: 1.5;
+    /* NOVA_DESIGN_SPEC.md #3 "UI / body" role. */
+    line-height: 1.65;
+    letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: clip;
@@ -233,7 +290,12 @@
 
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    /* Cinzel is a wide, uppercase-friendly serif — the old face's tight
+       negative tracking (-0.02em) was tuned for Syne and reads cramped
+       here. Neutral by default; the two rules below layer the spec's
+       actual per-role tracking on top for the specific size/font-weight
+       combinations components already use (see NOVA_DESIGN_SPEC.md #3). */
+    letter-spacing: 0;
     line-height: 1.05;
   }
 
@@ -242,7 +304,7 @@
   }
 
   ::selection {
-    background: var(--color-accent);
+    background: var(--color-nova-ember);
     color: var(--color-on-accent);
   }
 
@@ -252,14 +314,45 @@
      Tailwind and wins here now that both live in the same layer — before
      this was layered, this unlayered rule was forcing an outline back on
      even where Button's `focus-visible:outline-none` tried to remove it
-     in favor of its box-shadow ring, doubling the indicator). Accent on
-     near-black bg/surface measures 11.7-12.7:1, well past the 3:1 WCAG
-     floor for focus indicators. Only ever shown for keyboard focus, never
-     mouse/touch, so this is not a visual change for pointer users. */
+     in favor of its box-shadow ring, doubling the indicator).
+     Session 6 WCAG audit: nova.ember on the four nova surfaces measures
+     3.44-3.94:1 — still past the 3:1 floor for non-text/focus-indicator
+     contrast (WCAG 1.4.11), but with much less margin than the old accent
+     teal's 11.7-12.7:1. Worth knowing if ember ever needs to darken later
+     for another reason — it doesn't have much room left to give here.
+     Only ever shown for keyboard focus, never mouse/touch, so this is not
+     a visual change for pointer users. */
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-nova-ember);
     outline-offset: 2px;
   }
+}
+
+/* ==========================================================================
+   Typography: NOVA_DESIGN_SPEC.md #3 heading roles
+   Deliberately unlayered (like :focus-visible above) — Tailwind's own
+   utilities live in a later-declared layer than @layer base, so a rule
+   *inside* @layer base loses to them regardless of selector specificity,
+   even a two-class combinator. Placing these after @layer base closes is
+   what actually lets them win. Targets existing font-display + text-*
+   class combinations already in markup (Session 2: do not restructure
+   markup) rather than a dedicated heading component.
+   ========================================================================== */
+.font-display.text-display-lg,
+.font-display.text-display-md,
+.font-display.text-display-sm {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 0.92;
+  font-weight: 700;
+}
+
+.font-display.text-lg,
+.font-display.text-xl,
+.font-display.text-2xl {
+  font-size: var(--text-heading);
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
 /* ==========================================================================
@@ -280,6 +373,59 @@
 .scroll-reveal-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ==========================================================================
+   Motion: nova Reveal mobile fallback (src/components/ui/nova/Reveal.tsx)
+   Same role as .scroll-reveal-* above, kept as a separate pair rather than
+   shared: nova's duration/ease/offset (src/lib/motion.ts: dur.base, ease.out,
+   REVEAL_Y) are deliberately different from the existing motion-tokens.ts
+   values that .scroll-reveal-* is tuned to. These numbers must be kept in
+   sync with motion.ts by hand — same caveat motion-tokens.ts already
+   documents for its own CSS counterparts above.
+   ========================================================================== */
+.nova-reveal-init {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nova-reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   Motion: NovaHero headline char-split reveal
+   (src/components/hero/Nova/NovaHero.tsx). Pure CSS keyframe + per-span
+   inline animation-delay (computed server-side, index * 0.018s per
+   NOVA_DESIGN_SPEC.md #5) — no client JS at all for this, unlike a
+   GSAP-driven char-split. Keeps NovaHero a genuine server component with
+   nothing in the critical path.
+   ========================================================================== */
+.nova-hero-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(24px);
+  animation: nova-hero-char-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--char-delay, 0s);
+}
+
+@keyframes nova-hero-char-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nova-hero-char {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ==========================================================================
@@ -310,6 +456,64 @@
 }
 
 /* ==========================================================================
+   Motion: HeroVisualV2 (TEST-ONLY — see src/components/home/HeroVisualV2.tsx)
+   Placeholder-image hero variant for local comparison against the existing
+   R3F hero. Pure CSS loops (Ken Burns pan/zoom, particle drift) — each
+   isolated on its own element so it never fights the GSAP entrance/parallax
+   tweens applied to a *separate* ancestor element for the same property
+   (transform/opacity). See HeroVisualV2.tsx for why.
+   ========================================================================== */
+.hero-v2-kenburns {
+  transform: scale(1);
+  animation: hero-v2-kenburns 26s ease-in-out infinite alternate;
+}
+
+@keyframes hero-v2-kenburns {
+  from {
+    transform: scale(1) translate(0, 0);
+  }
+  to {
+    transform: scale(1.08) translate(-1.5%, -1%);
+  }
+}
+
+.hero-v2-particle {
+  position: absolute;
+  bottom: -5%;
+  border-radius: var(--radius-full);
+  background: radial-gradient(circle, var(--color-nova-ember) 0%, transparent 70%);
+  box-shadow: 0 0 6px 1px rgb(193 68 14 / 0.5);
+  opacity: 0;
+  animation-name: hero-v2-particle-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes hero-v2-particle-drift {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.8;
+  }
+  85% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(-110%);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-v2-kenburns,
+  .hero-v2-particle {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
    Markdown body
    Styles sanitized guide/FAQ HTML (src/lib/markdown.ts) to match the design
    system. Scoped to element selectors only — the sanitizer strips class
@@ -317,7 +521,7 @@
    scroll-margin-top keeps jumped-to headings clear of the sticky header.
    ========================================================================== */
 .markdown-body {
-  color: var(--color-text-muted);
+  color: var(--color-nova-ash);
   font-size: var(--text-base);
   line-height: 1.7;
 }
@@ -331,7 +535,7 @@
 .markdown-body h3,
 .markdown-body h4 {
   scroll-margin-top: 6rem;
-  color: var(--color-text);
+  color: var(--color-nova-bone);
   margin-top: var(--space-xl);
   margin-bottom: var(--space-2xs);
 }
@@ -365,26 +569,26 @@
 }
 
 .markdown-body a {
-  color: var(--color-accent);
+  color: var(--color-nova-ember);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .markdown-body a:hover {
-  color: var(--color-accent-strong);
+  color: var(--color-nova-ember-lo);
 }
 
 .markdown-body code {
   font-family: ui-monospace, monospace;
   font-size: 0.875em;
-  background: var(--color-surface-2);
+  background: var(--color-nova-slab);
   border-radius: var(--radius-sm);
   padding: 0.15em 0.4em;
 }
 
 .markdown-body pre {
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  background: var(--color-nova-slab);
+  border: 1px solid var(--color-nova-hairline);
   border-radius: var(--radius-md);
   padding: var(--space-sm);
   overflow-x: auto;
@@ -396,13 +600,13 @@
 }
 
 .markdown-body blockquote {
-  border-left: 2px solid var(--color-accent);
+  border-left: 2px solid var(--color-nova-ember);
   padding-left: var(--space-sm);
-  color: var(--color-text-faint);
+  color: var(--color-nova-smoke);
   font-style: italic;
 }
 
 .markdown-body hr {
   border: none;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-nova-hairline);
 }

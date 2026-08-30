@@ -29,26 +29,26 @@ export default function DeleteGameDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div onClick={onCancel} aria-hidden="true" className="absolute inset-0 bg-bg/80" />
+      <div onClick={onCancel} aria-hidden="true" className="absolute inset-0 bg-nova-void/80" />
       <div
         ref={panelRef}
         role="alertdialog"
         aria-modal="true"
         aria-label="Confirm delete"
-        className="relative w-full max-w-sm rounded-lg border border-border bg-surface-1 p-6"
+        className="relative w-full max-w-sm rounded-lg border border-nova-hairline bg-nova-crypt p-6"
       >
-        <h2 className="text-lg font-bold text-text">
+        <h2 className="text-lg font-bold text-nova-bone">
           {willHardDelete ? "Delete this game?" : "Deactivate this game?"}
         </h2>
-        <p className="mt-3 text-sm text-text-muted">
+        <p className="mt-3 text-sm text-nova-ash">
           {willHardDelete ? (
             <>
-              <span className="font-semibold text-text">{game.title}</span> has never been ordered
+              <span className="font-semibold text-nova-bone">{game.title}</span> has never been ordered
               or had credentials added — this permanently removes it.
             </>
           ) : (
             <>
-              <span className="font-semibold text-text">{game.title}</span> has order or credential
+              <span className="font-semibold text-nova-bone">{game.title}</span> has order or credential
               history, so it can&rsquo;t be permanently deleted without breaking that record. It will
               be deactivated (hidden from the store) instead.
             </>
@@ -59,7 +59,7 @@ export default function DeleteGameDialog({
             type="button"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="min-h-11 flex-1 rounded-md border border-border px-4 py-2 text-sm font-medium text-text-muted hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 flex-1 rounded-md border border-nova-hairline px-4 py-2 text-sm font-medium text-nova-ash hover:text-nova-bone disabled:cursor-not-allowed disabled:opacity-40"
           >
             Cancel
           </button>
@@ -67,7 +67,7 @@ export default function DeleteGameDialog({
             type="button"
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className="min-h-11 flex-1 rounded-md bg-danger px-4 py-2 text-sm font-semibold text-bg transition-opacity duration-(--duration-fast) ease-standard hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 flex-1 rounded-md bg-nova-blood px-4 py-2 text-sm font-semibold text-nova-void transition-opacity duration-(--duration-fast) ease-standard hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isSubmitting ? "Working…" : willHardDelete ? "Confirm Delete" : "Confirm Deactivate"}
           </button>

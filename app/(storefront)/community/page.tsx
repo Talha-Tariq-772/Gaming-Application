@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import WhatsAppLink from "@/src/components/WhatsAppLink";
+import Eyebrow from "@/src/components/ui/nova/Eyebrow";
+import NovaButton from "@/src/components/ui/nova/NovaButton";
+import NovaCard from "@/src/components/ui/nova/NovaCard";
+import Reveal from "@/src/components/ui/nova/Reveal";
 import { getNewsPosts } from "@/src/lib/news";
 import { buildGeneralWhatsAppLink } from "@/src/lib/order";
 
@@ -30,8 +34,7 @@ export const metadata: Metadata = {
 const DISCORD_URL = "https://discord.gg/replace-me";
 const X_URL = "https://x.com/replace-me";
 
-const CARD_CLASS =
-  "flex flex-col gap-2 rounded-lg border border-border bg-surface-1 p-6 transition-colors duration-(--duration-fast) ease-standard hover:border-border-strong";
+const CARD_CLASS = "flex h-full flex-col gap-2 p-6";
 
 export default async function CommunityPage() {
   const latestNews = await getNewsPosts(3);
@@ -39,48 +42,53 @@ export default async function CommunityPage() {
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
       <div className="mb-12">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Community</span>
-        <h1 className="mt-2 text-display-sm font-display font-extrabold text-text">Join the Community</h1>
-        <p className="mt-4 max-w-lg text-base text-text-muted">
+        <Eyebrow>Community</Eyebrow>
+        <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">Join the Community</h1>
+        <p className="mt-4 max-w-lg text-base text-nova-ash">
           Talk to other players, get quick support, and follow along with what&rsquo;s new.
         </p>
       </div>
 
-      <div className="mb-16 grid gap-4 sm:grid-cols-3">
-        <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className={CARD_CLASS}>
-          <span className="font-display text-lg font-bold text-text">Discord</span>
-          <span className="text-sm text-text-muted">Chat with other players and the team.</span>
+      <Reveal stagger={0.04} className="mb-16 grid gap-4 sm:grid-cols-3">
+        <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="block">
+          <NovaCard className={CARD_CLASS}>
+            <span className="font-display text-lg font-bold text-nova-bone">Discord</span>
+            <span className="text-sm text-nova-ash">Chat with other players and the team.</span>
+          </NovaCard>
         </a>
-        <WhatsAppLink href={buildGeneralWhatsAppLink()} context="community" className={CARD_CLASS}>
-          <span className="font-display text-lg font-bold text-text">WhatsApp</span>
-          <span className="text-sm text-text-muted">Message us directly for quick support.</span>
+        <WhatsAppLink href={buildGeneralWhatsAppLink()} context="community" className="block">
+          <NovaCard className={CARD_CLASS}>
+            <span className="font-display text-lg font-bold text-nova-bone">WhatsApp</span>
+            <span className="text-sm text-nova-ash">Message us directly for quick support.</span>
+          </NovaCard>
         </WhatsAppLink>
-        <a href={X_URL} target="_blank" rel="noopener noreferrer" className={CARD_CLASS}>
-          <span className="font-display text-lg font-bold text-text">X (Twitter)</span>
-          <span className="text-sm text-text-muted">Follow for announcements and drops.</span>
+        <a href={X_URL} target="_blank" rel="noopener noreferrer" className="block">
+          <NovaCard className={CARD_CLASS}>
+            <span className="font-display text-lg font-bold text-nova-bone">X (Twitter)</span>
+            <span className="text-sm text-nova-ash">Follow for announcements and drops.</span>
+          </NovaCard>
         </a>
-      </div>
+      </Reveal>
 
       {latestNews.length > 0 && (
         <div className="mb-16">
-          <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-text-faint">Latest News</h2>
-          <div className="grid gap-6 sm:grid-cols-3">
+          <Eyebrow tone="muted" className="mb-6 block">Latest News</Eyebrow>
+          <Reveal stagger={0.04} className="grid gap-6 sm:grid-cols-3">
             {latestNews.map((post) => (
-              <Link key={post.id} href={`/news/${post.slug}`} className={CARD_CLASS}>
-                <span className="font-display text-base font-bold text-text">{post.title}</span>
-                {post.excerpt && <span className="line-clamp-2 text-sm text-text-muted">{post.excerpt}</span>}
+              <Link key={post.id} href={`/news/${post.slug}`} className="block">
+                <NovaCard className={CARD_CLASS}>
+                  <span className="font-display text-base font-bold text-nova-bone">{post.title}</span>
+                  {post.excerpt && <span className="line-clamp-2 text-sm text-nova-ash">{post.excerpt}</span>}
+                </NovaCard>
               </Link>
             ))}
-          </div>
+          </Reveal>
         </div>
       )}
 
-      <Link
-        href="/guides"
-        className="-my-2.5 flex min-h-11 w-fit items-center py-2.5 text-sm font-semibold text-accent hover:text-accent-strong"
-      >
+      <NovaButton as="a" href="/guides" variant="ghost">
         Browse the Guides →
-      </Link>
+      </NovaButton>
     </div>
   );
 }

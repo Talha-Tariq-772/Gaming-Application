@@ -29,7 +29,7 @@ export default function SignInForm() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && <p className="text-sm text-nova-blood">{error}</p>}
       <Button type="button" variant="primary" onClick={handleSignIn} disabled={loading}>
         {loading ? "Redirecting…" : "Sign in with Google"}
       </Button>

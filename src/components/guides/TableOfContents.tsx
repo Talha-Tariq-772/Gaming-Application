@@ -11,8 +11,8 @@ export default function TableOfContents({
   headings: TocHeading[];
 }) {
   return (
-    <nav className="sticky top-24 rounded-lg border border-border bg-surface-1 p-4">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-text-faint">
+    <nav className="sticky top-24 rounded-lg border border-nova-hairline bg-nova-crypt p-4">
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-nova-smoke">
         On this page
       </h2>
       <ul className="flex flex-col gap-1">
@@ -20,7 +20,7 @@ export default function TableOfContents({
           <li key={heading.id}>
             <a
               href={`#${heading.id}`}
-              className={`-my-1 block py-1 text-sm text-text-muted transition-colors duration-(--duration-fast) ease-standard hover:text-accent ${
+              className={`-my-1 block py-1 text-sm text-nova-ash transition-colors duration-(--duration-fast) ease-standard hover:text-nova-ember ${
                 heading.depth === 3 ? "pl-3" : ""
               }`}
             >

@@ -20,13 +20,13 @@ export default function StepConfirmation({
 
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center gap-6 text-center">
-      <span className="text-xs font-semibold uppercase tracking-wider text-text-faint">
+      <span className="text-xs font-semibold uppercase tracking-wider text-nova-smoke">
         Order Reference
       </span>
-      <span className="text-4xl font-display font-extrabold text-text">
+      <span className="text-4xl font-display font-extrabold text-nova-bone">
         {order.paymentReference}
       </span>
-      <span className="inline-flex items-center rounded-full border border-accent bg-surface-1 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-accent">
+      <span className="inline-flex items-center rounded-full border border-nova-ember bg-nova-crypt px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-nova-ember">
         Awaiting Verification
       </span>
 
@@ -47,17 +47,17 @@ export default function StepConfirmation({
         Send Screenshot on WhatsApp
       </MagneticButton>
 
-      <p className="text-sm text-text-muted">
+      <p className="text-sm text-nova-ash">
         Send your payment screenshot to this WhatsApp number so we can
         verify it quickly.
       </p>
 
-      <p className="text-sm text-text-muted">
+      <p className="text-sm text-nova-ash">
         Orders are typically verified within 1–2 hours during business
         hours (9am–9pm PKT). Wondering how that works?{" "}
         <Link
           href={`/faq#${PAYMENT_VERIFICATION_FAQ_ID}`}
-          className="font-semibold text-accent hover:text-accent-strong"
+          className="font-semibold text-nova-ember hover:text-nova-ember-lo"
         >
           See the payment FAQ
         </Link>
@@ -66,7 +66,7 @@ export default function StepConfirmation({
 
       <Link
         href="/account"
-        className="text-sm font-semibold text-accent hover:text-accent-strong"
+        className="text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
       >
         Track your order status →
       </Link>

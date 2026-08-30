@@ -26,18 +26,18 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body className="flex min-h-screen flex-col items-center justify-center gap-6 bg-bg px-4 text-center text-text antialiased">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-danger">
+      <body className="flex min-h-screen flex-col items-center justify-center gap-6 bg-nova-void px-4 text-center text-nova-bone antialiased">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-blood">
           Error
         </span>
         <h1 className="text-2xl font-bold">Something went wrong</h1>
-        <p className="max-w-sm text-sm text-text-muted">
+        <p className="max-w-sm text-sm text-nova-ash">
           A critical error occurred. Please try reloading the page.
         </p>
         <button
           type="button"
           onClick={() => reset()}
-          className="min-h-11 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-on-accent"
+          className="min-h-11 rounded-full bg-nova-ember px-6 py-3 text-sm font-semibold text-on-accent"
         >
           Reload
         </button>

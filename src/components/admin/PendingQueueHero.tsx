@@ -17,26 +17,26 @@ export default function PendingQueueHero({
     <section>
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-accent">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-nova-ember">
             Pending Verification
           </h2>
-          <p className="mt-1 text-xs text-text-muted">
+          <p className="mt-1 text-xs text-nova-ash">
             Oldest first — this is where you spend your time.
           </p>
         </div>
         <Link
           href="/admin/orders"
-          className="-my-2.5 flex min-h-11 items-center py-2.5 text-xs font-semibold text-accent hover:text-accent-strong"
+          className="-my-2.5 flex min-h-11 items-center py-2.5 text-xs font-semibold text-nova-ember hover:text-nova-ember-lo"
         >
           View all →
         </Link>
       </div>
       {orders.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-success/30 bg-success-dim px-4 py-12 text-center">
-          <p className="text-sm font-semibold text-success">
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-nova-ember/30 bg-nova-ember/15 px-4 py-12 text-center">
+          <p className="text-sm font-semibold text-nova-ember">
             You&rsquo;re all caught up
           </p>
-          <p className="text-xs text-text-muted">
+          <p className="text-xs text-nova-ash">
             Nothing is waiting on verification right now.
           </p>
         </div>

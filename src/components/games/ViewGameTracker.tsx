@@ -16,7 +16,7 @@ export default function ViewGameTracker({
 }: {
   gameId: string;
   genre: string;
-  platform: string;
+  platform: string | null;
 }) {
   useEffect(() => {
     track("view_game", { gameId, genre, platform });

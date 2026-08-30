@@ -46,14 +46,14 @@ class SectionErrorBoundaryInner extends Component<InnerProps, InnerState> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-surface-1 px-6 py-12 text-center">
-          <p className="text-sm text-text-muted">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-nova-hairline bg-nova-crypt px-6 py-12 text-center">
+          <p className="text-sm text-nova-ash">
             Couldn&rsquo;t load {this.props.label}.
           </p>
           <button
             type="button"
             onClick={this.handleRetry}
-            className="-my-2.5 min-h-11 px-4 py-2.5 text-sm font-semibold text-accent hover:text-accent-strong"
+            className="-my-2.5 min-h-11 px-4 py-2.5 text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
           >
             Retry
           </button>

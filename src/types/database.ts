@@ -33,19 +33,65 @@ export const GAME_PLATFORMS = [
 
 export type GamePlatform = (typeof GAME_PLATFORMS)[number];
 
+export type ProductType = "game" | "membership";
+export type VariantMode = "single" | "multi";
+export type PriceSource = "catalog" | "estimate";
+
+/**
+ * Price source of truth in BOTH variantMode values — variantMode='single'
+ * means "exactly one active variant, render a price not a picker", it does
+ * NOT mean price lives on the Game row (see Game.price below). Populated by
+ * catalog.ts's mapGameRow via a nested game_variants select; always
+ * is_active only.
+ */
+export interface GameVariant {
+  id: string;
+  gameId: string;
+  label: string;
+  pricePkr: number;
+  wasPricePkr: number | null;
+  priceSource: PriceSource;
+  sortOrder: number;
+}
+
 export interface Game {
   id: string;
   title: string;
   slug: string;
   description: string;
+  /** Legacy pre-variants price column — still populated (seeded equal to
+   * the base/lowest variant's price) but no longer authoritative. Used only
+   * as the server-side sort/filter key for price today, since deriving
+   * "effective price" from variants isn't expressible as a plain column
+   * filter without a schema change (out of scope this session). Display
+   * code must read `variants`, never this field directly. */
   price: number;
   coverImageUrl: string;
   trailerUrl: string;
   genre: GameGenre;
-  platform: GamePlatform;
+  /** Null on every game seeded so far — Session 1 populated the column and
+   * its CHECK constraint but never the values themselves. */
+  platform: GamePlatform | null;
   setupGuide: string;
   isActive: boolean;
   createdAt: string;
+  productType: ProductType;
+  releaseDate: string | null;
+  isNewArrival: boolean;
+  isBestSeller: boolean;
+  variantMode: VariantMode;
+  /** Object path prefix in the game-images bucket, e.g. "covers/gta-vi" —
+   * see src/lib/storage-image.ts for how this becomes a real URL. Null
+   * means no cover art uploaded (falls back to coverImageUrl). */
+  coverPath: string | null;
+  /** Same shape as coverPath, "wallpapers/gta-vi" (games, game-images
+   * bucket) or "{slug}/header" (memberships, membership-images bucket). */
+  wallpaperPath: string | null;
+  /** 1-based homepage/store slider order. Null means not in the slider. */
+  sliderPosition: number | null;
+  /** Active variants only, ascending by sortOrder. Single source of truth
+   * for price — see the price field's comment above. */
+  variants: GameVariant[];
 }
 
 export interface PaymentMethod {
@@ -135,7 +181,7 @@ export interface GameCredentialStock {
   sold: number;
 }
 
-export type GameSort = "newest" | "price_asc" | "price_desc";
+export type GameSort = "newest" | "price_asc" | "price_desc" | "name";
 
 /** Query shape accepted by `getGames`. */
 export interface GameFilters {
@@ -146,8 +192,13 @@ export interface GameFilters {
   minPrice?: number;
   maxPrice?: number;
   sort?: GameSort;
+  isNewArrival?: boolean;
+  isBestSeller?: boolean;
   /** Defaults to true (only active games) when omitted. */
   isActive?: boolean;
+  /** Defaults to 'game' when omitted — the catalog grid never shows
+   * memberships, which have no genre and a different price shape. */
+  productType?: ProductType;
 }
 
 export const GUIDE_CATEGORIES = [

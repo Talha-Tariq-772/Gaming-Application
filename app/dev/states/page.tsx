@@ -23,10 +23,10 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface-1 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-lg border border-nova-hairline bg-nova-crypt p-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p className="text-sm font-semibold text-text">{title}</p>
-        <p className="mt-1 text-xs text-text-muted">{description}</p>
+        <p className="text-sm font-semibold text-nova-bone">{title}</p>
+        <p className="mt-1 text-xs text-nova-ash">{description}</p>
       </div>
       <div className="flex shrink-0 flex-wrap gap-3">{children}</div>
     </div>
@@ -42,7 +42,7 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="font-display text-lg font-bold text-text">{heading}</h2>
+      <h2 className="font-display text-lg font-bold text-nova-bone">{heading}</h2>
       {children}
     </section>
   );
@@ -147,11 +147,11 @@ function DevStatesContent() {
 
   return (
     <div className="mx-auto flex max-w-page flex-col gap-12 px-4 py-16 md:px-8">
-      <div className="rounded-lg border border-warning/30 bg-warning-dim px-6 py-4">
-        <p className="text-sm font-bold text-warning">
+      <div className="rounded-lg border border-nova-gild/30 bg-nova-gild/15 px-6 py-4">
+        <p className="text-sm font-bold text-nova-gild">
           DEV ONLY — REMOVE app/dev BEFORE PRODUCTION
         </p>
-        <p className="mt-1 text-sm text-text-muted">
+        <p className="mt-1 text-sm text-nova-ash">
           This page exists to review every failure/edge-case/empty state
           from the resilience audit without manually reproducing each one.
           It isn&rsquo;t linked from anywhere in the real app. Some
@@ -189,7 +189,7 @@ function DevStatesContent() {
           title="global-error.tsx"
           description="Only fires if the ROOT layout itself throws — not realistically triggerable from a link. Read the file directly to review it."
         >
-          <span className="text-xs text-text-faint">app/global-error.tsx</span>
+          <span className="text-xs text-nova-smoke">app/global-error.tsx</span>
         </Row>
         <Row
           title="loading.tsx"
@@ -226,7 +226,7 @@ function DevStatesContent() {
           title="/account: no orders"
           description="Every seeded demo profile has order history, so this isn't reachable via DevAuthToggle — verified by code review instead (see AccountPage's myOrders.length === 0 branch)."
         >
-          <span className="text-xs text-text-faint">
+          <span className="text-xs text-nova-smoke">
             app/(storefront)/account/page.tsx
           </span>
         </Row>
@@ -298,7 +298,7 @@ function DevStatesContent() {
           title="Offline"
           description="Not simulatable from a click — use devtools Network → Offline, or your OS's airplane mode, then try checkout."
         >
-          <span className="text-xs text-text-faint">Manual — see description</span>
+          <span className="text-xs text-nova-smoke">Manual — see description</span>
         </Row>
       </Section>
 
@@ -321,7 +321,7 @@ function DevStatesContent() {
           {storagePatched && (
             <Link
               href="/games"
-              className="flex min-h-11 items-center text-xs font-semibold text-accent hover:text-accent-strong"
+              className="flex min-h-11 items-center text-xs font-semibold text-nova-ember hover:text-nova-ember-lo"
             >
               Go add something to cart →
             </Link>

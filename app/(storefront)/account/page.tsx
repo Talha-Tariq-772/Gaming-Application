@@ -30,15 +30,15 @@ export default async function AccountPage() {
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
       <div className="mb-12">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Account</span>
-        <h1 className="mt-2 text-display-sm font-display font-extrabold text-text">My Orders</h1>
-        {profile?.full_name && <p className="mt-2 text-sm text-text-muted">{profile.full_name}</p>}
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">Account</span>
+        <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">My Orders</h1>
+        {profile?.full_name && <p className="mt-2 text-sm text-nova-ash">{profile.full_name}</p>}
       </div>
 
       {myOrders.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-lg border border-border bg-surface-1 px-6 py-24 text-center">
-          <p className="font-display text-xl font-bold text-text">No orders yet</p>
-          <p className="max-w-sm text-sm text-text-muted">
+        <div className="flex flex-col items-center gap-4 rounded-lg border border-nova-hairline bg-nova-crypt px-6 py-24 text-center">
+          <p className="font-display text-xl font-bold text-nova-bone">No orders yet</p>
+          <p className="max-w-sm text-sm text-nova-ash">
             Once you check out, your orders will show up here.
           </p>
           <Button as="a" href="/games" variant="secondary">

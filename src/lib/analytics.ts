@@ -13,7 +13,7 @@
  */
 
 export interface AnalyticsEventMap {
-  view_game: { gameId: string; genre: string; platform: string };
+  view_game: { gameId: string; genre: string; platform: string | null };
   add_to_cart: { gameId: string; price: number };
   remove_from_cart: { gameId: string };
   begin_checkout: { itemCount: number; cartTotal: number };
@@ -28,7 +28,8 @@ export interface AnalyticsEventMap {
       | "footer"
       | "contact"
       | "admin"
-      | "community";
+      | "community"
+      | "floating-button";
     orderRef?: string;
   };
   view_order: { orderRef: string; status: string };

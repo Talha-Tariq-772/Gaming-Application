@@ -33,13 +33,13 @@ export default function CompleteProfileForm({ email, next }: { email: string; ne
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
-        <span className="block text-xs font-semibold uppercase tracking-wider text-text-faint">Email</span>
-        <p className="mt-2 rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text-muted">
+        <span className="block text-xs font-semibold uppercase tracking-wider text-nova-smoke">Email</span>
+        <p className="mt-2 rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-ash">
           {email}
         </p>
       </div>
       <div>
-        <label htmlFor="phone" className="block text-xs font-semibold uppercase tracking-wider text-text-faint">
+        <label htmlFor="phone" className="block text-xs font-semibold uppercase tracking-wider text-nova-smoke">
           Phone number
         </label>
         <input
@@ -51,15 +51,15 @@ export default function CompleteProfileForm({ email, next }: { email: string; ne
           placeholder="+92 300 1234567"
           aria-invalid={Boolean(clientError)}
           aria-describedby={clientError ? "phone-error" : undefined}
-          className="mt-2 w-full rounded-md border border-border bg-surface-2 px-3 py-2 text-sm text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+          className="mt-2 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
         />
         {clientError && (
-          <p id="phone-error" className="mt-1 text-xs text-danger">
+          <p id="phone-error" className="mt-1 text-xs text-nova-blood">
             {clientError}
           </p>
         )}
       </div>
-      {serverError && <p className="text-sm text-danger">{serverError}</p>}
+      {serverError && <p className="text-sm text-nova-blood">{serverError}</p>}
       <Button type="submit" variant="primary" disabled={submitting}>
         {submitting ? "Saving…" : "Continue"}
       </Button>

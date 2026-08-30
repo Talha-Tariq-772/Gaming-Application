@@ -48,7 +48,7 @@ export default function HeroVisual() {
   }, []);
 
   return (
-    <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-surface-1">
+    <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-nova-hairline bg-nova-crypt">
       <Image
         src={POSTER_URL}
         alt=""

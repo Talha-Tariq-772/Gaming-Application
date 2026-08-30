@@ -47,7 +47,7 @@ export default function HeaderAuthMenu({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex min-h-11 items-center gap-2 rounded-full border border-border bg-surface-2 py-1 pl-1 pr-3 text-sm font-medium text-text transition-colors duration-(--duration-fast) ease-standard hover:border-border-strong hover:bg-surface-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+        className="flex min-h-11 items-center gap-2 rounded-full border border-nova-hairline bg-nova-slab py-1 pl-1 pr-3 text-sm font-medium text-nova-bone transition-colors duration-(--duration-fast) ease-standard hover:border-nova-ember/40 hover:bg-nova-hairline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nova-ember focus-visible:ring-offset-2 focus-visible:ring-offset-nova-void"
       >
         {showAvatar ? (
           // eslint-disable-next-line @next/next/no-img-element -- external Google avatar URL varies by account type; not a good fit for next/image's fixed remote-pattern allowlist
@@ -59,7 +59,7 @@ export default function HeaderAuthMenu({
             className="h-8 w-8 rounded-full object-cover"
           />
         ) : (
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-dim text-xs font-bold text-accent">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-nova-ember-lo text-xs font-bold text-nova-ember">
             {initial}
           </span>
         )}
@@ -69,13 +69,13 @@ export default function HeaderAuthMenu({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-2 w-48 rounded-md border border-border bg-surface-1 py-1 shadow-lg"
+          className="absolute right-0 top-full mt-2 w-48 rounded-md border border-nova-hairline bg-nova-crypt py-1 shadow-lg"
         >
           <Link
             href="/account"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="flex min-h-11 items-center px-4 text-sm text-text hover:bg-surface-2"
+            className="flex min-h-11 items-center px-4 text-sm text-nova-bone hover:bg-nova-slab"
           >
             Account
           </Link>
@@ -84,7 +84,7 @@ export default function HeaderAuthMenu({
               href="/admin"
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="flex min-h-11 items-center px-4 text-sm text-text hover:bg-surface-2"
+              className="flex min-h-11 items-center px-4 text-sm text-nova-bone hover:bg-nova-slab"
             >
               Admin
             </Link>
@@ -93,7 +93,7 @@ export default function HeaderAuthMenu({
             type="button"
             role="menuitem"
             onClick={() => signOut()}
-            className="flex min-h-11 w-full items-center px-4 text-left text-sm text-text-muted hover:bg-surface-2 hover:text-text"
+            className="flex min-h-11 w-full items-center px-4 text-left text-sm text-nova-ash hover:bg-nova-slab hover:text-nova-bone"
           >
             Sign Out
           </button>

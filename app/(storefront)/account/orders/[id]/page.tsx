@@ -30,8 +30,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   if (!order) {
     return (
       <div className="mx-auto flex max-w-page flex-col items-center gap-4 px-4 py-24 text-center md:px-8">
-        <h1 className="text-display-sm font-display font-extrabold text-text">Order not found</h1>
-        <p className="max-w-sm text-sm text-text-muted">
+        <h1 className="text-display-sm font-display font-extrabold text-nova-bone">Order not found</h1>
+        <p className="max-w-sm text-sm text-nova-ash">
           This order doesn&rsquo;t exist, or isn&rsquo;t associated with the account you&rsquo;re viewing.
         </p>
         <Button as="a" href="/account" variant="secondary">
@@ -55,37 +55,37 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
       <Link
         href="/account"
-        className="-my-2.5 mb-6 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-medium text-text-muted hover:text-text"
+        className="-my-2.5 mb-6 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-medium text-nova-ash hover:text-nova-bone"
       >
         ← Back to My Orders
       </Link>
 
       <div className="mb-12 flex flex-wrap items-start justify-between gap-6">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Order</span>
-          <h1 className="mt-2 font-mono text-4xl font-bold text-text">{order.paymentReference}</h1>
-          <p className="mt-2 text-sm text-text-muted">Placed {formatDate(order.createdAt)}</p>
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">Order</span>
+          <h1 className="mt-2 font-mono text-4xl font-bold text-nova-bone">{order.paymentReference}</h1>
+          <p className="mt-2 text-sm text-nova-ash">Placed {formatDate(order.createdAt)}</p>
         </div>
         <StatusBadge status={order.status} />
       </div>
 
       {order.status === "rejected" && (
-        <div className="mb-8 flex flex-col gap-4 rounded-lg border border-danger/30 bg-danger-dim px-6 py-4">
-          {order.rejectionReason && <p className="text-sm text-danger">{order.rejectionReason}</p>}
+        <div className="mb-8 flex flex-col gap-4 rounded-lg border border-nova-blood/30 bg-nova-blood/15 px-6 py-4">
+          {order.rejectionReason && <p className="text-sm text-nova-blood">{order.rejectionReason}</p>}
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             {method && (
               <TrackedWhatsAppLink
                 href={buildWhatsAppLink(order, method.label)}
                 context="order-detail"
                 orderRef={order.paymentReference}
-                className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-danger underline underline-offset-2 hover:text-danger/80"
+                className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-nova-blood underline underline-offset-2 hover:text-nova-blood/80"
               >
                 Message us about this order →
               </TrackedWhatsAppLink>
             )}
             <Link
               href="/games"
-              className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-danger underline underline-offset-2 hover:text-danger/80"
+              className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-nova-blood underline underline-offset-2 hover:text-nova-blood/80"
             >
               Browse the store to order again →
             </Link>
@@ -94,13 +94,13 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       )}
 
       {ACTIONABLE_STATUSES.has(order.status) && method && (
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-accent bg-surface-1 px-6 py-4">
-          <p className="text-sm text-text-muted">Waiting on your payment screenshot to verify this order.</p>
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-nova-ember bg-nova-crypt px-6 py-4">
+          <p className="text-sm text-nova-ash">Waiting on your payment screenshot to verify this order.</p>
           <TrackedWhatsAppLink
             href={buildWhatsAppLink(order, method.label)}
             context="order-detail"
             orderRef={order.paymentReference}
-            className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-accent hover:text-accent-strong"
+            className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
           >
             Send your screenshot to WhatsApp →
           </TrackedWhatsAppLink>
@@ -110,38 +110,38 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       <div className="grid gap-12 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-10">
           <section>
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-text-faint">Items</h2>
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-nova-smoke">Items</h2>
             <div className="flex flex-col gap-4">
               {items.map((item) => {
                 const game = games.find((g) => g.id === item.gameId);
                 if (!game) return null;
                 return (
-                  <div key={item.id} className="flex items-center gap-4 rounded-lg border border-border bg-surface-1 p-4">
-                    <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-md border border-border bg-surface-2">
+                  <div key={item.id} className="flex items-center gap-4 rounded-lg border border-nova-hairline bg-nova-crypt p-4">
+                    <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-md border border-nova-hairline bg-nova-slab">
                       <Image src={game.coverImageUrl} alt={game.title} fill sizes="64px" className="object-cover" />
                     </div>
                     <div className="flex flex-1 items-center justify-between gap-4">
                       <Link
                         href={`/games/${game.slug}`}
-                        className="flex min-h-11 items-center text-sm font-semibold text-text hover:text-accent"
+                        className="flex min-h-11 items-center text-sm font-semibold text-nova-bone hover:text-nova-ember"
                       >
                         {game.title}
                       </Link>
-                      <span className="text-sm text-text-muted">{formatPrice(item.price)}</span>
+                      <span className="text-sm text-nova-ash">{formatPrice(item.price)}</span>
                     </div>
                   </div>
                 );
               })}
             </div>
-            <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-              <span className="text-sm text-text-muted">Amount paid</span>
-              <span className="text-lg font-semibold text-text">{formatPrice(order.amountExact)}</span>
+            <div className="mt-4 flex items-center justify-between border-t border-nova-hairline pt-4">
+              <span className="text-sm text-nova-ash">Amount paid</span>
+              <span className="text-lg font-semibold text-nova-bone">{formatPrice(order.amountExact)}</span>
             </div>
           </section>
 
           {order.status === "approved" && (
             <section>
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-text-faint">Game Credentials</h2>
+              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-nova-smoke">Game Credentials</h2>
               <div className="flex flex-col gap-4">
                 {items.map((item) => {
                   const game = games.find((g) => g.id === item.gameId);
@@ -163,7 +163,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         </div>
 
         <aside>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-text-faint">Timeline</h2>
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-nova-smoke">Timeline</h2>
           <OrderTimeline order={order} />
         </aside>
       </div>

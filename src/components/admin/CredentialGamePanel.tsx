@@ -78,23 +78,23 @@ export default function CredentialGamePanel({
 
   return (
     <>
-      <div onClick={onClose} aria-hidden="true" className="fixed inset-0 z-40 bg-bg/70" />
+      <div onClick={onClose} aria-hidden="true" className="fixed inset-0 z-40 bg-nova-void/70" />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="credential-panel-heading"
-        className="fixed inset-y-0 right-0 z-40 flex w-full max-w-md flex-col overflow-y-auto border-l border-border bg-surface-1"
+        className="fixed inset-y-0 right-0 z-40 flex w-full max-w-md flex-col overflow-y-auto border-l border-nova-hairline bg-nova-crypt"
       >
-        <div className="flex items-start justify-between border-b border-border px-5 py-4">
-          <h2 id="credential-panel-heading" className="font-display text-lg font-bold text-text">
+        <div className="flex items-start justify-between border-b border-nova-hairline px-5 py-4">
+          <h2 id="credential-panel-heading" className="font-display text-lg font-bold text-nova-bone">
             {game.title}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="-mr-2 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center text-text-muted hover:text-text"
+            className="-mr-2 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center text-nova-ash hover:text-nova-bone"
           >
             ✕
           </button>
@@ -110,15 +110,15 @@ export default function CredentialGamePanel({
                 ["Revoked", stock.revoked],
               ] as const
             ).map(([label, value]) => (
-              <div key={label} className="rounded-md border border-border bg-surface-2 p-3">
-                <p className="text-xs text-text-faint">{label}</p>
-                <p className="mt-1 text-lg font-bold text-text">{value}</p>
+              <div key={label} className="rounded-md border border-nova-hairline bg-nova-slab p-3">
+                <p className="text-xs text-nova-smoke">{label}</p>
+                <p className="mt-1 text-lg font-bold text-nova-bone">{value}</p>
               </div>
             ))}
           </section>
 
           <section>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-faint">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-nova-smoke">
               Add one credential
             </h3>
             <form onSubmit={handleSingleAdd} className="flex flex-col gap-3">
@@ -129,7 +129,7 @@ export default function CredentialGamePanel({
                 placeholder="Login"
                 aria-label="Login"
                 required
-                className="min-h-11 w-full rounded-md border border-border bg-surface-2 px-3 py-2 font-mono text-sm text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+                className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 font-mono text-sm text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
               />
               <input
                 type="text"
@@ -138,14 +138,14 @@ export default function CredentialGamePanel({
                 placeholder="Password"
                 aria-label="Password"
                 required
-                className="min-h-11 w-full rounded-md border border-border bg-surface-2 px-3 py-2 font-mono text-sm text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+                className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 font-mono text-sm text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
               />
-              {singleError && <p className="text-xs text-danger">{singleError}</p>}
-              {singleSuccess && <p className="text-xs text-success">Credential added.</p>}
+              {singleError && <p className="text-xs text-nova-blood">{singleError}</p>}
+              {singleSuccess && <p className="text-xs text-nova-ember">Credential added.</p>}
               <button
                 type="submit"
                 disabled={singleSubmitting}
-                className="min-h-11 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40"
+                className="min-h-11 rounded-md bg-nova-ember px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-lo disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {singleSubmitting ? "Adding…" : "Add Credential"}
               </button>
@@ -153,10 +153,10 @@ export default function CredentialGamePanel({
           </section>
 
           <section>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-faint">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-nova-smoke">
               Bulk add (CSV)
             </h3>
-            <p className="mb-3 text-xs text-text-faint">One login,password pair per line.</p>
+            <p className="mb-3 text-xs text-nova-smoke">One login,password pair per line.</p>
             <form onSubmit={handleBulkAdd} className="flex flex-col gap-3">
               <input
                 ref={fileInputRef}
@@ -164,7 +164,7 @@ export default function CredentialGamePanel({
                 accept=".csv,text/csv,text/plain"
                 onChange={handleFileChange}
                 aria-label="Upload CSV file"
-                className="text-sm text-text-muted file:mr-3 file:min-h-11 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-text hover:file:bg-surface-3"
+                className="text-sm text-nova-ash file:mr-3 file:min-h-11 file:rounded-md file:border-0 file:bg-nova-slab file:px-3 file:py-2 file:text-sm file:font-semibold file:text-nova-bone hover:file:bg-nova-slab"
               />
               <textarea
                 value={csvText}
@@ -172,10 +172,10 @@ export default function CredentialGamePanel({
                 placeholder={"login1@example.com,password1\nlogin2@example.com,password2"}
                 rows={4}
                 aria-label="CSV content"
-                className="w-full rounded-md border border-border bg-surface-2 px-3 py-2 font-mono text-xs text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+                className="w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 font-mono text-xs text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
               />
               {bulkResult && (
-                <p className="text-xs text-text-muted">
+                <p className="text-xs text-nova-ash">
                   {bulkResult.successCount} added, {bulkResult.failCount} failed
                   {bulkResult.failCount > 0 && ` (lines: ${bulkResult.failedLines.join(", ")})`}.
                 </p>
@@ -183,7 +183,7 @@ export default function CredentialGamePanel({
               <button
                 type="submit"
                 disabled={bulkSubmitting || !csvText.trim()}
-                className="min-h-11 rounded-md border border-border px-4 py-2 text-sm font-semibold text-text transition-colors duration-(--duration-fast) ease-standard hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-40"
+                className="min-h-11 rounded-md border border-nova-hairline px-4 py-2 text-sm font-semibold text-nova-bone transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-slab disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {bulkSubmitting ? "Uploading…" : "Bulk Add"}
               </button>

@@ -83,7 +83,7 @@ export default function StepPaymentMethod({
   return (
     <div className="flex flex-col gap-10">
       <div>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-text-faint">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-nova-smoke">
           {validItems.length} item{validItems.length === 1 ? "" : "s"} ·{" "}
           {formatPrice(cartTotal)}
         </h2>
@@ -105,7 +105,7 @@ export default function StepPaymentMethod({
       <div className="max-w-sm">
         <label
           htmlFor="phone"
-          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-text-faint"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
         >
           Phone Number
         </label>
@@ -120,17 +120,17 @@ export default function StepPaymentMethod({
           aria-describedby={
             touched && phoneNumber && !phoneValid ? "phone-error" : undefined
           }
-          className="min-h-11 w-full rounded-md border border-border bg-surface-1 px-3 py-2 text-sm text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+          className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-crypt px-3 py-2 text-sm text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
         />
         {touched && phoneNumber && !phoneValid && (
-          <p id="phone-error" className="mt-2 text-xs text-danger">
+          <p id="phone-error" className="mt-2 text-xs text-nova-blood">
             {phoneError}
           </p>
         )}
       </div>
 
       {hasUnavailableItem && (
-        <div className="max-w-sm rounded-md border border-danger/30 bg-danger-dim px-4 py-3 text-sm text-danger">
+        <div className="max-w-sm rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-blood">
           One or more items in your cart are no longer available.{" "}
           <button
             type="button"
@@ -144,7 +144,7 @@ export default function StepPaymentMethod({
       )}
 
       {submitError && (
-        <div className="max-w-sm rounded-md border border-danger/30 bg-danger-dim px-4 py-3 text-sm text-danger">
+        <div className="max-w-sm rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-blood">
           {submitError}{" "}
           <button
             type="button"
@@ -158,7 +158,7 @@ export default function StepPaymentMethod({
       )}
 
       {!isOnline && (
-        <p className="max-w-sm text-sm text-warning">
+        <p className="max-w-sm text-sm text-nova-gild">
           You&rsquo;re offline — reconnect to continue checking out.
         </p>
       )}

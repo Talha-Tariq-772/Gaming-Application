@@ -3,8 +3,7 @@ import type { Order } from "@/src/types/database";
 
 const RESERVATION_MINUTES = 45;
 
-// TODO: replace with the real support WhatsApp line before launch.
-export const SUPPORT_WHATSAPP_NUMBER = "923001234567";
+export const SUPPORT_WHATSAPP_NUMBER = "923162960537";
 
 export function generateOrderReference(): string {
   const hex = Array.from({ length: 4 }, () =>

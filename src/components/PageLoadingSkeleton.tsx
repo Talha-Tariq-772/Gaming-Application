@@ -14,9 +14,9 @@ export default function PageLoadingSkeleton() {
     >
       <span className="sr-only">Loading…</span>
       <div aria-hidden="true" className="flex animate-pulse flex-col gap-4">
-        <div className="h-4 w-24 rounded bg-surface-2" />
-        <div className="h-10 w-2/3 rounded bg-surface-2" />
-        <div className="mt-8 h-64 rounded-lg bg-surface-1" />
+        <div className="h-4 w-24 rounded bg-nova-slab" />
+        <div className="h-10 w-2/3 rounded bg-nova-slab" />
+        <div className="mt-8 h-64 rounded-lg bg-nova-crypt" />
       </div>
     </div>
   );

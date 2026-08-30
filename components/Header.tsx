@@ -45,7 +45,7 @@ export default async function Header() {
       authSlot = (
         <Link
           href="/complete-profile"
-          className="-my-2 flex min-h-11 items-center py-2 text-xs font-semibold uppercase tracking-wider text-warning hover:text-warning/80"
+          className="-my-2 flex min-h-11 items-center py-2 text-xs font-semibold uppercase tracking-wider text-nova-gild hover:text-nova-gild/80"
         >
           Complete your profile
         </Link>
@@ -69,11 +69,11 @@ export default async function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-bg/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-nova-hairline bg-nova-void/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-page items-center justify-between px-4 py-3 md:px-8">
         <Link
           href="/"
-          className="-my-2 flex min-h-11 items-center font-display text-xl font-bold tracking-tight text-text"
+          className="-my-2 flex min-h-11 items-center font-display text-xl font-bold tracking-tight text-nova-bone"
         >
           NOVA
         </Link>
@@ -86,7 +86,7 @@ export default async function Header() {
             <Link
               key={link.label}
               href={link.href}
-              className="-my-2 flex min-h-11 items-center text-sm font-medium uppercase tracking-[0.08em] text-text-muted transition-colors duration-(--duration-fast) ease-standard hover:text-text"
+              className="-my-2 flex min-h-11 items-center text-sm font-medium uppercase tracking-[0.08em] text-nova-ash transition-colors duration-(--duration-fast) ease-standard hover:text-nova-bone"
             >
               {link.label}
             </Link>

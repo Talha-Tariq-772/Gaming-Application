@@ -80,13 +80,13 @@ export default function AdminGamesClient({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-text">Games</h1>
-          <p className="mt-1 text-sm text-text-muted">{games.length} total</p>
+          <h1 className="text-xl font-bold text-nova-bone">Games</h1>
+          <p className="mt-1 text-sm text-nova-ash">{games.length} total</p>
         </div>
         <button
           type="button"
           onClick={() => setEditingGame(null)}
-          className="min-h-11 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-accent-strong"
+          className="min-h-11 rounded-md bg-nova-ember px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-lo"
         >
           Add Game
         </button>
@@ -98,7 +98,7 @@ export default function AdminGamesClient({
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search games…"
         aria-label="Search games"
-        className="min-h-11 w-full max-w-xs rounded-md border border-border bg-surface-1 px-3 py-2 text-sm text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+        className="min-h-11 w-full max-w-xs rounded-md border border-nova-hairline bg-nova-crypt px-3 py-2 text-sm text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
       />
 
       <GamesTable

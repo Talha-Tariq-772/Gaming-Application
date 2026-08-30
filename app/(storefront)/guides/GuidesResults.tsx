@@ -1,5 +1,7 @@
-import Button from "@/components/Button";
 import GuideCard from "@/src/components/guides/GuideCard";
+import NovaButton from "@/src/components/ui/nova/NovaButton";
+import NovaCard from "@/src/components/ui/nova/NovaCard";
+import Reveal from "@/src/components/ui/nova/Reveal";
 import { GUIDE_CATEGORY_LABELS } from "@/src/lib/guide-categories";
 import { getGuides } from "@/src/lib/mock-guides";
 import { GUIDE_CATEGORIES } from "@/src/types/database";
@@ -15,17 +17,17 @@ export default async function GuidesResults({ search }: { search?: string }) {
 
   if (guides.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-border bg-surface-1 px-6 py-24 text-center">
-        <p className="font-display text-xl font-bold text-text">
+      <NovaCard className="flex flex-col items-center justify-center gap-4 px-6 py-24 text-center">
+        <p className="font-display text-xl font-bold text-nova-bone">
           No guides match your search
         </p>
-        <p className="max-w-sm text-sm text-text-muted">
+        <p className="max-w-sm text-sm text-nova-ash">
           Try a different search term, or browse the FAQ instead.
         </p>
-        <Button as="a" href="/faq" variant="secondary">
+        <NovaButton as="a" href="/faq" variant="ghost">
           Browse FAQ
-        </Button>
-      </div>
+        </NovaButton>
+      </NovaCard>
     );
   }
 
@@ -38,14 +40,14 @@ export default async function GuidesResults({ search }: { search?: string }) {
     <div className="flex flex-col gap-16">
       {grouped.map(({ category, guides: categoryGuides }) => (
         <section key={category}>
-          <h2 className="mb-6 font-display text-xl font-bold text-text">
+          <h2 className="mb-6 font-display text-xl font-bold text-nova-bone">
             {GUIDE_CATEGORY_LABELS[category]}
           </h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <Reveal stagger={0.04} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {categoryGuides.map((guide) => (
               <GuideCard key={guide.id} guide={guide} />
             ))}
-          </div>
+          </Reveal>
         </section>
       ))}
     </div>

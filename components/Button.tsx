@@ -6,14 +6,14 @@ const base =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 py-3 " +
   "text-sm font-medium uppercase tracking-[0.08em] " +
   "transition-colors duration-(--duration-base) ease-standard " +
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nova-ember focus-visible:ring-offset-2 focus-visible:ring-offset-nova-void " +
   "disabled:cursor-not-allowed disabled:opacity-40";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-on-accent hover:bg-accent-strong",
+  primary: "bg-nova-ember text-on-accent hover:bg-nova-ember-lo",
   secondary:
-    "bg-surface-2 text-text border border-border hover:border-border-strong hover:bg-surface-3",
-  ghost: "bg-transparent text-text-muted hover:text-text",
+    "bg-nova-slab text-nova-bone border border-nova-hairline hover:border-nova-ember/40 hover:bg-nova-hairline",
+  ghost: "bg-transparent text-nova-ash hover:text-nova-bone",
 };
 
 type ButtonAsButton = { as?: "button" } & ComponentPropsWithoutRef<"button">;

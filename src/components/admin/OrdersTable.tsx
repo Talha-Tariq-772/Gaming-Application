@@ -18,7 +18,7 @@ export default function OrdersTable({
 }) {
   if (orders.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-surface-1 px-4 py-12 text-center text-sm text-text-muted">
+      <div className="rounded-lg border border-nova-hairline bg-nova-crypt px-4 py-12 text-center text-sm text-nova-ash">
         No orders match this filter.
       </div>
     );
@@ -33,10 +33,10 @@ export default function OrdersTable({
   return (
     <>
       {/* Table — md and up */}
-      <div className="hidden overflow-x-auto rounded-lg border border-border md:block">
+      <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline md:block">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-border bg-surface-1 text-xs uppercase tracking-wider text-text-faint">
+            <tr className="border-b border-nova-hairline bg-nova-crypt text-xs uppercase tracking-wider text-nova-smoke">
               <th className="px-4 py-3 font-medium">Reference</th>
               <th className="px-4 py-3 font-medium">Customer</th>
               <th className="px-4 py-3 font-medium">Phone</th>
@@ -60,29 +60,29 @@ export default function OrdersTable({
                     onSelect(order.id);
                   }
                 }}
-                className={`cursor-pointer border-b border-border transition-colors duration-(--duration-fast) ease-standard last:border-b-0 hover:bg-surface-1 ${
-                  selectedId === order.id ? "bg-surface-1" : "bg-bg"
+                className={`cursor-pointer border-b border-nova-hairline transition-colors duration-(--duration-fast) ease-standard last:border-b-0 hover:bg-nova-crypt ${
+                  selectedId === order.id ? "bg-nova-crypt" : "bg-nova-void"
                 }`}
               >
-                <td className="px-4 py-3 font-mono text-text">
+                <td className="px-4 py-3 font-mono text-nova-bone">
                   {order.paymentReference}
                 </td>
-                <td className="px-4 py-3 text-text-muted">
+                <td className="px-4 py-3 text-nova-ash">
                   {customer?.fullName ?? "—"}
                 </td>
-                <td className="px-4 py-3 text-text-muted">
+                <td className="px-4 py-3 text-nova-ash">
                   {customer?.phoneNumber ?? "—"}
                 </td>
-                <td className="px-4 py-3 text-right font-semibold text-text">
+                <td className="px-4 py-3 text-right font-semibold text-nova-bone">
                   {formatPrice(order.amountExact)}
                 </td>
-                <td className="px-4 py-3 text-text-muted">
+                <td className="px-4 py-3 text-nova-ash">
                   {method?.label ?? "—"}
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={order.status} />
                 </td>
-                <td className="px-4 py-3 text-right text-text-faint">
+                <td className="px-4 py-3 text-right text-nova-smoke">
                   {getOrderAgeLabel(order.createdAt)}
                 </td>
               </tr>
@@ -100,30 +100,30 @@ export default function OrdersTable({
             onClick={() => onSelect(order.id)}
             className={`flex flex-col gap-3 rounded-lg border p-4 text-left transition-colors duration-(--duration-fast) ease-standard ${
               selectedId === order.id
-                ? "border-accent bg-surface-1"
-                : "border-border bg-bg"
+                ? "border-nova-ember bg-nova-crypt"
+                : "border-nova-hairline bg-nova-void"
             }`}
           >
             <div className="flex items-start justify-between gap-3">
-              <span className="font-mono text-sm font-semibold text-text">
+              <span className="font-mono text-sm font-semibold text-nova-bone">
                 {order.paymentReference}
               </span>
               <StatusBadge status={order.status} />
             </div>
             <div className="flex items-end justify-between gap-3">
               <div className="min-w-0">
-                <p className="truncate text-sm text-text">
+                <p className="truncate text-sm text-nova-bone">
                   {customer?.fullName ?? "—"}
                 </p>
-                <p className="truncate text-xs text-text-faint">
+                <p className="truncate text-xs text-nova-smoke">
                   {customer?.phoneNumber ?? "—"} · {method?.label ?? "—"}
                 </p>
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-sm font-semibold text-text">
+                <p className="text-sm font-semibold text-nova-bone">
                   {formatPrice(order.amountExact)}
                 </p>
-                <p className="text-xs text-text-faint">
+                <p className="text-xs text-nova-smoke">
                   {getOrderAgeLabel(order.createdAt)}
                 </p>
               </div>

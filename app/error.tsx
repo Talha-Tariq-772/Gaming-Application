@@ -27,13 +27,13 @@ export default function Error({
       id="main-content"
       className="mx-auto flex max-w-page flex-col items-center justify-center gap-6 px-4 py-48 text-center md:px-8"
     >
-      <span className="text-xs font-semibold uppercase tracking-[0.2em] text-danger">
+      <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-blood">
         Error
       </span>
-      <h1 className="text-display-sm font-display font-extrabold text-text">
+      <h1 className="text-display-sm font-display font-extrabold text-nova-bone">
         Something went wrong
       </h1>
-      <p className="max-w-sm text-sm text-text-muted">
+      <p className="max-w-sm text-sm text-nova-ash">
         We hit an unexpected error loading this page. Try again, or head
         back to the store.
       </p>

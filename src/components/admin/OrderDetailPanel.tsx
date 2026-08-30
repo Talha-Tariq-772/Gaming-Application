@@ -98,20 +98,20 @@ export default function OrderDetailPanel({
       <div
         onClick={onClose}
         aria-hidden="true"
-        className="fixed inset-0 z-40 bg-bg/70"
+        className="fixed inset-0 z-40 bg-nova-void/70"
       />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="order-detail-heading"
-        className="fixed inset-y-0 right-0 z-40 flex w-full max-w-md flex-col overflow-y-auto border-l border-border bg-surface-1"
+        className="fixed inset-y-0 right-0 z-40 flex w-full max-w-md flex-col overflow-y-auto border-l border-nova-hairline bg-nova-crypt"
       >
-        <div className="flex items-start justify-between border-b border-border px-5 py-4">
+        <div className="flex items-start justify-between border-b border-nova-hairline px-5 py-4">
           <div className="flex flex-col gap-2">
             <h2
               id="order-detail-heading"
-              className="font-mono text-lg font-bold text-text"
+              className="font-mono text-lg font-bold text-nova-bone"
             >
               {order.paymentReference}
             </h2>
@@ -121,7 +121,7 @@ export default function OrderDetailPanel({
             type="button"
             onClick={onClose}
             aria-label="Close order details"
-            className="-mr-2 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center text-text-muted hover:text-text"
+            className="-mr-2 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center text-nova-ash hover:text-nova-bone"
           >
             ✕
           </button>
@@ -129,17 +129,17 @@ export default function OrderDetailPanel({
 
         <div className="flex flex-1 flex-col gap-6 px-5 py-5">
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-faint">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-nova-smoke">
               Customer
             </h3>
-            <p className="text-sm text-text">{customer?.fullName ?? "Unknown"}</p>
-            <p className="text-sm text-text-muted">
+            <p className="text-sm text-nova-bone">{customer?.fullName ?? "Unknown"}</p>
+            <p className="text-sm text-nova-ash">
               {customer?.phoneNumber ?? "—"}
             </p>
           </section>
 
           <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-faint">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-nova-smoke">
               Items
             </h3>
             <div className="flex flex-col gap-2">
@@ -150,8 +150,8 @@ export default function OrderDetailPanel({
                     key={item.id}
                     className="flex items-center justify-between text-sm"
                   >
-                    <span className="text-text">{game?.title ?? item.gameId}</span>
-                    <span className="text-text-muted">
+                    <span className="text-nova-bone">{game?.title ?? item.gameId}</span>
+                    <span className="text-nova-ash">
                       {formatPrice(item.price)}
                     </span>
                   </div>
@@ -160,25 +160,25 @@ export default function OrderDetailPanel({
             </div>
           </section>
 
-          <section className="rounded-md border border-accent bg-surface-2 p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-faint">
+          <section className="rounded-md border border-nova-ember bg-nova-slab p-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-nova-smoke">
               Exact amount to match
             </h3>
-            <p className="mt-1 text-2xl font-bold text-text">
+            <p className="mt-1 text-2xl font-bold text-nova-bone">
               {formatPrice(order.amountExact)}
             </p>
-            <p className="mt-1 text-xs text-text-muted">
+            <p className="mt-1 text-xs text-nova-ash">
               via {method?.label ?? "—"}
             </p>
           </section>
 
           {order.status === "rejected" && order.rejectionReason && (
-            <section className="rounded-md border border-danger/30 bg-danger-dim p-4 text-sm text-danger">
+            <section className="rounded-md border border-nova-blood/30 bg-nova-blood/15 p-4 text-sm text-nova-blood">
               {order.rejectionReason}
             </section>
           )}
 
-          <section className="flex flex-col gap-1 text-xs text-text-faint">
+          <section className="flex flex-col gap-1 text-xs text-nova-smoke">
             <span>Placed {formatDateTime(order.createdAt)}</span>
             {order.claimedAt && <span>Claimed {formatDateTime(order.claimedAt)}</span>}
             {order.reviewedAt && (
@@ -206,7 +206,7 @@ export default function OrderDetailPanel({
                   orderRef: order.paymentReference,
                 })
               }
-              className="text-sm font-semibold text-accent hover:text-accent-strong"
+              className="text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
             >
               Message customer on WhatsApp →
             </a>
@@ -214,12 +214,12 @@ export default function OrderDetailPanel({
         </div>
 
         {canDecide && (
-          <div className="flex gap-3 border-t border-border px-5 py-4">
+          <div className="flex gap-3 border-t border-nova-hairline px-5 py-4">
             <button
               type="button"
               onClick={() => setShowReject(true)}
               disabled={deciding}
-              className="flex-1 rounded-md border border-danger/40 px-4 py-2 text-sm font-semibold text-danger transition-colors duration-(--duration-fast) ease-standard hover:bg-danger-dim disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex-1 rounded-md border border-nova-blood/40 px-4 py-2 text-sm font-semibold text-nova-blood transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-blood/15 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Reject
             </button>
@@ -227,7 +227,7 @@ export default function OrderDetailPanel({
               type="button"
               onClick={() => setShowApprove(true)}
               disabled={deciding}
-              className="flex-1 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex-1 rounded-md bg-nova-ember px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-lo disabled:cursor-not-allowed disabled:opacity-40"
             >
               Approve
             </button>

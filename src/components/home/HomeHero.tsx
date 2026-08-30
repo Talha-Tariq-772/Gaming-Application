@@ -1,5 +1,6 @@
 import Button from "@/components/Button";
 import HeroVisual from "@/src/components/home/HeroVisual";
+import HeroVisualV2 from "@/src/components/home/HeroVisualV2";
 import MagneticButton from "@/src/components/motion/MagneticButton";
 
 /**
@@ -14,24 +15,34 @@ import MagneticButton from "@/src/components/motion/MagneticButton";
  *
  * HeroVisual (the 3D moment) is a separate client component with its own
  * eligibility gating and lazy-loaded scene — see HeroVisual.tsx.
+ *
+ * HERO_VARIANT: local-only toggle for comparing HeroVisual (existing,
+ * tested, R3F) against HeroVisualV2 (placeholder-image CSS/GSAP variant —
+ * see HeroVisualV2.tsx). Currently "v2" for local review of the Ken Burns/
+ * rim-light/particle treatment — its placeholder image lives in
+ * public/hero-test/, which is gitignored and won't exist in any deployed
+ * build, so flip this back to "v1" (or swap in the real asset — see the
+ * PLACEHOLDER comment in HeroVisualV2.tsx) before deploying.
  */
+const HERO_VARIANT: "v1" | "v2" = "v2";
+
 export default function HomeHero() {
   return (
     <section className="mx-auto grid max-w-page gap-12 px-4 py-32 md:grid-cols-2 md:items-center md:px-8 md:py-48">
       <div className="flex flex-col items-start justify-center gap-8">
         <span
-          className="hero-reveal text-xs font-semibold uppercase tracking-[0.2em] text-accent"
+          className="hero-reveal text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember"
           style={{ animationDelay: "0s" }}
         >
           Now live
         </span>
-        <h1 className="w-full text-display-lg font-display font-extrabold text-text">
+        <h1 className="w-full text-display-lg font-display font-extrabold text-nova-bone">
           Play what&rsquo;s
           <br />
           next.
         </h1>
         <p
-          className="hero-reveal w-full max-w-lg text-lg text-text-muted"
+          className="hero-reveal w-full max-w-lg text-lg text-nova-ash"
           style={{ animationDelay: "0.1s" }}
         >
           A curated, cinematic storefront for the games worth your time. No
@@ -49,7 +60,7 @@ export default function HomeHero() {
           </Button>
         </div>
       </div>
-      <HeroVisual />
+      {HERO_VARIANT === "v2" ? <HeroVisualV2 /> : <HeroVisual />}
     </section>
   );
 }

@@ -51,14 +51,14 @@ export default async function LibraryPage() {
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
       <div className="mb-12">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Library</span>
-        <h1 className="mt-2 text-display-sm font-display font-extrabold text-text">My Library</h1>
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">Library</span>
+        <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">My Library</h1>
       </div>
 
       {entries.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-lg border border-border bg-surface-1 px-6 py-24 text-center">
-          <p className="font-display text-xl font-bold text-text">No purchases yet</p>
-          <p className="max-w-sm text-sm text-text-muted">
+        <div className="flex flex-col items-center gap-4 rounded-lg border border-nova-hairline bg-nova-crypt px-6 py-24 text-center">
+          <p className="font-display text-xl font-bold text-nova-bone">No purchases yet</p>
+          <p className="max-w-sm text-sm text-nova-ash">
             Games you&rsquo;ve bought and had approved will show up here.
           </p>
           <Button as="a" href="/games" variant="secondary">

@@ -42,10 +42,10 @@ export default function AdminOrdersClient({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 id="orders-queue-heading" tabIndex={-1} className="text-xl font-bold text-text">
+        <h1 id="orders-queue-heading" tabIndex={-1} className="text-xl font-bold text-nova-bone">
           Verification Queue
         </h1>
-        <p className="mt-1 text-sm text-text-muted">Oldest first — the longest wait gets served first.</p>
+        <p className="mt-1 text-sm text-nova-ash">Oldest first — the longest wait gets served first.</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -56,8 +56,8 @@ export default function AdminOrdersClient({
             onClick={() => setStatusFilter(f.value)}
             className={`flex min-h-11 items-center rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors duration-(--duration-fast) ease-standard ${
               statusFilter === f.value
-                ? "border-accent bg-accent-dim text-accent"
-                : "border-border text-text-muted hover:border-border-strong"
+                ? "border-nova-ember bg-nova-ember-lo text-nova-ember"
+                : "border-nova-hairline text-nova-ash hover:border-nova-ember/40"
             }`}
           >
             {f.label}

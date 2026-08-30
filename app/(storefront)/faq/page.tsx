@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import FaqAccordion from "@/src/components/faq/FaqAccordion";
 import FaqHashSync from "@/src/components/faq/FaqHashSync";
+import Eyebrow from "@/src/components/ui/nova/Eyebrow";
 import { getFaqItems } from "@/src/lib/mock-guides";
 
 const TITLE = "FAQ";
@@ -53,17 +54,15 @@ export default async function FaqPage() {
       <FaqHashSync />
 
       <div className="mb-12 max-w-2xl">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-          Help
-        </span>
-        <h1 className="mt-2 text-display-sm font-display font-extrabold text-text">
+        <Eyebrow>Help</Eyebrow>
+        <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">
           Frequently Asked Questions
         </h1>
-        <p className="mt-4 text-base text-text-muted">
+        <p className="mt-4 text-base text-nova-ash">
           Can&rsquo;t find what you&rsquo;re after? See the full{" "}
           <Link
             href="/guides"
-            className="text-accent underline underline-offset-2 hover:text-accent-strong"
+            className="text-nova-ember underline underline-offset-2 hover:text-nova-ember-lo"
           >
             guides
           </Link>{" "}

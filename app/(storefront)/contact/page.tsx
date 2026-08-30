@@ -33,22 +33,22 @@ export default function ContactPage() {
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
       <div className="mx-auto max-w-2xl">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">
           Legal
         </span>
-        <h1 className="mt-2 text-display-sm font-display font-extrabold text-text">
+        <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">
           {page.title}
         </h1>
-        <p className="mt-2 text-xs text-text-faint">
+        <p className="mt-2 text-xs text-nova-smoke">
           Last updated {formatDate(page.updatedAt)}
         </p>
 
-        <div className="mt-8 flex flex-col items-start gap-4 rounded-lg border border-accent bg-surface-1 p-6 shadow-glow sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-col items-start gap-4 rounded-lg border border-nova-ember bg-nova-crypt p-6 shadow-glow sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-display text-lg font-bold text-text">
+            <p className="font-display text-lg font-bold text-nova-bone">
               Message us on WhatsApp
             </p>
-            <p className="mt-1 text-sm text-text-muted">
+            <p className="mt-1 text-sm text-nova-ash">
               Online 9am–9pm PKT, every day.
             </p>
           </div>

@@ -13,10 +13,10 @@ const THUMB_CLASSNAME =
   "pointer-events-none absolute inset-0 h-11 w-full cursor-pointer appearance-none bg-transparent " +
   "[&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 " +
   "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 " +
-  "[&::-webkit-slider-thumb]:border-bg [&::-webkit-slider-thumb]:bg-accent " +
+  "[&::-webkit-slider-thumb]:border-nova-void [&::-webkit-slider-thumb]:bg-nova-ember " +
   "[&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 " +
   "[&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 " +
-  "[&::-moz-range-thumb]:border-bg [&::-moz-range-thumb]:bg-accent " +
+  "[&::-moz-range-thumb]:border-nova-void [&::-moz-range-thumb]:bg-nova-ember " +
   "[&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:bg-transparent";
 
 export default function PriceRangeSlider({
@@ -62,14 +62,14 @@ export default function PriceRangeSlider({
 
   return (
     <div>
-      <div className="flex items-center justify-between text-xs text-text-muted">
+      <div className="flex items-center justify-between text-xs text-nova-ash">
         <span>{formatPrice(min)}</span>
         <span>{formatPrice(max)}</span>
       </div>
       <div className="relative mt-3 h-11">
-        <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-surface-2" />
+        <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-nova-slab" />
         <div
-          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-accent"
+          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-nova-ember"
           style={{ left: `${minPct}%`, right: `${100 - maxPct}%` }}
         />
         <input

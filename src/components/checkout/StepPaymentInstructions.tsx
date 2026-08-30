@@ -45,11 +45,11 @@ export default function StepPaymentInstructions({
 
   if (expired) {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-lg border border-border bg-surface-1 px-6 py-24 text-center">
-        <h2 className="font-display text-xl font-bold text-text">
+      <div className="flex flex-col items-center gap-4 rounded-lg border border-nova-hairline bg-nova-crypt px-6 py-24 text-center">
+        <h2 className="font-display text-xl font-bold text-nova-bone">
           Reservation expired
         </h2>
-        <p className="max-w-sm text-sm text-text-muted">
+        <p className="max-w-sm text-sm text-nova-ash">
           Your 45-minute payment window has closed. Start over to get a new
           reference and reservation.
         </p>
@@ -63,12 +63,12 @@ export default function StepPaymentInstructions({
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_280px]">
       <div className="flex flex-col gap-6">
-        <div className="rounded-lg border border-accent bg-surface-1 p-6 shadow-glow">
-          <span className="text-xs font-semibold uppercase tracking-wider text-text-faint">
+        <div className="rounded-lg border border-nova-ember bg-nova-crypt p-6 shadow-glow">
+          <span className="text-xs font-semibold uppercase tracking-wider text-nova-smoke">
             Amount to transfer
           </span>
           <div className="mt-2 flex flex-wrap items-center gap-4">
-            <span className="text-4xl font-display font-extrabold text-text">
+            <span className="text-4xl font-display font-extrabold text-nova-bone">
               {formatPrice(order.amountExact)}
             </span>
             <CopyButton
@@ -76,26 +76,26 @@ export default function StepPaymentInstructions({
               label="Copy amount"
             />
           </div>
-          <p className="mt-3 text-sm text-text-muted">
+          <p className="mt-3 text-sm text-nova-ash">
             Transfer this exact amount — the extra paisa is how we match
             your payment automatically.
           </p>
         </div>
 
-        <div className="rounded-lg border border-border bg-surface-1 p-6">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-text-faint">
+        <div className="rounded-lg border border-nova-hairline bg-nova-crypt p-6">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-nova-smoke">
             {method.label} details
           </h2>
           <dl className="flex flex-col gap-4">
             <div>
-              <dt className="text-xs text-text-faint">Account Title</dt>
-              <dd className="text-sm text-text">{method.accountTitle}</dd>
+              <dt className="text-xs text-nova-smoke">Account Title</dt>
+              <dd className="text-sm text-nova-bone">{method.accountTitle}</dd>
             </div>
 
             <div className="flex items-center justify-between gap-4">
               <div>
-                <dt className="text-xs text-text-faint">Account Number</dt>
-                <dd className="font-mono text-sm text-text">
+                <dt className="text-xs text-nova-smoke">Account Number</dt>
+                <dd className="font-mono text-sm text-nova-bone">
                   {method.accountNumber}
                 </dd>
               </div>
@@ -105,8 +105,8 @@ export default function StepPaymentInstructions({
             {method.iban && (
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <dt className="text-xs text-text-faint">IBAN</dt>
-                  <dd className="font-mono text-sm text-text">
+                  <dt className="text-xs text-nova-smoke">IBAN</dt>
+                  <dd className="font-mono text-sm text-nova-bone">
                     {method.iban}
                   </dd>
                 </div>
@@ -117,8 +117,8 @@ export default function StepPaymentInstructions({
             {method.raastId && (
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <dt className="text-xs text-text-faint">RAAST ID</dt>
-                  <dd className="font-mono text-sm text-text">
+                  <dt className="text-xs text-nova-smoke">RAAST ID</dt>
+                  <dd className="font-mono text-sm text-nova-bone">
                     {method.raastId}
                   </dd>
                 </div>
@@ -128,32 +128,32 @@ export default function StepPaymentInstructions({
 
             <div className="flex items-center justify-between gap-4">
               <div>
-                <dt className="text-xs text-text-faint">Reference</dt>
-                <dd className="font-mono text-sm text-text">
+                <dt className="text-xs text-nova-smoke">Reference</dt>
+                <dd className="font-mono text-sm text-nova-bone">
                   {order.paymentReference}
                 </dd>
               </div>
               <CopyButton value={order.paymentReference} />
             </div>
           </dl>
-          <p className="mt-4 text-sm text-text-muted">
+          <p className="mt-4 text-sm text-nova-ash">
             {method.instructions}
           </p>
         </div>
 
         {!isOnline && (
-          <p className="max-w-sm text-sm text-warning">
+          <p className="max-w-sm text-sm text-nova-gild">
             You&rsquo;re offline — reconnect before confirming your payment.
           </p>
         )}
 
-        <label className="flex max-w-sm items-start gap-3 text-sm text-text-muted">
+        <label className="flex max-w-sm items-start gap-3 text-sm text-nova-ash">
           <input
             type="checkbox"
             checked={consentChecked}
             onChange={(e) => setConsentChecked(e.target.checked)}
             required
-            className="mt-0.5 h-4 w-4 shrink-0 rounded border-border bg-surface-1 accent-accent"
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-nova-hairline bg-nova-crypt accent-nova-ember"
           />
           <span>
             I understand credentials are non-refundable once revealed. Read
@@ -162,7 +162,7 @@ export default function StepPaymentInstructions({
               href="/refund-policy"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-accent underline underline-offset-2 hover:text-accent-strong"
+              className="font-semibold text-nova-ember underline underline-offset-2 hover:text-nova-ember-lo"
             >
               refund policy
             </Link>
@@ -171,7 +171,7 @@ export default function StepPaymentInstructions({
         </label>
 
         {submitError && (
-          <p className="max-w-sm rounded-md border border-danger/30 bg-danger-dim px-4 py-3 text-sm text-danger">
+          <p className="max-w-sm rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-blood">
             {submitError}
           </p>
         )}
@@ -199,17 +199,17 @@ export default function StepPaymentInstructions({
           {isSubmitting ? "Submitting…" : "I have made the payment"}
         </Button>
 
-        <p className="max-w-sm text-xs text-text-faint">
+        <p className="max-w-sm text-xs text-nova-smoke">
           Orders are typically verified within 1–2 hours during business
           hours (9am–9pm PKT).
         </p>
       </div>
 
-      <aside className="flex h-fit flex-col items-center gap-2 rounded-lg border border-border bg-surface-1 p-6 text-center">
-        <span className="text-xs font-semibold uppercase tracking-wider text-text-faint">
+      <aside className="flex h-fit flex-col items-center gap-2 rounded-lg border border-nova-hairline bg-nova-crypt p-6 text-center">
+        <span className="text-xs font-semibold uppercase tracking-wider text-nova-smoke">
           Reservation expires in
         </span>
-        <span className="text-3xl font-display font-bold text-accent">
+        <span className="text-3xl font-display font-bold text-nova-ember">
           <CountdownTimer
             expiresAt={order.reservedUntil}
             onExpire={() => {

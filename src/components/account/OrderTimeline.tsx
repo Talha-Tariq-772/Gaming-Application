@@ -56,9 +56,9 @@ function buildTimeline(order: Order): TimelineEvent[] {
 }
 
 const DOT_TONE_CLASS: Record<TimelineEvent["tone"], string> = {
-  default: "bg-text-faint",
-  success: "bg-success",
-  danger: "bg-danger",
+  default: "bg-nova-smoke",
+  success: "bg-nova-ember",
+  danger: "bg-nova-blood",
 };
 
 export default function OrderTimeline({ order }: { order: Order }) {
@@ -73,16 +73,16 @@ export default function OrderTimeline({ order }: { order: Order }) {
               className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT_TONE_CLASS[event.tone]}`}
             />
             {i < events.length - 1 && (
-              <span className="mt-1 w-px flex-1 bg-border" aria-hidden="true" />
+              <span className="mt-1 w-px flex-1 bg-nova-hairline" aria-hidden="true" />
             )}
           </div>
           <div className="pb-2">
-            <p className="text-sm font-semibold text-text">{event.label}</p>
-            <p className="text-xs text-text-faint">
+            <p className="text-sm font-semibold text-nova-bone">{event.label}</p>
+            <p className="text-xs text-nova-smoke">
               {formatDateTime(event.timestamp)}
             </p>
             {event.description && (
-              <p className="mt-2 max-w-md text-sm text-text-muted">
+              <p className="mt-2 max-w-md text-sm text-nova-ash">
                 {event.description}
               </p>
             )}

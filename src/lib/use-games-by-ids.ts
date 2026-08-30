@@ -1,24 +1,54 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GAME_COVER_PLACEHOLDER } from "@/src/lib/game-placeholder";
 import { createClient } from "@/src/lib/supabase/client";
-import type { Game } from "@/src/types/database";
+import type { Game, GameVariant } from "@/src/types/database";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapVariantRow(row: any): GameVariant {
+  return {
+    id: row.id,
+    gameId: row.game_id,
+    label: row.label,
+    pricePkr: Number(row.price_pkr),
+    wasPricePkr: row.was_price_pkr === null ? null : Number(row.was_price_pkr),
+    priceSource: row.price_source,
+    sortOrder: row.sort_order,
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapGameRow(row: any): Game {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const variants = ((row.game_variants ?? []) as any[])
+    .filter((v) => v.is_active)
+    .map(mapVariantRow)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
   return {
     id: row.id,
     title: row.title,
     slug: row.slug,
     description: row.description ?? "",
     price: Number(row.price),
-    coverImageUrl: row.cover_image_url ?? "",
+    // `||`, not `??` — see catalog.ts's mapGameRow for why.
+    coverImageUrl: row.cover_image_url || GAME_COVER_PLACEHOLDER,
     trailerUrl: row.trailer_url ?? "",
     genre: row.genre,
     platform: row.platform,
     setupGuide: row.setup_guide ?? "",
     isActive: row.is_active,
     createdAt: row.created_at,
+    productType: row.product_type,
+    releaseDate: row.release_date,
+    isNewArrival: row.is_new_arrival,
+    isBestSeller: row.is_best_seller,
+    variantMode: row.variant_mode,
+    coverPath: row.cover_path,
+    wallpaperPath: row.wallpaper_path,
+    sliderPosition: row.slider_position,
+    variants,
   };
 }
 
@@ -66,6 +96,11 @@ export function useGamesByIds(ids: string[]): GamesByIdsResult {
 
     supabase
       .from("games")
+      // Plain "*", not the game_variants embed catalog.ts's store-facing
+      // queries use — cart validation only reads id/isActive/price, and
+      // keeping this independent of Session 1's schema matches
+      // getGamesByIds's identical reasoning (see catalog.ts). mapGameRow
+      // below defaults variants to [] when the embed is absent.
       .select("*")
       .eq("is_active", true)
       .in("id", key.split(","))

@@ -43,6 +43,15 @@ next-env.d.ts
 
 # editor / local tooling
 .claude/
+.playwright-mcp/
 
 # database backups (scripts/backup-db.sh) — never commit a dump
 /backups/
+
+# hero-test placeholder images (HeroVisualV2, local experimentation only)
+# — rights-uncleared stand-ins, never committed, never deployed
+/public/hero-test/
+
+# scripts/generate-figure-assets.mjs eyeball-only depth preview — not a
+# shipped asset, deliberately kept outside public/
+/scripts/.out/

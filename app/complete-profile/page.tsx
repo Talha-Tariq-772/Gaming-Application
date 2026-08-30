@@ -35,8 +35,8 @@ export default async function CompleteProfilePage({
   return (
     <div className="mx-auto flex max-w-sm flex-col gap-6 px-4 py-24">
       <div>
-        <h1 className="font-display text-2xl font-bold text-text">Complete your profile</h1>
-        <p className="mt-2 text-sm text-text-muted">
+        <h1 className="font-display text-2xl font-bold text-nova-bone">Complete your profile</h1>
+        <p className="mt-2 text-sm text-nova-ash">
           We need a phone number to reach you about your orders.
         </p>
       </div>

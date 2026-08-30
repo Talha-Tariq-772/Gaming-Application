@@ -59,8 +59,8 @@ export default function CredentialReveal({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-surface-1 p-6">
-      <h3 className="font-display text-lg font-bold text-text">
+    <div className="rounded-lg border border-nova-hairline bg-nova-crypt p-6">
+      <h3 className="font-display text-lg font-bold text-nova-bone">
         {gameTitle}
       </h3>
 
@@ -69,36 +69,36 @@ export default function CredentialReveal({
       </span>
 
       {!credential ? (
-        <div className="mt-4 flex flex-col items-start gap-4 rounded-md border border-warning/30 bg-warning-dim p-4">
-          <p className="text-sm text-warning">
+        <div className="mt-4 flex flex-col items-start gap-4 rounded-md border border-nova-gild/30 bg-nova-gild/15 p-4">
+          <p className="text-sm text-nova-gild">
             These details are shown once. Save them before closing this
             page.
           </p>
-          {error && <p className="text-sm text-danger">{error}</p>}
+          {error && <p className="text-sm text-nova-blood">{error}</p>}
           <Button type="button" variant="primary" onClick={handleReveal} disabled={revealing}>
             {revealing ? "Revealing…" : "Reveal Credentials"}
           </Button>
         </div>
       ) : (
         <div className="mt-4 flex flex-col gap-4">
-          <div className="rounded-md border border-danger/30 bg-danger-dim px-4 py-3 text-sm font-semibold text-danger">
+          <div className="rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm font-semibold text-nova-blood">
             Do not share these details with anyone.
           </div>
 
-          <div className="flex items-center justify-between gap-4 rounded-md border border-border bg-surface-2 px-4 py-3">
+          <div className="flex items-center justify-between gap-4 rounded-md border border-nova-hairline bg-nova-slab px-4 py-3">
             <div className="min-w-0">
-              <span className="block text-xs text-text-faint">Login</span>
-              <span className="block truncate font-mono text-sm text-text">
+              <span className="block text-xs text-nova-smoke">Login</span>
+              <span className="block truncate font-mono text-sm text-nova-bone">
                 {credential.login}
               </span>
             </div>
             <CopyButton value={credential.login} />
           </div>
 
-          <div className="flex items-center justify-between gap-4 rounded-md border border-border bg-surface-2 px-4 py-3">
+          <div className="flex items-center justify-between gap-4 rounded-md border border-nova-hairline bg-nova-slab px-4 py-3">
             <div className="min-w-0">
-              <span className="block text-xs text-text-faint">Password</span>
-              <span className="block truncate font-mono text-sm text-text">
+              <span className="block text-xs text-nova-smoke">Password</span>
+              <span className="block truncate font-mono text-sm text-nova-bone">
                 {showPassword
                   ? credential.password
                   : "•".repeat(credential.password.length)}
@@ -110,7 +110,7 @@ export default function CredentialReveal({
                 onClick={() => setShowPassword((v) => !v)}
                 aria-pressed={showPassword}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="flex min-h-11 items-center px-1 text-xs font-semibold uppercase tracking-wider text-text-muted hover:text-text"
+                className="flex min-h-11 items-center px-1 text-xs font-semibold uppercase tracking-wider text-nova-ash hover:text-nova-bone"
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
@@ -118,18 +118,18 @@ export default function CredentialReveal({
             </div>
           </div>
 
-          <p className="text-xs text-text-faint">
+          <p className="text-xs text-nova-smoke">
             Revealed on {formatDateTime(credential.revealedAt)}
           </p>
 
-          <div className="mt-2 rounded-md border border-border bg-surface-2 p-4">
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-faint">
+          <div className="mt-2 rounded-md border border-nova-hairline bg-nova-slab p-4">
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-nova-smoke">
               Setup Guide
             </h4>
-            <p className="text-sm text-text-muted">{setupGuide}</p>
+            <p className="text-sm text-nova-ash">{setupGuide}</p>
             <Link
               href={`/guides/${REDEMPTION_GUIDE_SLUG}`}
-              className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-accent hover:text-accent-strong"
+              className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
             >
               Read the full redemption guide →
             </Link>

@@ -17,7 +17,7 @@ export default function CartTriggerButton() {
       aria-label={
         displayCount > 0 ? `Open cart, ${displayCount} items` : "Open cart"
       }
-      className="relative flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface-1 text-text transition-colors duration-(--duration-fast) ease-standard hover:border-border-strong"
+      className="relative flex h-11 w-11 items-center justify-center rounded-full border border-nova-hairline bg-nova-crypt text-nova-bone transition-colors duration-(--duration-fast) ease-standard hover:border-nova-ember/40"
     >
       <svg
         viewBox="0 0 24 24"
@@ -36,7 +36,7 @@ export default function CartTriggerButton() {
         <circle cx="17" cy="20" r="1.5" />
       </svg>
       {displayCount > 0 && (
-        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-xs font-bold text-on-accent">
+        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-nova-ember px-1 text-xs font-bold text-on-accent">
           {displayCount}
         </span>
       )}

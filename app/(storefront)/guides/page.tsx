@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import SectionErrorBoundary from "@/src/components/SectionErrorBoundary";
 import GuideSearchInput from "@/src/components/guides/GuideSearchInput";
 import GuidesGridSkeleton from "@/src/components/guides/GuidesGridSkeleton";
+import Eyebrow from "@/src/components/ui/nova/Eyebrow";
 import GuidesResults from "./GuidesResults";
 
 const TITLE = "Guides";
@@ -45,13 +46,11 @@ export default async function GuidesPage({
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
       <div className="mb-12">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-          Help
-        </span>
-        <h1 className="mt-2 text-display-sm font-display font-extrabold text-text">
+        <Eyebrow>Help</Eyebrow>
+        <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">
           Guides
         </h1>
-        <p className="mt-4 max-w-lg text-base text-text-muted">
+        <p className="mt-4 max-w-lg text-base text-nova-ash">
           Redemption instructions, payment help, account setup, and
           troubleshooting — everything you need to get from checkout to
           playing.

@@ -22,7 +22,7 @@ export default async function FeaturedGames() {
     <section aria-label="Featured games" className="overflow-hidden">
       <FeaturedGamesScroll
         heading={
-          <h2 className="mb-8 font-display text-2xl font-bold text-text md:text-3xl">
+          <h2 className="mb-8 font-display text-2xl font-bold text-nova-bone md:text-3xl">
             Featured
           </h2>
         }

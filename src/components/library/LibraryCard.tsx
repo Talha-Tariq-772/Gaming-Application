@@ -12,7 +12,7 @@ export default function LibraryCard({ game, orderId }: { game: Game; orderId: st
   return (
     <div className="flex flex-col gap-3">
       <Link href={`/account/orders/${orderId}`} className="group flex flex-col gap-3">
-        <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-border bg-surface-1">
+        <div className="relative aspect-3/4 overflow-hidden rounded-lg border border-nova-hairline bg-nova-crypt">
           <Image
             src={game.coverImageUrl}
             alt={game.title}
@@ -21,13 +21,13 @@ export default function LibraryCard({ game, orderId }: { game: Game; orderId: st
             className="object-cover"
           />
         </div>
-        <h3 className="line-clamp-2 break-words font-display text-lg font-bold text-text transition-colors duration-(--duration-fast) ease-standard group-hover:text-accent">
+        <h3 className="line-clamp-2 wrap-break-word font-display text-lg font-bold text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember">
           {game.title}
         </h3>
       </Link>
       <Link
         href={`/guides/${REDEMPTION_GUIDE_SLUG}`}
-        className="-my-2.5 flex min-h-11 w-fit items-center py-2.5 text-sm font-semibold text-accent hover:text-accent-strong"
+        className="-my-2.5 flex min-h-11 w-fit items-center py-2.5 text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
       >
         View setup guide →
       </Link>

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import TableOfContents from "@/src/components/guides/TableOfContents";
 import ViewGuideTracker from "@/src/components/guides/ViewGuideTracker";
+import Eyebrow from "@/src/components/ui/nova/Eyebrow";
+import NovaCard from "@/src/components/ui/nova/NovaCard";
 import { GUIDE_CATEGORY_LABELS } from "@/src/lib/guide-categories";
 import { renderMarkdown } from "@/src/lib/markdown";
 import { getGuideBySlug, getGuides } from "@/src/lib/mock-guides";
@@ -95,17 +97,15 @@ export default async function GuideArticlePage({
       <ViewGuideTracker guideSlug={guide.slug} category={guide.category} />
       <Link
         href="/guides"
-        className="-my-2.5 mb-6 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-medium text-text-muted hover:text-text"
+        className="-my-2.5 mb-6 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-medium text-nova-ash hover:text-nova-bone"
       >
         ← All Guides
       </Link>
 
       <div className="grid gap-12 lg:grid-cols-[1fr_240px]">
         <article className="min-w-0">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-            {GUIDE_CATEGORY_LABELS[guide.category]}
-          </span>
-          <h1 className="mt-2 break-words text-display-sm font-display font-extrabold text-text">
+          <Eyebrow>{GUIDE_CATEGORY_LABELS[guide.category]}</Eyebrow>
+          <h1 className="mt-2 wrap-break-word text-display-sm font-display font-extrabold text-nova-bone">
             {guide.title}
           </h1>
 
@@ -114,31 +114,25 @@ export default async function GuideArticlePage({
             dangerouslySetInnerHTML={{ __html: html }}
           />
 
-          <nav className="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2">
+          <nav className="mt-16 grid gap-4 border-t border-nova-hairline pt-8 sm:grid-cols-2">
             {prevGuide && (
-              <Link
-                href={`/guides/${prevGuide.slug}`}
-                className="flex flex-col gap-1 rounded-lg border border-border bg-surface-1 p-4 transition-colors duration-(--duration-fast) ease-standard hover:border-border-strong"
-              >
-                <span className="text-xs font-semibold uppercase tracking-wider text-text-faint">
-                  ← Previous
-                </span>
-                <span className="text-sm font-semibold text-text">
-                  {prevGuide.title}
-                </span>
+              <Link href={`/guides/${prevGuide.slug}`} className="block">
+                <NovaCard className="flex flex-col gap-1 p-4">
+                  <Eyebrow tone="muted">← Previous</Eyebrow>
+                  <span className="text-sm font-semibold text-nova-bone">
+                    {prevGuide.title}
+                  </span>
+                </NovaCard>
               </Link>
             )}
             {nextGuide && (
-              <Link
-                href={`/guides/${nextGuide.slug}`}
-                className="flex flex-col gap-1 rounded-lg border border-border bg-surface-1 p-4 text-right transition-colors duration-(--duration-fast) ease-standard hover:border-border-strong sm:col-start-2"
-              >
-                <span className="text-xs font-semibold uppercase tracking-wider text-text-faint">
-                  Next →
-                </span>
-                <span className="text-sm font-semibold text-text">
-                  {nextGuide.title}
-                </span>
+              <Link href={`/guides/${nextGuide.slug}`} className="block sm:col-start-2">
+                <NovaCard className="flex flex-col gap-1 p-4 text-right">
+                  <Eyebrow tone="muted">Next →</Eyebrow>
+                  <span className="text-sm font-semibold text-nova-bone">
+                    {nextGuide.title}
+                  </span>
+                </NovaCard>
               </Link>
             )}
           </nav>

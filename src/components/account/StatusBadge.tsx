@@ -3,27 +3,27 @@ import type { OrderStatus } from "@/src/types/database";
 const STATUS_CONFIG: Record<OrderStatus, { label: string; toneClass: string }> = {
   awaiting_payment: {
     label: "Awaiting payment",
-    toneClass: "border-border-strong bg-surface-2 text-text-muted",
+    toneClass: "border-nova-hairline bg-nova-slab text-nova-ash",
   },
   payment_claimed: {
     label: "Payment submitted",
-    toneClass: "border-warning/30 bg-warning-dim text-warning",
+    toneClass: "border-nova-gild/30 bg-nova-gild/15 text-nova-gild",
   },
   under_review: {
     label: "Under review",
-    toneClass: "border-warning/30 bg-warning-dim text-warning",
+    toneClass: "border-nova-gild/30 bg-nova-gild/15 text-nova-gild",
   },
   approved: {
     label: "Ready",
-    toneClass: "border-success/30 bg-success-dim text-success",
+    toneClass: "border-nova-ember/30 bg-nova-ember/15 text-nova-ember",
   },
   rejected: {
     label: "Rejected",
-    toneClass: "border-danger/30 bg-danger-dim text-danger",
+    toneClass: "border-nova-blood/30 bg-nova-blood/15 text-nova-blood",
   },
   expired: {
     label: "Expired",
-    toneClass: "border-border-strong bg-surface-2 text-text-muted",
+    toneClass: "border-nova-hairline bg-nova-slab text-nova-ash",
   },
 };
 

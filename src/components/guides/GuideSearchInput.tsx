@@ -46,7 +46,7 @@ export default function GuideSearchInput() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search guides…"
-        className="min-h-11 w-full rounded-md border border-border bg-surface-1 px-3 py-2 text-sm text-text placeholder:text-text-faint focus:border-accent focus:outline-none"
+        className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-crypt px-3 py-2 text-sm text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
       />
     </div>
   );

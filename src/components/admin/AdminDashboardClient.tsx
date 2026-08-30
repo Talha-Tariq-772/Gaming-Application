@@ -14,7 +14,7 @@ import StatCard from "@/src/components/admin/StatCard";
 // fetched after the rest of the dashboard renders — a fixed-height
 // skeleton matching the real chart's h-64 wrapper avoids layout shift.
 const ChartSkeleton = () => (
-  <div className="h-64 w-full animate-pulse rounded-md bg-surface-2" />
+  <div className="h-64 w-full animate-pulse rounded-md bg-nova-slab" />
 );
 const RevenueLineChart = dynamic(
   () => import("@/src/components/admin/RevenueLineChart"),
@@ -87,7 +87,7 @@ export default function AdminDashboardClient({
         <span className="sr-only">Loading…</span>
         <div
           aria-hidden="true"
-          className="h-64 rounded-lg border border-border bg-surface-1"
+          className="h-64 rounded-lg border border-nova-hairline bg-nova-crypt"
         />
       </div>
     );
@@ -101,10 +101,10 @@ export default function AdminDashboardClient({
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 id="orders-queue-heading" tabIndex={-1} className="text-xl font-bold text-text">
+        <h1 id="orders-queue-heading" tabIndex={-1} className="text-xl font-bold text-nova-bone">
           Dashboard
         </h1>
-        <p className="mt-1 text-sm text-text-muted">
+        <p className="mt-1 text-sm text-nova-ash">
           Overview and the pending verification queue.
         </p>
       </div>
@@ -126,16 +126,16 @@ export default function AdminDashboardClient({
       />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border border-border bg-surface-1 p-4">
-          <h2 className="mb-4 text-sm font-semibold text-text">
+        <div className="rounded-lg border border-nova-hairline bg-nova-crypt p-4">
+          <h2 className="mb-4 text-sm font-semibold text-nova-bone">
             Revenue — last 30 days
           </h2>
           <SectionErrorBoundary label="the revenue chart">
             <RevenueLineChart data={stats.dailyRevenue} />
           </SectionErrorBoundary>
         </div>
-        <div className="rounded-lg border border-border bg-surface-1 p-4">
-          <h2 className="mb-4 text-sm font-semibold text-text">
+        <div className="rounded-lg border border-nova-hairline bg-nova-crypt p-4">
+          <h2 className="mb-4 text-sm font-semibold text-nova-bone">
             Top-selling games
           </h2>
           <SectionErrorBoundary label="the top-selling chart">

@@ -18,11 +18,11 @@ function AlwaysThrows(): never {
 export default function SectionErrorTriggerPage() {
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
-      <h1 className="mb-8 text-display-sm font-display font-extrabold text-text">
+      <h1 className="mb-8 text-display-sm font-display font-extrabold text-nova-bone">
         Section error boundary
       </h1>
 
-      <p className="mb-4 text-sm text-text-muted">
+      <p className="mb-4 text-sm text-nova-ash">
         The section below always throws on render. It should show an
         inline retry state (and fire a failure toast with a Retry
         action) — everything else on this page should render normally
@@ -33,7 +33,7 @@ export default function SectionErrorTriggerPage() {
         <AlwaysThrows />
       </SectionErrorBoundary>
 
-      <div className="mt-8 rounded-lg border border-success/30 bg-success-dim p-6 text-sm text-success">
+      <div className="mt-8 rounded-lg border border-nova-ember/30 bg-nova-ember/15 p-6 text-sm text-nova-ember">
         Unaffected content — if you can read this, the failure above
         stayed contained.
       </div>

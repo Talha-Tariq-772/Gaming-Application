@@ -28,34 +28,34 @@ export default function OrderCard({
   const method = paymentMethods.find((m) => m.id === order.paymentMethodId);
 
   return (
-    <div className="rounded-lg border border-border bg-surface-1 p-6">
+    <div className="rounded-lg border border-nova-hairline bg-nova-crypt p-6">
       <Link
         href={`/account/orders/${order.id}`}
         className="flex flex-col gap-4"
       >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <span className="font-mono text-lg font-bold text-text">
+            <span className="font-mono text-lg font-bold text-nova-bone">
               {order.paymentReference}
             </span>
-            <p className="mt-1 text-xs text-text-faint">
+            <p className="mt-1 text-xs text-nova-smoke">
               {formatDate(order.createdAt)}
             </p>
           </div>
           <StatusBadge status={order.status} />
         </div>
 
-        <p className="text-sm text-text-muted">
+        <p className="text-sm text-nova-ash">
           {titles.length > 0 ? titles.join(", ") : `${items.length} item(s)`}
         </p>
 
-        <span className="text-lg font-semibold text-text">
+        <span className="text-lg font-semibold text-nova-bone">
           {formatPrice(order.amountExact)}
         </span>
       </Link>
 
       {order.status === "rejected" && order.rejectionReason && (
-        <p className="mt-4 rounded-md border border-danger/30 bg-danger-dim px-4 py-3 text-sm text-danger">
+        <p className="mt-4 rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-blood">
           {order.rejectionReason}
         </p>
       )}
@@ -71,7 +71,7 @@ export default function OrderCard({
               orderRef: order.paymentReference,
             })
           }
-          className="-mb-2.5 mt-4 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-semibold text-accent transition-colors duration-(--duration-fast) ease-standard hover:text-accent-strong"
+          className="-mb-2.5 mt-4 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-semibold text-nova-ember transition-colors duration-(--duration-fast) ease-standard hover:text-nova-ember-lo"
         >
           Send your screenshot to WhatsApp →
         </a>

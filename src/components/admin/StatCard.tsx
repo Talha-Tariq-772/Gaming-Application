@@ -56,11 +56,11 @@ export default function StatCard({
   }, [value, fmt]);
 
   return (
-    <div className="rounded-lg border border-border bg-surface-1 p-4">
-      <p className="text-xs font-medium uppercase tracking-wider text-text-faint">
+    <div className="rounded-lg border border-nova-hairline bg-nova-crypt p-4">
+      <p className="text-xs font-medium uppercase tracking-wider text-nova-smoke">
         {label}
       </p>
-      <p ref={valueEl} className="mt-2 text-2xl font-bold text-text">
+      <p ref={valueEl} className="mt-2 text-2xl font-bold text-nova-bone">
         {fmt(value)}
       </p>
     </div>

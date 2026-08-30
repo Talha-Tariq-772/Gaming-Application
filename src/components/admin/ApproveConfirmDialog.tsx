@@ -30,24 +30,24 @@ export default function ApproveConfirmDialog({
       <div
         onClick={onCancel}
         aria-hidden="true"
-        className="absolute inset-0 bg-bg/80"
+        className="absolute inset-0 bg-nova-void/80"
       />
       <div
         ref={panelRef}
         role="alertdialog"
         aria-modal="true"
         aria-label="Confirm approval"
-        className="relative w-full max-w-sm rounded-lg border border-border bg-surface-1 p-6"
+        className="relative w-full max-w-sm rounded-lg border border-nova-hairline bg-nova-crypt p-6"
       >
-        <h2 className="text-lg font-bold text-text">Approve this order?</h2>
-        <p className="mt-3 text-sm text-text-muted">
+        <h2 className="text-lg font-bold text-nova-bone">Approve this order?</h2>
+        <p className="mt-3 text-sm text-nova-ash">
           This releases game credentials to the customer. Confirm the amount
           received matches exactly:
         </p>
-        <p className="mt-3 text-3xl font-bold text-text">
+        <p className="mt-3 text-3xl font-bold text-nova-bone">
           {formatPrice(order.amountExact)}
         </p>
-        <p className="mt-1 font-mono text-sm text-text-faint">
+        <p className="mt-1 font-mono text-sm text-nova-smoke">
           {order.paymentReference}
         </p>
         <div className="mt-6 flex gap-3">
@@ -55,7 +55,7 @@ export default function ApproveConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="min-h-11 flex-1 rounded-md border border-border px-4 py-2 text-sm font-medium text-text-muted hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 flex-1 rounded-md border border-nova-hairline px-4 py-2 text-sm font-medium text-nova-ash hover:text-nova-bone disabled:cursor-not-allowed disabled:opacity-40"
           >
             Cancel
           </button>
@@ -63,7 +63,7 @@ export default function ApproveConfirmDialog({
             type="button"
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className="min-h-11 flex-1 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 flex-1 rounded-md bg-nova-ember px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-lo disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isSubmitting ? "Approving…" : "Confirm Approve"}
           </button>

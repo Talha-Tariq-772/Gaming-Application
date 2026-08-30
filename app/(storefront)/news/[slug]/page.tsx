@@ -83,20 +83,20 @@ export default async function NewsArticlePage({
       />
       <Link
         href="/news"
-        className="-my-2.5 mb-6 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-medium text-text-muted hover:text-text"
+        className="-my-2.5 mb-6 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-medium text-nova-ash hover:text-nova-bone"
       >
         ← All News
       </Link>
 
       <article className="mx-auto max-w-2xl">
         {post.coverImageUrl && (
-          <div className="relative mb-8 aspect-video overflow-hidden rounded-lg border border-border bg-surface-1">
+          <div className="relative mb-8 aspect-video overflow-hidden rounded-lg border border-nova-hairline bg-nova-crypt">
             {/* eslint-disable-next-line @next/next/no-img-element -- admin-authored cover URL, arbitrary domain */}
             <img src={post.coverImageUrl} alt="" className="h-full w-full object-cover" />
           </div>
         )}
-        {post.publishedAt && <span className="text-xs text-text-faint">{formatDate(post.publishedAt)}</span>}
-        <h1 className="mt-2 break-words text-display-sm font-display font-extrabold text-text">
+        {post.publishedAt && <span className="text-xs text-nova-smoke">{formatDate(post.publishedAt)}</span>}
+        <h1 className="mt-2 wrap-break-word text-display-sm font-display font-extrabold text-nova-bone">
           {post.title}
         </h1>
         <div className="markdown-body mt-8" dangerouslySetInnerHTML={{ __html: html }} />
