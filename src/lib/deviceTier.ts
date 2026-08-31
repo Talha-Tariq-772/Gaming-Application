@@ -39,7 +39,8 @@ const DESKTOP_CONFIG: DeviceTierConfig = {
   dpr: Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 1.5),
   renderScale: 0.6,
   octaves: 5,
-  emberCount: 1200,
+  // Part D fire-effect spec: 2000 desktop / 700 mobile.
+  emberCount: 2000,
   figurePointCount: 231 * 346,
   figureGrid: [231, 346],
 };
@@ -49,7 +50,7 @@ const MOBILE_CONFIG: DeviceTierConfig = {
   dpr: 1,
   renderScale: 0.5,
   octaves: 3,
-  emberCount: 400,
+  emberCount: 700,
   figurePointCount: 163 * 245,
   figureGrid: [163, 245],
 };

@@ -64,6 +64,16 @@ void main() {
   float glow = smoothstep(0.9, 0.0, uv.y) * f;
   col += vec3(0.757, 0.267, 0.055) * glow * 0.16 * uIntensity;
 
+  // Part D, layer 4 (ground glow): soft warm radial falloff centered at
+  // the figure's base (screen-center-x, near the bottom) — on top of the
+  // fog's existing ambient bottom-glow above, not a replacement for it.
+  // The figure sits horizontally centered in world space at rest (no
+  // orbit offset), which maps to uv.x ~= 0.5 in this fullscreen pass.
+  vec2 groundCenter = vec2(0.5, 1.05);
+  float groundDist = length((uv - groundCenter) * vec2(1.6, 1.0));
+  float groundGlow = smoothstep(0.85, 0.0, groundDist);
+  col += vec3(0.757, 0.267, 0.055) * groundGlow * 0.22 * uIntensity;
+
   vec2 v = uv - 0.5;
   col *= 1.0 - dot(v, v) * 1.75;
 

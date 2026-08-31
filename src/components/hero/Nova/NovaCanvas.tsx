@@ -10,11 +10,14 @@ import { figureFragmentShader, figureVertexShader } from "./shaders/figure";
 import {
   buildOrbitView,
   createBuffer,
-  createEmberAttributeData,
+  createEmberRandomData,
   createProgram,
   FULLSCREEN_TRIANGLE_POSITIONS,
+  loadImage,
   loadTexture,
   perspective,
+  sampleAlphaEdgeUVs,
+  textureFromImage,
   withOctaves,
 } from "./webgl-helpers";
 
@@ -143,22 +146,28 @@ export default function NovaCanvas() {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rtTexture, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    // ---- Ember program: full-res THREE.Points-equivalent, additive ----
+    // ---- Ember program: additive, edge-weighted off the figure's own
+    // alpha silhouette (see embers.ts) — shares uProjection/uView with the
+    // figure program so embers orbit/parallax coherently with it. Base
+    // positions (aBase) depend on the figure-color image having loaded
+    // (sampleAlphaEdgeUVs reads its pixels), so the buffer is created in
+    // the same texture-load .then() below, not here; only the
+    // random-attribute buffer (independent of the image) is set up now.
     const emberProgram = createProgram(gl, embersVertexShader, embersFragmentShader);
-    const emberUniforms = { uTime: gl.getUniformLocation(emberProgram, "uTime") };
-    const emberPositionLoc = gl.getAttribLocation(emberProgram, "position");
+    const emberUniforms = {
+      uTime: gl.getUniformLocation(emberProgram, "uTime"),
+      uProjection: gl.getUniformLocation(emberProgram, "uProjection"),
+      uView: gl.getUniformLocation(emberProgram, "uView"),
+      uAspect: gl.getUniformLocation(emberProgram, "uAspect"),
+      uPointScale: gl.getUniformLocation(emberProgram, "uPointScale"),
+    };
+    const emberBaseLoc = gl.getAttribLocation(emberProgram, "aBase");
     const emberRandomLoc = gl.getAttribLocation(emberProgram, "aRandom");
-    const { positions: emberPositions, random: emberRandom } = createEmberAttributeData(config.emberCount);
-    const emberPositionBuffer = createBuffer(gl, emberPositions);
+    const emberRandom = createEmberRandomData(config.emberCount);
     const emberRandomBuffer = createBuffer(gl, emberRandom);
     const emberVao = gl.createVertexArray();
-    gl.bindVertexArray(emberVao);
-    gl.bindBuffer(gl.ARRAY_BUFFER, emberPositionBuffer);
-    gl.enableVertexAttribArray(emberPositionLoc);
-    gl.vertexAttribPointer(emberPositionLoc, 2, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, emberRandomBuffer);
-    gl.enableVertexAttribArray(emberRandomLoc);
-    gl.vertexAttribPointer(emberRandomLoc, 3, gl.FLOAT, false, 0, 0);
+    let emberBaseBuffer: WebGLBuffer | null = null;
+    let embersReady = false;
 
     // ---- Figure program: point-cloud hero figure, additive, full-res ----
     // No vertex buffer, no attributes — the vertex shader derives its grid
@@ -184,25 +193,41 @@ export default function NovaCanvas() {
     gl.useProgram(figureProgram);
     gl.uniform1i(figureUniforms.uColor, 1);
     gl.uniform1i(figureUniforms.uDepth, 2);
+    gl.useProgram(emberProgram);
+    gl.uniform1f(emberUniforms.uAspect, FIGURE_ASPECT);
 
     // Textures load asynchronously; the figure pass is skipped entirely
     // until both resolve (renderFrame checks figureReady), and permanently
     // skipped if either fails — fog + embers must never block or flash
-    // while this loads. Not exercised in this environment (no browser to
-    // actually load an <img>), so the failure path below is unverified
-    // beyond compiling.
+    // while this loads. The color image is loaded as a plain
+    // HTMLImageElement first (not straight to a texture) because
+    // sampleAlphaEdgeUVs needs to read its pixels on the CPU side to build
+    // the embers' edge-weighted base positions — the texture itself is
+    // then created from that same already-loaded image, no double fetch.
     let figureColorTexture: WebGLTexture | null = null;
     let figureDepthTexture: WebGLTexture | null = null;
     let figureReady = false;
     let figureLoggedFailure = false;
     let texturesCancelled = false;
 
-    Promise.all([loadTexture(gl, FIGURE_COLOR_URL), loadTexture(gl, FIGURE_DEPTH_URL)])
-      .then(([color, depth]) => {
+    Promise.all([loadImage(FIGURE_COLOR_URL), loadTexture(gl, FIGURE_DEPTH_URL)])
+      .then(([colorImage, depthTexture]) => {
         if (texturesCancelled) return;
-        figureColorTexture = color;
-        figureDepthTexture = depth;
+        figureColorTexture = textureFromImage(gl, colorImage);
+        figureDepthTexture = depthTexture;
         figureReady = true;
+
+        const emberBaseUVs = sampleAlphaEdgeUVs(colorImage, config.emberCount);
+        emberBaseBuffer = createBuffer(gl, emberBaseUVs);
+        gl.bindVertexArray(emberVao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, emberBaseBuffer);
+        gl.enableVertexAttribArray(emberBaseLoc);
+        gl.vertexAttribPointer(emberBaseLoc, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, emberRandomBuffer);
+        gl.enableVertexAttribArray(emberRandomLoc);
+        gl.vertexAttribPointer(emberRandomLoc, 4, gl.FLOAT, false, 0, 0);
+        gl.bindVertexArray(null);
+        embersReady = true;
       })
       .catch((err) => {
         if (!figureLoggedFailure) {
@@ -259,6 +284,18 @@ export default function NovaCanvas() {
       const pointSpacingWorld = 1 / config.figureGrid[1];
       const pointScale = pixelsPerWorldUnit * pointSpacingWorld * POINT_SIZE_FACTOR * CAMERA_DISTANCE;
       gl.uniform1f(figureUniforms.uPointScale, pointScale);
+
+      gl.useProgram(emberProgram);
+      gl.uniformMatrix4fv(
+        emberUniforms.uProjection,
+        false,
+        perspective(FOV_Y, canvasAspect, CAMERA_NEAR, CAMERA_FAR),
+      );
+      // Same base scale as the figure's points — embers are roughly the
+      // same world-scale phenomenon sitting on the same silhouette: their
+      // own size varies per-particle via aRandom.z in the shader instead.
+      gl.uniform1f(emberUniforms.uPointScale, pointScale);
+
       if (process.env.NODE_ENV !== "production") {
         console.log(
           `NovaCanvas: uPointScale=${pointScale.toFixed(3)} at canvas height ${pixelHeight}px`,
@@ -378,16 +415,16 @@ export default function NovaCanvas() {
       gl.enable(gl.BLEND);
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE); // additive, composites over the blit
 
+      // Shared by figure + embers so they orbit/parallax identically —
+      // computed once per frame rather than twice.
+      const viewMatrix = buildOrbitView(CAMERA_DISTANCE, orbitState.yaw, orbitState.offset);
+
       // Figure BEFORE embers — embers must read as floating in front of it.
       if (figureReady && figureColorTexture && figureDepthTexture) {
         gl.useProgram(figureProgram);
         gl.uniform1f(figureUniforms.uTime, elapsed);
         gl.uniform1f(figureUniforms.uDissolve, dissolveState.value);
-        gl.uniformMatrix4fv(
-          figureUniforms.uView,
-          false,
-          buildOrbitView(CAMERA_DISTANCE, orbitState.yaw, orbitState.offset),
-        );
+        gl.uniformMatrix4fv(figureUniforms.uView, false, viewMatrix);
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, figureColorTexture);
         gl.activeTexture(gl.TEXTURE2);
@@ -396,10 +433,13 @@ export default function NovaCanvas() {
         gl.drawArrays(gl.POINTS, 0, config.figurePointCount);
       }
 
-      gl.useProgram(emberProgram);
-      gl.uniform1f(emberUniforms.uTime, elapsed);
-      gl.bindVertexArray(emberVao);
-      gl.drawArrays(gl.POINTS, 0, config.emberCount);
+      if (embersReady) {
+        gl.useProgram(emberProgram);
+        gl.uniform1f(emberUniforms.uTime, elapsed);
+        gl.uniformMatrix4fv(emberUniforms.uView, false, viewMatrix);
+        gl.bindVertexArray(emberVao);
+        gl.drawArrays(gl.POINTS, 0, config.emberCount);
+      }
 
       if (!firstFrameRendered) {
         firstFrameRendered = true;
@@ -481,7 +521,7 @@ export default function NovaCanvas() {
       gl.deleteProgram(emberProgram);
       gl.deleteProgram(figureProgram);
       gl.deleteBuffer(triangleBuffer);
-      gl.deleteBuffer(emberPositionBuffer);
+      if (emberBaseBuffer) gl.deleteBuffer(emberBaseBuffer);
       gl.deleteBuffer(emberRandomBuffer);
       gl.deleteVertexArray(fogVao);
       gl.deleteVertexArray(blitVao);
