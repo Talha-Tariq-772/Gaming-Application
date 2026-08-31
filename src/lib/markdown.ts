@@ -12,6 +12,20 @@ export interface RenderedMarkdown {
   headings: TocHeading[];
 }
 
+/** Reverses marked's own escaping of plain text nodes (`&amp;`, `&#39;`,
+ * etc.) — needed because TocHeading.text is rendered as a plain React text
+ * node (TableOfContents), not dangerouslySetInnerHTML like the article
+ * body, so an escaped entity would show up as literal "&#39;" instead of
+ * an apostrophe. */
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0*39;|&apos;/g, "'");
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -56,7 +70,7 @@ export function renderMarkdown(markdown: string): RenderedMarkdown {
     renderer: {
       heading(token) {
         const text = this.parser.parseInline(token.tokens);
-        const plainText = text.replace(/<[^>]+>/g, "");
+        const plainText = decodeHtmlEntities(text.replace(/<[^>]+>/g, ""));
         let id = slugify(plainText);
         const seenCount = seenIds.get(id) ?? 0;
         seenIds.set(id, seenCount + 1);
@@ -94,4 +108,25 @@ export function renderMarkdown(markdown: string): RenderedMarkdown {
   });
 
   return { html, headings };
+}
+
+/**
+ * Plain-text meta-description fallback for markdown that has no separate
+ * excerpt column (setup_guides — see its type comment). Takes the first
+ * paragraph, strips inline markdown syntax, and truncates on a word
+ * boundary. Not used for on-page rendering, only <meta description> /
+ * card subtitles, so it doesn't need to handle every markdown construct —
+ * just the bold/link/heading syntax this codebase's own guide copy uses.
+ */
+export function excerptFromMarkdown(markdown: string, maxLength = 155): string {
+  const firstParagraph = markdown.split(/\n\s*\n/)[0] ?? "";
+  const plain = firstParagraph
+    .replace(/^#+\s*/, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[*_`]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (plain.length <= maxLength) return plain;
+  return `${plain.slice(0, maxLength).replace(/\s+\S*$/, "")}…`;
 }

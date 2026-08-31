@@ -17,7 +17,7 @@ export default function Image() {
           alignItems: "flex-start",
           background: "#08080a",
           backgroundImage:
-            "radial-gradient(circle at 78% 30%, rgba(0,230,216,0.22), transparent 55%)",
+            "radial-gradient(circle at 78% 30%, rgba(193,68,14,0.22), transparent 55%)",
           padding: "80px",
         }}
       >
@@ -28,7 +28,7 @@ export default function Image() {
             fontWeight: 700,
             letterSpacing: 6,
             textTransform: "uppercase",
-            color: "#00e6d8",
+            color: "#c1440e",
             marginBottom: 28,
           }}
         >

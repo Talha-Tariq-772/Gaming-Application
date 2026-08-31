@@ -145,7 +145,7 @@ export default function CredentialGamePanel({
               <button
                 type="submit"
                 disabled={singleSubmitting}
-                className="min-h-11 rounded-md bg-nova-ember px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-lo disabled:cursor-not-allowed disabled:opacity-40"
+                className="min-h-11 rounded-md bg-nova-ember-lo px-4 py-2 text-sm font-semibold text-nova-bone transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-deep disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {singleSubmitting ? "Adding…" : "Add Credential"}
               </button>

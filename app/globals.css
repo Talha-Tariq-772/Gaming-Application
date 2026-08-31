@@ -58,6 +58,18 @@
 
   --color-nova-ember: #c1440e;
   --color-nova-ember-lo: #8b2f09;
+  /* Grand session Part A3: bone-on-ember (the filled-button/active-tab
+     pairing) measures 3.88:1 — under the 4.5:1 text floor, and ~4.3:1 is
+     the mathematical ceiling against ember's luminance for ANY text color,
+     so 4.5:1 is unreachable without changing which surface these fills use.
+     Filled controls (buttons, active nav/filter states) now use ember-lo
+     with bone text instead of ember itself: bone/ember-lo measures 6.34:1.
+     ember-deep is that same fill darkened further, for hover/active states
+     on top of it — 9.20:1, so hover strictly increases contrast rather
+     than reducing it. Bright ember stays reserved for text/accents/focus
+     rings directly on a dark surface (void/crypt/slab), where it already
+     passes on its own. */
+  --color-nova-ember-deep: #612106;
   /* Session 6 WCAG audit: the spec's #7a1518 measured 1.6-1.9:1 as text
      against every nova surface — invisible for danger/error copy, badly
      failing AA's 4.5:1. Lightened via HSL (same hue/sat, L 28%->58%) to
@@ -249,6 +261,7 @@
   --color-nova-hairline: var(--color-nova-hairline);
   --color-nova-ember: var(--color-nova-ember);
   --color-nova-ember-lo: var(--color-nova-ember-lo);
+  --color-nova-ember-deep: var(--color-nova-ember-deep);
   --color-nova-blood: var(--color-nova-blood);
   --color-nova-gild: var(--color-nova-gild);
   --color-nova-bone: var(--color-nova-bone);

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { prefersReducedMotion, SCROLLTRIGGER_MIN_WIDTH } from "@/src/lib/motion-guards";
 
 const POSTER_URL =
-  "https://placehold.co/960x960/1c1c21/00e6d8.png?text=Nova";
+  "https://placehold.co/960x960/141013/c1440e.png?text=Nova";
 
 const HARDWARE_CONCURRENCY_MIN = 4;
 
@@ -48,7 +48,13 @@ export default function HeroVisual() {
   }, []);
 
   return (
-    <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-nova-hairline bg-nova-crypt">
+    // Session 8: md:max-h-full — see HeroVisualV2.tsx's identical comment
+    // (width stays the driving dimension via w-full, against the
+    // correctly-bounded column from HomeHero.tsx; max-h-full is a real
+    // ceiling for the rare case the width-derived square would exceed the
+    // row's available height). Below md (stacked layout, no bounded row)
+    // unchanged: plain w-full.
+    <div className="relative aspect-square w-full max-w-full overflow-hidden rounded-lg border border-nova-hairline bg-nova-crypt md:max-h-full">
       <Image
         src={POSTER_URL}
         alt=""

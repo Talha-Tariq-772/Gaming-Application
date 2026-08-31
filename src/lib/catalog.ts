@@ -70,6 +70,7 @@ export function mapGameRow(row: any): Game {
     wallpaperPath: row.wallpaper_path,
     sliderPosition: row.slider_position,
     variants,
+    setupGuideId: row.setup_guide_id,
   };
 }
 
@@ -176,6 +177,36 @@ export async function getGameBySlug(slug: string): Promise<Game | null> {
     if (error) throw error;
     return data ? mapGameRow(data) : null;
   });
+}
+
+/**
+ * Available-credential count for one game — public storefront stock check
+ * (the game detail page's "in stock" / "out of stock" state). Needs the
+ * service client because game_credentials has zero RLS policies for
+ * anon/authenticated (20260818000004_game_credentials.sql); reusing the
+ * existing get_credential_stock() RPC, which returns only aggregate counts
+ * per game, never login_enc/password_enc — the same safety property
+ * admin-queries.ts's getCredentialStock relies on, just without the
+ * requireAdmin() gate, since one game's availability number isn't
+ * sensitive the way the full admin breakdown of every game is.
+ *
+ * Fails closed to 0 (out of stock) rather than throwing: a stock-check
+ * outage shouldn't take down the whole product page or, worse, leave a
+ * live "Add to Cart" up when we can't actually confirm anything's
+ * available.
+ */
+export async function getGameStock(gameId: string): Promise<number> {
+  try {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase.rpc("get_credential_stock");
+    if (error) throw error;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const row = (data ?? []).find((r: any) => r.game_id === gameId);
+    return row ? Number(row.available) : 0;
+  } catch (error) {
+    console.error("[data:game stock]", error);
+    return 0;
+  }
 }
 
 /**

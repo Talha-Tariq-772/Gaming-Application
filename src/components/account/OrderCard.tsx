@@ -55,7 +55,7 @@ export default function OrderCard({
       </Link>
 
       {order.status === "rejected" && order.rejectionReason && (
-        <p className="mt-4 rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-blood">
+        <p className="mt-4 rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-bone">
           {order.rejectionReason}
         </p>
       )}

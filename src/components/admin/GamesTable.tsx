@@ -41,12 +41,14 @@ export default function GamesTable({
   onToggleActive,
   onEdit,
   onDelete,
+  onManageVariants,
 }: {
   games: Game[];
   availableByGameId: Map<string, number>;
   onToggleActive: (game: Game) => void;
   onEdit: (game: Game) => void;
   onDelete: (game: Game) => void;
+  onManageVariants: (game: Game) => void;
 }) {
   if (games.length === 0) {
     return (
@@ -102,6 +104,13 @@ export default function GamesTable({
                     <div className="flex items-center justify-end gap-1">
                       <button
                         type="button"
+                        onClick={() => onManageVariants(game)}
+                        className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ash hover:text-nova-bone"
+                      >
+                        Variants
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => onEdit(game)}
                         className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember hover:text-nova-ember-lo"
                       >
@@ -148,6 +157,13 @@ export default function GamesTable({
                   <span className={lowStock ? "text-nova-gild" : "text-nova-ash"}>Stock: {available}</span>
                 </div>
                 <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => onManageVariants(game)}
+                    className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ash hover:text-nova-bone"
+                  >
+                    Variants
+                  </button>
                   <button
                     type="button"
                     onClick={() => onEdit(game)}

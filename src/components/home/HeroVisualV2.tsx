@@ -147,7 +147,27 @@ export default function HeroVisualV2() {
   return (
     <div
       ref={containerRef}
-      className="relative aspect-square w-full overflow-hidden bg-nova-void"
+      // Session 8: was plain `aspect-square w-full` — this figure's
+      // height followed its grid column's WIDTH, which at 1366-1440px is
+      // ~627-644px, taller than the viewport; that's what forced the
+      // whole hero section past one screen.
+      //
+      // Fix keeps width as the driving dimension (still `w-full`, now
+      // against the correctly-bounded column from HomeHero.tsx's flex-1 +
+      // min-w-0) but adds `md:max-h-full` as a real ceiling: if the
+      // width-derived square would ever be taller than the row's
+      // available height, this clamps it down. Tried making HEIGHT the
+      // driving dimension instead (`md:h-full md:w-auto max-w-full`)
+      // first — that clamped WIDTH correctly but never fed the clamp back
+      // into height, since aspect-ratio only auto-derives a dimension
+      // that's genuinely `auto`, not one with its own explicit value;
+      // measured a non-square 644x772 box at 1440x900 as a result. This
+      // width-first version was verified square (real getBoundingClientRect()
+      // measurement, not assumed) at 1366x768, 1440x900, and 1920x1080 —
+      // every size this hero actually ships at, where the column is
+      // narrower than the row is tall. Below md (stacked layout, no
+      // bounded row) unchanged: plain w-full.
+      className="relative aspect-square w-full max-w-full overflow-hidden bg-nova-void md:max-h-full"
     >
       <div ref={imageLayerRef} className="absolute inset-0">
         <div className="absolute inset-0 hero-v2-kenburns">

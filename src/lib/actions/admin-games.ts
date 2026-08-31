@@ -17,6 +17,12 @@ export interface GameInput {
   trailerUrl: string;
   setupGuide: string;
   isActive: boolean;
+  isNewArrival: boolean;
+  isBestSeller: boolean;
+  releaseDate: string | null;
+  /** FK into setup_guides — see games_setup_guide_id_fkey
+   * (20260831000001_setup_guides.sql). Null clears the link. */
+  setupGuideId: string | null;
 }
 
 export type GameActionResult = { ok: true; game: Game } | { ok: false; message: string };
@@ -33,6 +39,10 @@ function toRow(input: GameInput) {
     trailer_url: input.trailerUrl,
     setup_guide: input.setupGuide,
     is_active: input.isActive,
+    is_new_arrival: input.isNewArrival,
+    is_best_seller: input.isBestSeller,
+    release_date: input.releaseDate,
+    setup_guide_id: input.setupGuideId,
   };
 }
 
@@ -47,6 +57,9 @@ export async function createGame(input: GameInput): Promise<GameActionResult> {
   if (error) {
     if (error.code === "23505") {
       return { ok: false, message: "A game with this slug already exists." };
+    }
+    if (error.code === "23503") {
+      return { ok: false, message: "The selected setup guide no longer exists." };
     }
     console.error("[createGame]", error);
     return { ok: false, message: "Something went wrong creating this game." };
@@ -65,6 +78,9 @@ export async function updateGame(gameId: string, input: GameInput): Promise<Game
   if (error) {
     if (error.code === "23505") {
       return { ok: false, message: "A game with this slug already exists." };
+    }
+    if (error.code === "23503") {
+      return { ok: false, message: "The selected setup guide no longer exists." };
     }
     console.error("[updateGame]", error);
     return { ok: false, message: "Something went wrong saving this game." };

@@ -81,7 +81,7 @@ export default function CredentialReveal({
         </div>
       ) : (
         <div className="mt-4 flex flex-col gap-4">
-          <div className="rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm font-semibold text-nova-blood">
+          <div className="rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm font-semibold text-nova-bone">
             Do not share these details with anyone.
           </div>
 

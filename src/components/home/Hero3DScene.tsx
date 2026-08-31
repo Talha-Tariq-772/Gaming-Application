@@ -27,7 +27,7 @@ function RotatingShape() {
   return (
     <mesh ref={mesh}>
       <icosahedronGeometry args={[1.4, 0]} />
-      <meshStandardMaterial color="#00e6d8" wireframe />
+      <meshStandardMaterial color="#c1440e" wireframe />
     </mesh>
   );
 }
@@ -40,7 +40,7 @@ export default function Hero3DScene() {
       gl={{ antialias: true, alpha: true }}
     >
       <ambientLight intensity={0.6} />
-      <pointLight position={[3, 3, 3]} intensity={1.4} color="#00e6d8" />
+      <pointLight position={[3, 3, 3]} intensity={1.4} color="#c1440e" />
       <RotatingShape />
     </Canvas>
   );

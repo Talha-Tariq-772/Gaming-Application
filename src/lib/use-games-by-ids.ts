@@ -49,6 +49,7 @@ function mapGameRow(row: any): Game {
     wallpaperPath: row.wallpaper_path,
     sliderPosition: row.slider_position,
     variants,
+    setupGuideId: row.setup_guide_id,
   };
 }
 

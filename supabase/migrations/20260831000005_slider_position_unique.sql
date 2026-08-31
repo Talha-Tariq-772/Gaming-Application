@@ -1,0 +1,15 @@
+-- Real DB boundary for "no duplicate slider slots" — the admin slider
+-- action (src/lib/actions/admin-slider.ts) already checks for an occupied
+-- slot before writing (SELECT-then-UPDATE, advisory only, same caveat as
+-- every other advisory check this session), but a plain unique index is
+-- enough here: unlike the last-active-variant guardrail (20260831000003),
+-- this isn't a "count across rows" invariant that needs a trigger, just
+-- "at most one game per position" — Postgres enforces that atomically on
+-- its own.
+--
+-- Also gives "max 5 slots" for free: slider_position is constrained to
+-- 1-5 by the action (not by a CHECK here, since nothing in this schema
+-- needs that enforced below the app layer), and 5 possible values with
+-- uniqueness enforced means at most 5 rows can ever hold a non-null
+-- position at once — no separate counting logic required.
+create unique index games_slider_position_unique on public.games (slider_position) where slider_position is not null;

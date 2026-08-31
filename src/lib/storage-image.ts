@@ -60,3 +60,14 @@ export function gameWallpaperImage(wallpaperPath: string, productType: ProductTy
   const bucket = productType === "membership" ? "membership-images" : "game-images";
   return buildResponsiveImage(bucket, wallpaperPath, WALLPAPER_WIDTHS);
 }
+
+/**
+ * The one generic, not-tied-to-any-game-row header for the /memberships
+ * page itself — uploaded by scripts/upload-catalog-images.mjs to the
+ * membership-images bucket ROOT as "header-{640,1280,1920}.webp" (from
+ * public/membership/header.jpeg), distinct from each membership product's
+ * own "{slug}/header-{width}.webp" (gameWallpaperImage above).
+ */
+export function membershipSectionHeaderImage(): ResponsiveImage {
+  return buildResponsiveImage("membership-images", "header", WALLPAPER_WIDTHS);
+}

@@ -219,7 +219,11 @@ export default function OrderDetailPanel({
               type="button"
               onClick={() => setShowReject(true)}
               disabled={deciding}
-              className="flex-1 rounded-md border border-nova-blood/40 px-4 py-2 text-sm font-semibold text-nova-blood transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-blood/15 disabled:cursor-not-allowed disabled:opacity-40"
+              // Part A3: plain text-nova-blood on crypt/void passes on its
+              // own (4.67-5.00:1), but the hover fill (blood/15) drops that
+              // to 4.04:1 — hover must never reduce contrast, so hover also
+              // switches the text to bone (6.34:1+ against that tint).
+              className="flex-1 rounded-md border border-nova-blood/40 px-4 py-2 text-sm font-semibold text-nova-blood transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-blood/15 hover:text-nova-bone disabled:cursor-not-allowed disabled:opacity-40"
             >
               Reject
             </button>
@@ -227,7 +231,7 @@ export default function OrderDetailPanel({
               type="button"
               onClick={() => setShowApprove(true)}
               disabled={deciding}
-              className="flex-1 rounded-md bg-nova-ember px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-lo disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex-1 rounded-md bg-nova-ember-lo px-4 py-2 text-sm font-semibold text-nova-bone transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-deep disabled:cursor-not-allowed disabled:opacity-40"
             >
               Approve
             </button>

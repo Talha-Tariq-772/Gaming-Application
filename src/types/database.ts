@@ -106,6 +106,9 @@ export interface Game {
   /** Active variants only, ascending by sortOrder. Single source of truth
    * for price — see the price field's comment above. */
   variants: GameVariant[];
+  /** FK into setup_guides. Null means no guide linked yet — the detail
+   * page falls back to a generic pointer at the general redemption guide. */
+  setupGuideId: string | null;
 }
 
 export interface PaymentMethod {
@@ -247,6 +250,31 @@ export interface FaqItem {
   /** Ascending, per category — lower sorts first. */
   sortOrder: number;
   isPublished: boolean;
+}
+
+/**
+ * Real, Supabase-backed platform/product-type activation instructions
+ * (supabase/migrations/20260831000001_setup_guides.sql) — separate from
+ * the mock `Guide`/`FaqItem` general-help content above. games.setup_guide_id
+ * points here. No `excerpt`/`category` fields: cards derive a subtitle from
+ * platform + productType instead (see GAME_PLATFORM_LABELS).
+ */
+export interface SetupGuide {
+  id: string;
+  slug: string;
+  title: string;
+  /** Markdown source — rendered through src/lib/markdown.ts, never
+   * dangerouslySetInnerHTML'd directly. */
+  body: string;
+  /** Null for a guide that isn't specific to one platform (the membership
+   * guide covers PlayStation and Xbox activation in one document). */
+  platform: GamePlatform | null;
+  productType: ProductType;
+  /** Ascending, per productType — lower sorts first. */
+  sortOrder: number;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface NewsPost {

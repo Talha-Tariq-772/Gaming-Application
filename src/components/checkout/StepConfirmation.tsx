@@ -23,7 +23,10 @@ export default function StepConfirmation({
       <span className="text-xs font-semibold uppercase tracking-wider text-nova-smoke">
         Order Reference
       </span>
-      <span className="text-4xl font-display font-extrabold text-nova-bone">
+      {/* Session 9: no font-extrabold — text-4xl isn't covered by the
+          .font-display compound rules (globals.css), so this was
+          requesting a weight Marcellus doesn't ship. */}
+      <span className="text-4xl font-display text-nova-bone">
         {order.paymentReference}
       </span>
       <span className="inline-flex items-center rounded-full border border-nova-ember bg-nova-crypt px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-nova-ember">

@@ -130,7 +130,7 @@ export default function StepPaymentMethod({
       </div>
 
       {hasUnavailableItem && (
-        <div className="max-w-sm rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-blood">
+        <div className="max-w-sm rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-bone">
           One or more items in your cart are no longer available.{" "}
           <button
             type="button"
@@ -144,7 +144,7 @@ export default function StepPaymentMethod({
       )}
 
       {submitError && (
-        <div className="max-w-sm rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-blood">
+        <div className="max-w-sm rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-bone">
           {submitError}{" "}
           <button
             type="button"

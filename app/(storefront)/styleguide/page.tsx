@@ -15,29 +15,29 @@ const COLOR_GROUPS: {
   {
     heading: "Surfaces",
     swatches: [
-      { name: "Background", varName: "--color-bg", hex: "#08080A" },
-      { name: "Surface 1", varName: "--color-surface-1", hex: "#131316" },
-      { name: "Surface 2", varName: "--color-surface-2", hex: "#1C1C21" },
-      { name: "Surface 3", varName: "--color-surface-3", hex: "#26262C" },
-      { name: "Border", varName: "--color-border", hex: "#2F2F36" },
-      { name: "Border Strong", varName: "--color-border-strong", hex: "#3D3D45" },
+      { name: "Void", varName: "--color-nova-void", hex: "#08060A" },
+      { name: "Pitch", varName: "--color-nova-pitch", hex: "#0D0A0C" },
+      { name: "Crypt", varName: "--color-nova-crypt", hex: "#141013" },
+      { name: "Slab", varName: "--color-nova-slab", hex: "#1E1719" },
+      { name: "Hairline", varName: "--color-nova-hairline", hex: "#2A2124" },
     ],
   },
   {
     heading: "Text",
     swatches: [
-      { name: "Text", varName: "--color-text", hex: "#F5F5F7" },
-      { name: "Text Muted", varName: "--color-text-muted", hex: "#8B8B95" },
-      { name: "Text Faint", varName: "--color-text-faint", hex: "#5A5A63" },
+      { name: "Bone", varName: "--color-nova-bone", hex: "#E8DFD0" },
+      { name: "Ash", varName: "--color-nova-ash", hex: "#9A8F84" },
+      { name: "Smoke", varName: "--color-nova-smoke", hex: "#8D857C" },
     ],
   },
   {
     heading: "Accent",
     swatches: [
-      { name: "Accent", varName: "--color-accent", hex: "#00E6D8" },
-      { name: "Accent Strong", varName: "--color-accent-strong", hex: "#4DFFF2" },
-      { name: "Accent Dim", varName: "--color-accent-dim", hex: "#0A3D3A" },
-      { name: "On Accent", varName: "--color-on-accent", hex: "#04100F" },
+      { name: "Ember", varName: "--color-nova-ember", hex: "#C1440E" },
+      { name: "Ember Lo", varName: "--color-nova-ember-lo", hex: "#8B2F09" },
+      { name: "Ember Deep", varName: "--color-nova-ember-deep", hex: "#612106" },
+      { name: "Blood", varName: "--color-nova-blood", hex: "#E0484D" },
+      { name: "Gild", varName: "--color-nova-gild", hex: "#C9A227" },
     ],
   },
 ];

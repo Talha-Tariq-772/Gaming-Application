@@ -68,7 +68,10 @@ export default function StepPaymentInstructions({
             Amount to transfer
           </span>
           <div className="mt-2 flex flex-wrap items-center gap-4">
-            <span className="text-4xl font-display font-extrabold text-nova-bone">
+            {/* Session 9: no font-extrabold — text-4xl isn't covered by
+                the .font-display compound rules (globals.css), so this
+                was requesting a weight Marcellus doesn't ship. */}
+            <span className="text-4xl font-display text-nova-bone">
               {formatPrice(order.amountExact)}
             </span>
             <CopyButton
@@ -171,7 +174,7 @@ export default function StepPaymentInstructions({
         </label>
 
         {submitError && (
-          <p className="max-w-sm rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-blood">
+          <p className="max-w-sm rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-bone">
             {submitError}
           </p>
         )}
@@ -209,7 +212,9 @@ export default function StepPaymentInstructions({
         <span className="text-xs font-semibold uppercase tracking-wider text-nova-smoke">
           Reservation expires in
         </span>
-        <span className="text-3xl font-display font-bold text-nova-ember">
+        {/* Session 9: no font-bold — see the amount-to-transfer span
+            above for why. */}
+        <span className="text-3xl font-display text-nova-ember">
           <CountdownTimer
             expiresAt={order.reservedUntil}
             onExpire={() => {

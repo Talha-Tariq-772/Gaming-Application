@@ -139,10 +139,55 @@ export const gameFormSchema = z.object({
   trailerUrl: z.string().trim().min(1, "Trailer URL is required").url("Enter a valid URL"),
   setupGuide: z.string().trim().min(1, "Setup guide is required"),
   isActive: z.boolean(),
+  isNewArrival: z.boolean(),
+  isBestSeller: z.boolean(),
+  // Plain <input type="date"> value — "" means no date, not an error.
+  releaseDate: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || /^\d{4}-\d{2}-\d{2}$/.test(v), { message: "Enter a valid date" })
+    .transform((v) => (v === "" ? null : v)),
+  // "" means no linked guide. Whether the id is real is a DB-level FK
+  // check (games_setup_guide_id_fkey), not something worth duplicating
+  // here — see createGame/updateGame's 23503 handling.
+  setupGuideId: z.string().trim().transform((v) => (v === "" ? null : v)),
 });
 
 export type GameFormInput = z.input<typeof gameFormSchema>;
+/** releaseDate/setupGuideId transform "" -> null on parse, so the shape
+ * actually handed to onSave (post safeParse) differs from GameFormInput —
+ * this is that post-transform shape. */
+export type GameFormOutput = z.output<typeof gameFormSchema>;
 export type GameFormErrors = Partial<Record<keyof GameFormInput, string>>;
+
+/* ---------------------------------------------------------------------- */
+/* Admin: variant form (VariantsPanel)                                     */
+/* ---------------------------------------------------------------------- */
+
+export const variantFormSchema = z
+  .object({
+    label: z.string().trim().min(1, "Label is required").max(60, "Label is too long"),
+    pricePkr: z.coerce
+      .number({ error: "Enter a valid price" })
+      .int("Whole rupees only")
+      .positive("Price must be greater than 0"),
+    // Raw string field — "" means no "was" price, not an error.
+    wasPricePkr: z.string().trim(),
+    priceSource: z.enum(["catalog", "estimate"]),
+  })
+  .transform((v) => ({ ...v, wasPricePkr: v.wasPricePkr === "" ? null : Number(v.wasPricePkr) }))
+  .refine((v) => v.wasPricePkr === null || Number.isFinite(v.wasPricePkr), {
+    message: "Enter a valid was-price",
+    path: ["wasPricePkr"],
+  })
+  .refine((v) => v.wasPricePkr === null || v.wasPricePkr > v.pricePkr, {
+    message: "Was-price must be higher than the current price",
+    path: ["wasPricePkr"],
+  });
+
+export type VariantFormInput = z.input<typeof variantFormSchema>;
+export type VariantFormOutput = z.output<typeof variantFormSchema>;
+export type VariantFormErrors = Partial<Record<keyof VariantFormInput, string>>;
 
 /* ---------------------------------------------------------------------- */
 /* Admin: reject-order form (RejectDialog)                                 */

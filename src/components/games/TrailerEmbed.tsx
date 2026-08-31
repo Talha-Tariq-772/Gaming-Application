@@ -44,7 +44,7 @@ export default function TrailerEmbed({
           className="object-cover"
         />
         <span className="absolute inset-0 flex items-center justify-center bg-nova-void/50 transition-colors duration-(--duration-fast) ease-standard group-hover:bg-nova-void/30">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-nova-ember text-on-accent">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-nova-ember-lo text-nova-bone">
             <svg viewBox="0 0 24 24" fill="currentColor" className="ml-1 h-6 w-6">
               <path d="M8 5v14l11-7z" />
             </svg>

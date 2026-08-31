@@ -51,3 +51,57 @@ export async function getCredentialStock(): Promise<CredentialStockEntry[]> {
     revoked: Number(row.revoked),
   }));
 }
+
+export interface EstimatedVariantEntry {
+  variantId: string;
+  gameId: string;
+  gameTitle: string;
+  gameSlug: string;
+  label: string;
+  pricePkr: number;
+}
+
+/**
+ * Every active variant still priced from a guess rather than the WhatsApp
+ * catalog (price_source='estimate' — 20260829000004_seed_catalog.sql seeded
+ * exactly 5 of these). One screen listing all of them, across every game,
+ * so Hashir can confirm real prices instead of hunting game-by-game
+ * through each VariantsPanel. Two queries rather than one PostgREST embed:
+ * a many-to-one embed's return shape (object vs array) isn't exercised
+ * anywhere else in this codebase yet, and this list is tiny — not worth
+ * the ambiguity for a handful of rows.
+ */
+export async function getEstimatedVariants(): Promise<EstimatedVariantEntry[]> {
+  await requireAdmin();
+
+  const supabase = await createSessionClient();
+  const { data: variants, error: variantsErr } = await supabase
+    .from("game_variants")
+    .select("id, game_id, label, price_pkr")
+    .eq("price_source", "estimate")
+    .eq("is_active", true)
+    .order("label", { ascending: true });
+  if (variantsErr) throw variantsErr;
+  if (!variants || variants.length === 0) return [];
+
+  const gameIds = [...new Set(variants.map((v) => v.game_id))];
+  const { data: games, error: gamesErr } = await supabase.from("games").select("id, title, slug").in("id", gameIds);
+  if (gamesErr) throw gamesErr;
+
+  const gameById = new Map((games ?? []).map((g) => [g.id, g]));
+
+  return variants.flatMap((v) => {
+    const game = gameById.get(v.game_id);
+    if (!game) return []; // shouldn't happen (FK-backed), skip rather than crash the page
+    return [
+      {
+        variantId: v.id,
+        gameId: game.id,
+        gameTitle: game.title,
+        gameSlug: game.slug,
+        label: v.label,
+        pricePkr: Number(v.price_pkr),
+      },
+    ];
+  });
+}

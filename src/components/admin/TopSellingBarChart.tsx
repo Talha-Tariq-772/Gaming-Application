@@ -11,15 +11,27 @@ import {
 } from "recharts";
 import type { TopSellingGame } from "@/src/lib/admin-stats";
 
-const ACCENT = "#00e6d8";
-const GRID = "#2f2f36";
-const MUTED = "#8b8b95";
+// Matches app/globals.css's --color-nova-ember/-hairline/-smoke — Recharts
+// renders plain SVG attributes, so CSS custom properties aren't a reliable
+// fit here. Was teal (#00e6d8), the pre-nova accent — the Session 6 rename
+// only touched Tailwind classes, missing these hardcoded chart props.
+const ACCENT = "#c1440e";
+const GRID = "#2a2124";
+const MUTED = "#8d857c";
 
 export default function TopSellingBarChart({ data }: { data: TopSellingGame[] }) {
   const chartData = data.map((d) => ({
     title: d.game.title,
     units: d.unitsSold,
   }));
+
+  if (chartData.length === 0) {
+    return (
+      <div className="flex h-64 w-full items-center justify-center text-sm text-nova-ash">
+        No sales yet — approved orders will show up here.
+      </div>
+    );
+  }
 
   return (
     <div className="h-64 w-full">

@@ -258,6 +258,7 @@ export const MOCK_GAMES: Game[] = LEGACY_MOCK_GAMES.map((g) => ({
   coverPath: null,
   wallpaperPath: null,
   sliderPosition: null,
+  setupGuideId: null,
   variants: [
     {
       id: `${g.id}-variant`,

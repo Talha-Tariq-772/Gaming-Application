@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import SectionErrorBoundary from "@/src/components/SectionErrorBoundary";
 import OrderDetailPanel from "@/src/components/admin/OrderDetailPanel";
 import PendingQueueHero from "@/src/components/admin/PendingQueueHero";
@@ -32,21 +32,20 @@ import {
   getRevenueToday,
   getTopSellingGames,
 } from "@/src/lib/admin-stats";
+import type { CredentialStockEntry } from "@/src/lib/admin-queries";
 import { formatPrice } from "@/src/lib/format";
-import { LOW_STOCK_THRESHOLD, MOCK_CREDENTIAL_STOCK, MOCK_GAMES, MOCK_PROFILES } from "@/src/lib/mock-data";
-import { useAllOrders } from "@/src/lib/use-all-orders";
-import { useHydrated } from "@/src/lib/use-hydrated";
+import { LOW_STOCK_THRESHOLD } from "@/src/lib/mock-data";
 import type { Game, Order, OrderItem, PaymentMethod, Profile } from "@/src/types/database";
 
 /**
- * queueOrders/queueOrderItems/customers/games/paymentMethods are real,
- * fetched server-side (see app/admin/page.tsx) — the pending queue is the
- * operational core of the business and can't run on demo data. Revenue/
- * top-selling/low-stock/total-customers stay on mock data for now (real
- * aggregation queries are a separate task); "Pending review" uses the real
- * queue's own count rather than a stale mock number, since showing a
- * different count than the queue actually lists right below it would be
- * an obvious inconsistency for zero benefit.
+ * queueOrders/queueOrderItems/customers/games/paymentMethods are the
+ * pending-review queue (see app/admin/page.tsx). allOrders/allOrderItems/
+ * allGames/credentialStock/totalCustomers back every stat card and chart
+ * below — all real, fetched server-side, no mock data anywhere in this
+ * component. "Pending review" uses the real queue's own count rather than
+ * re-deriving it from allOrders, since showing a different count than the
+ * queue actually lists right below it would be an obvious inconsistency
+ * for zero benefit.
  */
 export default function AdminDashboardClient({
   queueOrders,
@@ -54,44 +53,33 @@ export default function AdminDashboardClient({
   customers,
   games,
   paymentMethods,
+  allOrders,
+  allOrderItems,
+  allGames,
+  credentialStock,
+  totalCustomers,
 }: {
   queueOrders: Order[];
   queueOrderItems: OrderItem[];
   customers: Profile[];
   games: Game[];
   paymentMethods: PaymentMethod[];
+  allOrders: Order[];
+  allOrderItems: OrderItem[];
+  allGames: Game[];
+  credentialStock: CredentialStockEntry[];
+  totalCustomers: number;
 }) {
-  const hydrated = useHydrated();
-  const { orders, orderItems } = useAllOrders();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const stats = useMemo(() => {
-    if (!hydrated) return null;
-    return {
-      revenueToday: getRevenueToday(orders),
-      revenueWeek: getRevenueThisWeek(orders),
-      revenueMonth: getRevenueThisMonth(orders),
-      lowStock: getLowStockGames(
-        MOCK_CREDENTIAL_STOCK,
-        MOCK_GAMES,
-        LOW_STOCK_THRESHOLD,
-      ),
-      dailyRevenue: getDailyRevenueSeries(orders, 30),
-      topSelling: getTopSellingGames(orders, orderItems, MOCK_GAMES, 6),
-    };
-  }, [hydrated, orders, orderItems]);
-
-  if (!hydrated || !stats) {
-    return (
-      <div role="status" aria-live="polite">
-        <span className="sr-only">Loading…</span>
-        <div
-          aria-hidden="true"
-          className="h-64 rounded-lg border border-nova-hairline bg-nova-crypt"
-        />
-      </div>
-    );
-  }
+  const stats = {
+    revenueToday: getRevenueToday(allOrders),
+    revenueWeek: getRevenueThisWeek(allOrders),
+    revenueMonth: getRevenueThisMonth(allOrders),
+    lowStock: getLowStockGames(credentialStock, allGames, LOW_STOCK_THRESHOLD),
+    dailyRevenue: getDailyRevenueSeries(allOrders, 30),
+    topSelling: getTopSellingGames(allOrders, allOrderItems, allGames, 6),
+  };
 
   const selectedOrder = queueOrders.find((o) => o.id === selectedId) ?? null;
   const selectedItems = selectedOrder
@@ -115,7 +103,7 @@ export default function AdminDashboardClient({
         <StatCard label="Revenue this month" value={stats.revenueMonth} format={formatPrice} />
         <StatCard label="Pending review" value={queueOrders.length} />
         <StatCard label="Low-stock games" value={stats.lowStock.length} />
-        <StatCard label="Total customers" value={MOCK_PROFILES.length} />
+        <StatCard label="Total customers" value={totalCustomers} />
       </div>
 
       <PendingQueueHero

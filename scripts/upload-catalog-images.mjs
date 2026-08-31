@@ -1,6 +1,9 @@
 // Run-once, offline catalog image prep + upload for Session 1 (Supabase
 // Storage + catalog schema). Run manually —
-// `node scripts/upload-catalog-images.mjs` — never at request time.
+// `node --experimental-strip-types scripts/upload-catalog-images.mjs` —
+// never at request time. The --experimental-strip-types flag is required
+// because this script imports the shared resize/webp pipeline directly from
+// src/lib/image-processing.ts (Node 22.6+; see that file's header).
 //
 // Reads SUPABASE_SERVICE_ROLE_KEY from .env.local directly, which bypasses
 // every RLS policy on the game-images/membership-images buckets (see
@@ -22,10 +25,10 @@
 // silently mis-assign art to the wrong game.
 import { config } from "dotenv";
 import { createClient } from "@supabase/supabase-js";
-import sharp from "sharp";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { processCover, processWallpaper } from "../src/lib/image-processing.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -49,10 +52,10 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 const PRODUCTS_DIR = path.join(ROOT, "public", "products");
 const MEMBERSHIP_DIR = path.join(ROOT, "public", "membership");
 
-const QUALITY = 80;
-const COVER_WIDTHS = [400, 800];
-const WALLPAPER_WIDTHS = [640, 1280, 1920];
-const HEADER_WIDTHS = [640, 1280, 1920];
+// Cover/wallpaper widths live in src/lib/image-processing.ts now — this
+// script no longer picks widths itself, it just uploads whatever
+// processCover/processWallpaper produce. Header derivatives (memberships)
+// reuse processWallpaper: same three widths, same q80 webp.
 
 // slug -> { cover, wallpaper } source filenames, matching
 // public.games.cover_path / wallpaper_path prefixes ("covers/{slug}",
@@ -162,16 +165,6 @@ function validateMapping(label, dir, actualFiles, mappedFiles) {
   return errors;
 }
 
-/** sharp() strips EXIF/ICC/etc metadata by default — only kept when
- * .withMetadata() is explicitly called, which we never do — so this also
- * satisfies "strip metadata" with no extra step. */
-async function toWebp(sourcePath, width) {
-  return sharp(sourcePath)
-    .resize({ width, withoutEnlargement: true })
-    .webp({ quality: QUALITY })
-    .toBuffer();
-}
-
 async function upload(bucket, objectPath, buffer) {
   const { error } = await supabase.storage.from(bucket).upload(objectPath, buffer, {
     contentType: "image/webp",
@@ -213,20 +206,20 @@ async function main() {
     bytesBefore += (await fs.stat(wallpaperPath)).size;
 
     let itemBytesAfter = 0;
-    for (const width of COVER_WIDTHS) {
-      const buffer = await toWebp(coverPath, width);
+    const coverResults = await processCover(await fs.readFile(coverPath));
+    for (const { width, buffer } of coverResults) {
       await upload("game-images", `covers/${slug}-${width}.webp`, buffer);
       itemBytesAfter += buffer.length;
     }
-    for (const width of WALLPAPER_WIDTHS) {
-      const buffer = await toWebp(wallpaperPath, width);
+    const wallpaperResults = await processWallpaper(await fs.readFile(wallpaperPath));
+    for (const { width, buffer } of wallpaperResults) {
       await upload("game-images", `wallpapers/${slug}-${width}.webp`, buffer);
       itemBytesAfter += buffer.length;
     }
 
     bytesAfter += itemBytesAfter;
     report.push(
-      `  ${slug}: ${COVER_WIDTHS.length + WALLPAPER_WIDTHS.length} images, ${(itemBytesAfter / 1024).toFixed(1)} kb`,
+      `  ${slug}: ${coverResults.length + wallpaperResults.length} images, ${(itemBytesAfter / 1024).toFixed(1)} kb`,
     );
     console.log(`done: ${slug}`);
   }
@@ -236,14 +229,14 @@ async function main() {
     bytesBefore += (await fs.stat(sourcePath)).size;
 
     let itemBytesAfter = 0;
-    for (const width of HEADER_WIDTHS) {
-      const buffer = await toWebp(sourcePath, width);
+    const headerResults = await processWallpaper(await fs.readFile(sourcePath));
+    for (const { width, buffer } of headerResults) {
       await upload("membership-images", `${slug}/header-${width}.webp`, buffer);
       itemBytesAfter += buffer.length;
     }
 
     bytesAfter += itemBytesAfter;
-    report.push(`  ${slug}: ${HEADER_WIDTHS.length} images, ${(itemBytesAfter / 1024).toFixed(1)} kb`);
+    report.push(`  ${slug}: ${headerResults.length} images, ${(itemBytesAfter / 1024).toFixed(1)} kb`);
     console.log(`done: ${slug}`);
   }
 
@@ -252,13 +245,13 @@ async function main() {
     bytesBefore += (await fs.stat(sourcePath)).size;
 
     let sharedBytesAfter = 0;
-    for (const width of HEADER_WIDTHS) {
-      const buffer = await toWebp(sourcePath, width);
+    const sharedHeaderResults = await processWallpaper(await fs.readFile(sourcePath));
+    for (const { width, buffer } of sharedHeaderResults) {
       await upload("membership-images", `header-${width}.webp`, buffer);
       sharedBytesAfter += buffer.length;
     }
     bytesAfter += sharedBytesAfter;
-    report.push(`  (shared) header: ${HEADER_WIDTHS.length} images, ${(sharedBytesAfter / 1024).toFixed(1)} kb`);
+    report.push(`  (shared) header: ${sharedHeaderResults.length} images, ${(sharedBytesAfter / 1024).toFixed(1)} kb`);
     console.log("done: shared membership header");
   }
 

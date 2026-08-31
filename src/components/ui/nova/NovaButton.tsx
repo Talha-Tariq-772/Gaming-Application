@@ -15,8 +15,13 @@ const PULL_STRENGTH = 0.4;
 
 type Variant = "primary" | "ghost";
 
+// Part A3: bone-on-ember measures 3.88:1 (below the 4.5:1 text floor) and
+// ~4.3:1 is the ceiling for any text color against ember's luminance — the
+// fill has to change, not the text. ember-lo + bone measures 6.34:1;
+// ember-deep on hover (9.20:1) so hover strictly increases contrast rather
+// than reducing it. See globals.css's --color-nova-ember-lo comment.
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: "bg-nova-ember text-on-accent hover:bg-nova-ember-lo",
+  primary: "bg-nova-ember-lo text-nova-bone hover:bg-nova-ember-deep",
   ghost: "border border-nova-hairline bg-transparent text-nova-bone hover:border-nova-ember/40",
 };
 

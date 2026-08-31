@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/games", label: "Games" },
+  { href: "/admin/slider", label: "Slider" },
   { href: "/admin/credentials", label: "Credentials" },
   { href: "/admin/users", label: "Users" },
 ];
@@ -38,7 +39,7 @@ export default function AdminNav() {
               aria-current={isActive(pathname, item.href) ? "page" : undefined}
               className={`flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors duration-(--duration-fast) ease-standard ${
                 isActive(pathname, item.href)
-                  ? "bg-nova-ember-lo text-nova-ember"
+                  ? "bg-nova-ember-lo text-nova-bone"
                   : "text-nova-ash hover:bg-nova-slab hover:text-nova-bone"
               }`}
             >
@@ -74,7 +75,7 @@ export default function AdminNav() {
             aria-current={isActive(pathname, item.href) ? "page" : undefined}
             className={`flex min-h-11 shrink-0 items-center rounded-full border px-3 py-1.5 text-xs font-semibold ${
               isActive(pathname, item.href)
-                ? "border-nova-ember bg-nova-ember-lo text-nova-ember"
+                ? "border-nova-ember bg-nova-ember-lo text-nova-bone"
                 : "border-nova-hairline text-nova-ash"
             }`}
           >

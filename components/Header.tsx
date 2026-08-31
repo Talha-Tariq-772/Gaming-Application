@@ -2,15 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import CartTriggerButton from "@/src/components/cart/CartTriggerButton";
 import HeaderAuthMenu from "@/src/components/HeaderAuthMenu";
+import HeaderNav from "@/src/components/HeaderNav";
 import { createClient } from "@/src/lib/supabase/server-session";
 import Button from "./Button";
-
-const NAV_LINKS = [
-  { label: "Store", href: "/games" },
-  { label: "Library", href: "/library" },
-  { label: "News", href: "/news" },
-  { label: "Community", href: "/community" },
-];
 
 /**
  * Reads the session server-side (not a client-side auth check) — this is
@@ -71,27 +65,7 @@ export default async function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-nova-hairline bg-nova-void/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-page items-center justify-between px-4 py-3 md:px-8">
-        <Link
-          href="/"
-          className="-my-2 flex min-h-11 items-center font-display text-xl font-bold text-nova-bone"
-        >
-          NOVA
-        </Link>
-
-        <nav
-          aria-label="Primary"
-          className="hidden items-center gap-8 md:flex lg:gap-16"
-        >
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="-my-2 flex min-h-11 items-center text-sm font-medium uppercase tracking-[0.08em] text-nova-ash transition-colors duration-(--duration-fast) ease-standard hover:text-nova-bone"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        <HeaderNav />
 
         <div className="flex items-center gap-4">
           <CartTriggerButton />

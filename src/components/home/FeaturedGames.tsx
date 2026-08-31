@@ -21,8 +21,10 @@ export default async function FeaturedGames() {
   return (
     <section aria-label="Featured games" className="overflow-hidden">
       <FeaturedGamesScroll
+        // Single fluid size (--text-heading, globals.css), not a
+        // breakpoint jump to text-3xl — see Session 7's typography pass.
         heading={
-          <h2 className="mb-8 font-display text-2xl font-bold text-nova-bone md:text-3xl">
+          <h2 className="mb-8 font-display text-2xl font-bold text-nova-bone">
             Featured
           </h2>
         }

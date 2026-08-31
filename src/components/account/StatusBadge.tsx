@@ -15,11 +15,18 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; toneClass: string }> =
   },
   approved: {
     label: "Ready",
-    toneClass: "border-nova-ember/30 bg-nova-ember/15 text-nova-ember",
+    // Part A3: ember text against this tint measures 3.27:1 (crypt
+    // backdrop), and plain ember text can't clear 4.5:1 against any of the
+    // app's dark surfaces at all (max 3.94:1, on void) — no tint alpha
+    // fixes that. Bone text keeps the tinted border/fill for color-coding
+    // while staying legible.
+    toneClass: "border-nova-ember/30 bg-nova-ember/15 text-nova-bone",
   },
   rejected: {
     label: "Rejected",
-    toneClass: "border-nova-blood/30 bg-nova-blood/15 text-nova-blood",
+    // Same issue as approved above — blood text on this tint measures
+    // 4.04:1.
+    toneClass: "border-nova-blood/30 bg-nova-blood/15 text-nova-bone",
   },
   expired: {
     label: "Expired",

@@ -63,7 +63,7 @@ export default function ApproveConfirmDialog({
             type="button"
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className="min-h-11 flex-1 rounded-md bg-nova-ember px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-lo disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 flex-1 rounded-md bg-nova-ember-lo px-4 py-2 text-sm font-semibold text-nova-bone transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-deep disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isSubmitting ? "Approving…" : "Confirm Approve"}
           </button>

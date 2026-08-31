@@ -94,7 +94,7 @@ export default async function Image({
               fontWeight: 700,
               letterSpacing: 4,
               textTransform: "uppercase",
-              color: "#00e6d8",
+              color: "#c1440e",
               marginBottom: 20,
             }}
           >

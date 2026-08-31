@@ -77,7 +77,10 @@ export default async function CommunityPage() {
             {latestNews.map((post) => (
               <Link key={post.id} href={`/news/${post.slug}`} className="block">
                 <NovaCard className={CARD_CLASS}>
-                  <span className="font-display text-base font-bold text-nova-bone">{post.title}</span>
+                  {/* Session 9: no font-bold — text-base isn't covered by
+                      the .font-display compound rules (globals.css), so
+                      this was requesting a weight Marcellus doesn't ship. */}
+                  <span className="font-display text-base text-nova-bone">{post.title}</span>
                   {post.excerpt && <span className="line-clamp-2 text-sm text-nova-ash">{post.excerpt}</span>}
                 </NovaCard>
               </Link>

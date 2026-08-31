@@ -318,6 +318,116 @@ describe("RLS denials — each of these must genuinely fail at the database leve
   });
 });
 
+describe("cross-table write RLS: verified by row-level effect, not the error field", () => {
+  // A Postgres UPDATE whose USING clause matches zero rows returns
+  // { error: null, data: [] } — success with nothing changed. error===null
+  // alone does NOT prove a write landed; every case below re-reads the row
+  // with the service client afterward and asserts the value is unchanged,
+  // and also asserts on the row count/data the client itself got back.
+  let guide: { id: string; title: string };
+  let variant: { id: string; label: string };
+
+  beforeAll(async () => {
+    const { data: guideRow, error: guideErr } = await service
+      .from("setup_guides")
+      .insert({
+        slug: `rls-test-guide-${run}`,
+        title: `RLS Test Guide ${run}`,
+        body: "original body",
+        product_type: "game",
+        is_published: true,
+      })
+      .select("id, title")
+      .single();
+    if (guideErr) throw guideErr;
+    guide = guideRow;
+
+    const { data: variantRow, error: variantErr } = await service
+      .from("game_variants")
+      .insert({
+        game_id: game.id,
+        label: `RLS Test Variant ${run}`,
+        price_pkr: 1000,
+        is_active: true,
+      })
+      .select("id, label")
+      .single();
+    if (variantErr) throw variantErr;
+    variant = variantRow;
+  });
+
+  afterAll(async () => {
+    await runCleanupSteps([
+      {
+        label: "setup_guides",
+        run: async () => {
+          if (guide?.id) await deleteWithRetry(() => service.from("setup_guides").delete().eq("id", guide.id), "setup_guides");
+        },
+      },
+      {
+        label: "game_variants",
+        run: async () => {
+          if (variant?.id) await deleteWithRetry(() => service.from("game_variants").delete().eq("id", variant.id), "game_variants");
+        },
+      },
+    ]);
+  }, 20_000);
+
+  it("customer session cannot write to setup_guides", async () => {
+    const res = await clientA
+      .from("setup_guides")
+      .update({ title: "hacked title" })
+      .eq("id", guide.id)
+      .select("id, title");
+
+    expect(res.error).toBeNull(); // matches the earlier "UNEXPECTEDLY SUCCEEDED" report
+    expect(res.data ?? []).toHaveLength(0); // ...but zero rows actually matched/returned
+
+    const { data: recheck } = await service.from("setup_guides").select("title").eq("id", guide.id).single();
+    expect(recheck?.title).toBe(guide.title); // unchanged at the DB level — not a live hole
+  });
+
+  it("customer session cannot write to games", async () => {
+    const res = await clientA.from("games").update({ price: 1 }).eq("id", game.id).select("id, price");
+
+    expect(res.data ?? []).toHaveLength(0);
+
+    const { data: recheck } = await service.from("games").select("price").eq("id", game.id).single();
+    expect(recheck?.price).toBe(999); // seeded value from the outer beforeAll
+  });
+
+  it("customer session cannot write to game_variants", async () => {
+    const res = await clientA
+      .from("game_variants")
+      .update({ price_pkr: 1 })
+      .eq("id", variant.id)
+      .select("id, price_pkr");
+
+    expect(res.data ?? []).toHaveLength(0);
+
+    const { data: recheck } = await service.from("game_variants").select("price_pkr").eq("id", variant.id).single();
+    expect(recheck?.price_pkr).toBe(1000);
+  });
+
+  it("customer session cannot write to payment_methods (highest stakes: payout destination)", async () => {
+    const res = await clientA
+      .from("payment_methods")
+      .update({ account_number: "9999999999", account_title: "Attacker Controlled" })
+      .eq("id", paymentMethod.id)
+      .select("id, account_number, account_title");
+
+    expect(res.data ?? []).toHaveLength(0);
+
+    const { data: recheck } = await service
+      .from("payment_methods")
+      .select("account_number, account_title")
+      .eq("id", paymentMethod.id)
+      .single();
+    expect(recheck?.account_number).toBe("0000000000");
+    expect(recheck?.account_title).toBe("Test Account");
+  });
+});
+
 describe("reserve_credential inventory logic", () => {
   it("returns null when no credential is available for a game", async () => {
     const { data: emptyGame, error: emptyGameErr } = await service

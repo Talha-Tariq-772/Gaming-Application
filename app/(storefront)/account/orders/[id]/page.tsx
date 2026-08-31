@@ -71,7 +71,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
       {order.status === "rejected" && (
         <div className="mb-8 flex flex-col gap-4 rounded-lg border border-nova-blood/30 bg-nova-blood/15 px-6 py-4">
-          {order.rejectionReason && <p className="text-sm text-nova-blood">{order.rejectionReason}</p>}
+          {/* Part A3: text-nova-blood on this blood/15 tint measures 4.04:1
+              — below the 4.5:1 text floor. Bone stays legible while the
+              tinted border/fill still carries the "rejected" color-coding. */}
+          {order.rejectionReason && <p className="text-sm text-nova-bone">{order.rejectionReason}</p>}
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             {method && (
               <TrackedWhatsAppLink

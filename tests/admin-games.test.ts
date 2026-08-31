@@ -40,6 +40,10 @@ function baseGameInput(overrides: Partial<Parameters<typeof createGame>[0]> = {}
     trailerUrl: "https://example.com/trailer",
     setupGuide: "Install it.",
     isActive: true,
+    isNewArrival: false,
+    isBestSeller: false,
+    releaseDate: null,
+    setupGuideId: null,
     ...overrides,
   };
 }

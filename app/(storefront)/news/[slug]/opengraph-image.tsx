@@ -29,7 +29,7 @@ function eyebrow() {
         fontWeight: 700,
         letterSpacing: 4,
         textTransform: "uppercase" as const,
-        color: "#00e6d8",
+        color: "#c1440e",
         marginBottom: 20,
       }}
     >

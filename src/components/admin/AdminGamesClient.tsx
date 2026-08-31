@@ -4,22 +4,31 @@ import { useMemo, useState } from "react";
 import DeleteGameDialog from "@/src/components/admin/DeleteGameDialog";
 import GameFormDialog from "@/src/components/admin/GameFormDialog";
 import GamesTable from "@/src/components/admin/GamesTable";
+import VariantsPanel from "@/src/components/admin/VariantsPanel";
 import { createGame, deleteGame, setGameActive, updateGame } from "@/src/lib/actions/admin-games";
+import { formatPrice } from "@/src/lib/format";
 import { useToastStore } from "@/src/stores/toast-store";
-import type { Game } from "@/src/types/database";
-import type { CredentialStockEntry } from "@/src/lib/admin-queries";
+import type { Game, SetupGuide, VariantMode } from "@/src/types/database";
+import type { CredentialStockEntry, EstimatedVariantEntry } from "@/src/lib/admin-queries";
 
 export default function AdminGamesClient({
   initialGames,
   stock,
+  setupGuides,
+  estimatedVariants,
 }: {
   initialGames: Game[];
   stock: CredentialStockEntry[];
+  setupGuides: SetupGuide[];
+  /** Every active variant still price_source='estimate', across every
+   * game — one screen listing all of them (see getEstimatedVariants). */
+  estimatedVariants: EstimatedVariantEntry[];
 }) {
   const [games, setGames] = useState(initialGames);
   const [search, setSearch] = useState("");
   const [editingGame, setEditingGame] = useState<Game | null | undefined>(undefined); // undefined = closed, null = adding new, Game = editing
   const [deletingGame, setDeletingGame] = useState<Game | null>(null);
+  const [variantsGame, setVariantsGame] = useState<Game | null>(null);
   const showToast = useToastStore((s) => s.showToast);
 
   const availableByGameId = useMemo(() => {
@@ -58,6 +67,20 @@ export default function AdminGamesClient({
     return { ok: true };
   }
 
+  // uploadGameImage (src/lib/actions/admin-images.ts) writes to the same
+  // object path on a replace (upsert:true), so the row's cover_path/
+  // wallpaper_path only actually changes on the FIRST upload — but this
+  // still needs to run then, both so GamesTable's thumbnail isn't stuck on
+  // a placeholder and so reopening this game's dialog later has the right
+  // path without a full page reload.
+  function handleImageUpdated(gameId: string, patch: Partial<Pick<Game, "coverPath" | "wallpaperPath">>) {
+    setGames((prev) => prev.map((g) => (g.id === gameId ? { ...g, ...patch } : g)));
+  }
+
+  function handleVariantModeChanged(gameId: string, variantMode: VariantMode) {
+    setGames((prev) => prev.map((g) => (g.id === gameId ? { ...g, variantMode } : g)));
+  }
+
   async function handleConfirmDelete() {
     if (!deletingGame) return;
     const result = await deleteGame(deletingGame.id);
@@ -76,6 +99,11 @@ export default function AdminGamesClient({
     setDeletingGame(null);
   }
 
+  function openVariantsForGameId(gameId: string) {
+    const game = games.find((g) => g.id === gameId);
+    if (game) setVariantsGame(game);
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -86,11 +114,33 @@ export default function AdminGamesClient({
         <button
           type="button"
           onClick={() => setEditingGame(null)}
-          className="min-h-11 rounded-md bg-nova-ember px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-lo"
+          className="min-h-11 rounded-md bg-nova-ember-lo px-4 py-2 text-sm font-semibold text-nova-bone transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-deep"
         >
           Add Game
         </button>
       </div>
+
+      {estimatedVariants.length > 0 && (
+        <div className="rounded-lg border border-nova-gild/40 bg-nova-gild/10 p-4">
+          <p className="text-sm font-semibold text-nova-gild">
+            {estimatedVariants.length} variant{estimatedVariants.length === 1 ? "" : "s"} still have unconfirmed
+            (estimate) prices
+          </p>
+          <ul className="mt-2 flex flex-col gap-1">
+            {estimatedVariants.map((v) => (
+              <li key={v.variantId}>
+                <button
+                  type="button"
+                  onClick={() => openVariantsForGameId(v.gameId)}
+                  className="min-h-8 text-left text-xs text-nova-ash hover:text-nova-bone"
+                >
+                  {v.gameTitle} — {v.label} ({formatPrice(v.pricePkr)})
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <input
         type="text"
@@ -107,10 +157,25 @@ export default function AdminGamesClient({
         onToggleActive={handleToggleActive}
         onEdit={(game) => setEditingGame(game)}
         onDelete={(game) => setDeletingGame(game)}
+        onManageVariants={(game) => setVariantsGame(game)}
       />
 
       {editingGame !== undefined && (
-        <GameFormDialog game={editingGame} onCancel={() => setEditingGame(undefined)} onSave={handleSave} />
+        <GameFormDialog
+          game={editingGame}
+          setupGuides={setupGuides}
+          onCancel={() => setEditingGame(undefined)}
+          onSave={handleSave}
+          onImageUpdated={handleImageUpdated}
+        />
+      )}
+
+      {variantsGame && (
+        <VariantsPanel
+          game={variantsGame}
+          onClose={() => setVariantsGame(null)}
+          onVariantModeChanged={handleVariantModeChanged}
+        />
       )}
 
       {deletingGame && (

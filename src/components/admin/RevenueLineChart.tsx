@@ -13,10 +13,12 @@ import { formatPrice } from "@/src/lib/format";
 import type { DailyRevenuePoint } from "@/src/lib/admin-stats";
 
 // Hardcoded to match app/globals.css tokens — Recharts renders plain SVG
-// attributes, so CSS custom properties aren't a reliable fit here.
-const ACCENT = "#00e6d8";
-const GRID = "#2f2f36";
-const MUTED = "#8b8b95";
+// attributes, so CSS custom properties aren't a reliable fit here. Was teal
+// (#00e6d8), the pre-nova accent — the Session 6 rename only touched
+// Tailwind classes, missing these hardcoded chart props.
+const ACCENT = "#c1440e";
+const GRID = "#2a2124";
+const MUTED = "#8d857c";
 
 export default function RevenueLineChart({ data }: { data: DailyRevenuePoint[] }) {
   return (

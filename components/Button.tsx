@@ -9,8 +9,13 @@ const base =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nova-ember focus-visible:ring-offset-2 focus-visible:ring-offset-nova-void " +
   "disabled:cursor-not-allowed disabled:opacity-40";
 
+// Part A3: bone-on-ember measures 3.88:1 (below the 4.5:1 text floor) and
+// ~4.3:1 is the ceiling for any text color against ember's luminance — the
+// fill has to change, not the text. ember-lo + bone measures 6.34:1;
+// ember-deep on hover (9.20:1) so hover strictly increases contrast rather
+// than reducing it. See globals.css's --color-nova-ember-lo comment.
 const variants: Record<Variant, string> = {
-  primary: "bg-nova-ember text-on-accent hover:bg-nova-ember-lo",
+  primary: "bg-nova-ember-lo text-nova-bone hover:bg-nova-ember-deep",
   secondary:
     "bg-nova-slab text-nova-bone border border-nova-hairline hover:border-nova-ember/40 hover:bg-nova-hairline",
   ghost: "bg-transparent text-nova-ash hover:text-nova-bone",

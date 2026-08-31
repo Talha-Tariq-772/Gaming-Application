@@ -6,13 +6,15 @@ import ViewGuideTracker from "@/src/components/guides/ViewGuideTracker";
 import Eyebrow from "@/src/components/ui/nova/Eyebrow";
 import NovaCard from "@/src/components/ui/nova/NovaCard";
 import { GUIDE_CATEGORY_LABELS } from "@/src/lib/guide-categories";
-import { renderMarkdown } from "@/src/lib/markdown";
+import { excerptFromMarkdown, renderMarkdown } from "@/src/lib/markdown";
 import { getGuideBySlug, getGuides } from "@/src/lib/mock-guides";
+import { getSetupGuideBySlug, getSetupGuides } from "@/src/lib/setup-guides";
 import { SITE_URL } from "@/src/lib/site-config";
+import { GAME_PLATFORM_LABELS } from "@/src/types/database";
 
 export async function generateStaticParams() {
-  const guides = await getGuides();
-  return guides.map((guide) => ({ slug: guide.slug }));
+  const [guides, setupGuides] = await Promise.all([getGuides(), getSetupGuides()]);
+  return [...guides, ...setupGuides].map((guide) => ({ slug: guide.slug }));
 }
 
 export async function generateMetadata({
@@ -22,28 +24,33 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const guide = await getGuideBySlug(slug);
+  const setupGuide = guide ? null : await getSetupGuideBySlug(slug);
 
-  if (!guide) {
+  if (!guide && !setupGuide) {
     return { title: "Guide not found" };
   }
 
+  const title = guide?.title ?? setupGuide!.title;
+  const description = guide?.excerpt ?? excerptFromMarkdown(setupGuide!.body);
+  const modifiedTime = guide?.updatedAt ?? setupGuide!.updatedAt;
+
   return {
-    title: guide.title,
-    description: guide.excerpt,
+    title,
+    description,
     alternates: {
-      canonical: `/guides/${guide.slug}`,
+      canonical: `/guides/${slug}`,
     },
     openGraph: {
       type: "article",
-      title: `${guide.title} — Nova`,
-      description: guide.excerpt,
-      url: `/guides/${guide.slug}`,
-      modifiedTime: guide.updatedAt,
+      title: `${title} — Nova`,
+      description,
+      url: `/guides/${slug}`,
+      modifiedTime,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${guide.title} — Nova`,
-      description: guide.excerpt,
+      title: `${title} — Nova`,
+      description,
     },
   };
 }
@@ -54,23 +61,40 @@ export default async function GuideArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [guide, allGuides] = await Promise.all([
+  const [guide, allGuides, setupGuide, allSetupGuides] = await Promise.all([
     getGuideBySlug(slug),
     getGuides(),
+    getSetupGuideBySlug(slug),
+    getSetupGuides(),
   ]);
 
-  if (!guide) {
+  if (!guide && !setupGuide) {
     notFound();
   }
 
-  const { html, headings } = renderMarkdown(guide.body);
+  const title = guide?.title ?? setupGuide!.title;
+  const body = guide?.body ?? setupGuide!.body;
+  const eyebrowLabel = guide
+    ? GUIDE_CATEGORY_LABELS[guide.category]
+    : [
+        setupGuide!.platform ? GAME_PLATFORM_LABELS[setupGuide!.platform] : null,
+        setupGuide!.productType === "membership" ? "Membership" : "Game",
+      ]
+        .filter(Boolean)
+        .join(" · ");
+  const trackerCategory = guide?.category ?? `setup-${setupGuide!.productType}`;
 
-  const currentIndex = allGuides.findIndex((g) => g.id === guide.id);
-  const prevGuide = currentIndex > 0 ? allGuides[currentIndex - 1] : null;
+  const { html, headings } = renderMarkdown(body);
+
+  // Prev/next nav stays within the same source list — a setup guide's
+  // "next" should be another setup guide, not an unrelated FAQ-style mock
+  // guide, and vice versa.
+  const list = guide ? allGuides : allSetupGuides;
+  const currentId = guide?.id ?? setupGuide!.id;
+  const currentIndex = list.findIndex((g) => g.id === currentId);
+  const prevGuide = currentIndex > 0 ? list[currentIndex - 1] : null;
   const nextGuide =
-    currentIndex >= 0 && currentIndex < allGuides.length - 1
-      ? allGuides[currentIndex + 1]
-      : null;
+    currentIndex >= 0 && currentIndex < list.length - 1 ? list[currentIndex + 1] : null;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -81,20 +105,20 @@ export default async function GuideArticlePage({
       {
         "@type": "ListItem",
         position: 3,
-        name: guide.title,
-        item: `${SITE_URL}/guides/${guide.slug}`,
+        name: title,
+        item: `${SITE_URL}/guides/${slug}`,
       },
     ],
   };
 
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
-      {/* Our own mock data, not user input — safe to serialize directly. */}
+      {/* Our own mock/DB-authored data, not user input — safe to serialize directly. */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <ViewGuideTracker guideSlug={guide.slug} category={guide.category} />
+      <ViewGuideTracker guideSlug={slug} category={trackerCategory} />
       <Link
         href="/guides"
         className="-my-2.5 mb-6 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-medium text-nova-ash hover:text-nova-bone"
@@ -104,9 +128,9 @@ export default async function GuideArticlePage({
 
       <div className="grid gap-12 lg:grid-cols-[1fr_240px]">
         <article className="min-w-0">
-          <Eyebrow>{GUIDE_CATEGORY_LABELS[guide.category]}</Eyebrow>
+          <Eyebrow>{eyebrowLabel}</Eyebrow>
           <h1 className="mt-2 wrap-break-word text-display-sm font-display font-extrabold text-nova-bone">
-            {guide.title}
+            {title}
           </h1>
 
           <div

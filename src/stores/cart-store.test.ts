@@ -24,6 +24,7 @@ function makeGame(id: string, overrides: Partial<Game> = {}): Game {
     coverPath: null,
     wallpaperPath: null,
     sliderPosition: null,
+    setupGuideId: null,
     variants: [],
     ...overrides,
   };
