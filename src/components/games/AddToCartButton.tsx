@@ -16,9 +16,13 @@ import type { Game, GameVariant } from "@/src/types/database";
 export default function AddToCartButton({
   game,
   variant,
+  disabled = false,
+  className = "w-fit",
 }: {
   game: Game;
   variant: GameVariant;
+  disabled?: boolean;
+  className?: string;
 }) {
   const addItem = useCartStore((s) => s.addItem);
 
@@ -26,7 +30,8 @@ export default function AddToCartButton({
     <NovaButton
       type="button"
       variant="primary"
-      className="w-fit"
+      disabled={disabled}
+      className={className}
       onClick={() => {
         addItem({ ...game, price: variant.pricePkr });
         track("add_to_cart", { gameId: game.id, price: variant.pricePkr });

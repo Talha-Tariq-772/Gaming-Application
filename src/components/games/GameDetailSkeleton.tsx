@@ -1,30 +1,29 @@
 /**
- * Reserves the redesigned game detail page's real footprint during
+ * Reserves the Part B two-column redesign's real footprint during
  * app/(storefront)/games/[slug]'s route-level loading.tsx window. Every
- * value below is a directly measured real height (390/768/1440px) across
- * three seeded games, not an estimate:
+ * value below is a directly measured real height (390/768/1440px), sized
+ * to the single-variant path (ghost-of-yotei, with a description) since
+ * 15 of the catalog's 16 games are variantMode='single' — same call the
+ * pre-Part-B skeleton made. gta-vi (the one variantMode='multi' game,
+ * whose variant-pill row makes its purchase block taller) will show a
+ * bigger shift than everything else; sizing to gta-vi instead was tried
+ * and measured *worse* overall (0.32 vs 0.20 CLS at 390px) because it
+ * oversizes the skeleton for every other game's shorter real block —
+ * matching the common case beats matching the outlier here.
  *
  * - Wallpaper: same clamp(420px, 45vw, 620px) formula as the real header
  *   and the store slider — deterministic, not measured.
- * - Hero row (cover + eyebrow/title): 232px @390, 235px @768/1440 — the
- *   worst case across the catalog's longest title ("Call of Duty: Modern
- *   Warfare II", 5 wrapped lines at 390px); every shorter title's row is
- *   cover-art-height-dominated instead (still ≤235px). A future title
- *   longer than that one would need re-measuring.
- * - Purchase block: sized to the single-variant path (108/116/125px),
- *   since 15 of the catalog's 16 games are variantMode='single' — gta-vi,
- *   the one multi-variant game, has a taller real block (variant pills)
- *   and will show a somewhat larger shift than everything else. Accepted,
- *   not chased — see this session's CLS report.
- * - Content block (genre/release-date/setup guide): 257-262px across
- *   breakpoints for every current game, all of which lack a trailer,
- *   description, and platform value — re-measure if any of the three stop
- *   being universally empty/null. Re-measured this session after the setup
- *   guide placeholder was replaced with a real, collapsed-by-default
- *   `<details>` (Session 4) — collapsed height (~90-93px including its
- *   label) is noticeably shorter than the old dashed placeholder box it
- *   replaced (was ~312-322px total), so the last skeleton row below was
- *   shrunk from h-24 to h-14 to match.
+ * - Hero row (cover + eyebrow/title): unchanged by Part B, still 232px
+ *   @390 / 235px @768+ (the catalog's longest-title worst case — see git
+ *   history for that measurement).
+ * - Purchase block (order-1 on mobile/tablet, right column on desktop):
+ *   price + full-width Add to Cart + stock-state line + trust-line list.
+ *   Measured 239px @390, 249px @768, 261px @1440.
+ * - Content block (order-2 on mobile/tablet, left column on desktop):
+ *   description + genre/platform/release grid + collapsed setup guide.
+ *   Measured 356px @390, 335px @768, 337px @1440.
+ * - Below lg, the two stack (gap-10 = 40px between them); at lg+ they sit
+ *   side by side, so only the taller of the two drives the row height.
  */
 export default function GameDetailSkeleton() {
   return (
@@ -40,25 +39,37 @@ export default function GameDetailSkeleton() {
           </div>
         </div>
 
-        <div className="mt-8 flex max-w-md flex-col gap-3 md:mt-10">
-          <div className="h-9 w-40 animate-pulse rounded bg-nova-slab" />
-          <div className="h-11 w-36 animate-pulse rounded bg-nova-slab" />
-        </div>
-
-        <div className="my-12 h-px w-full bg-nova-hairline" />
-
-        <div className="flex max-w-3xl flex-col gap-8 pb-16">
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-2">
-                <div className="h-[11px] w-14 animate-pulse rounded-full bg-nova-slab" />
-                <div className="h-6 w-20 animate-pulse rounded-full bg-nova-slab" />
-              </div>
-            ))}
+        <div className="mt-8 grid grid-cols-1 gap-10 pb-16 md:mt-10 lg:grid-cols-[minmax(0,62%)_minmax(0,38%)] lg:items-start lg:gap-12">
+          {/* Purchase column */}
+          <div className="order-1 flex h-[239px] flex-col gap-4 sm:h-[249px] lg:order-2 lg:h-[261px]">
+            <div className="h-9 w-40 animate-pulse rounded bg-nova-slab" />
+            <div className="h-11 w-full animate-pulse rounded-lg bg-nova-slab" />
+            <div className="h-4 w-32 animate-pulse rounded-full bg-nova-slab" />
+            <div className="mt-1 flex flex-col gap-2 border-t border-nova-hairline pt-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-3 w-48 animate-pulse rounded-full bg-nova-slab" />
+              ))}
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <div className="h-[11px] w-20 animate-pulse rounded-full bg-nova-slab" />
-            <div className="h-14 w-full animate-pulse rounded-lg bg-nova-slab" />
+
+          {/* Content column */}
+          <div className="order-2 flex h-[356px] max-w-3xl flex-col gap-8 sm:h-[335px] lg:order-1 lg:h-[337px]">
+            <div className="flex flex-col gap-2">
+              <div className="h-4 w-full animate-pulse rounded-full bg-nova-slab" />
+              <div className="h-4 w-2/3 animate-pulse rounded-full bg-nova-slab" />
+            </div>
+            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="flex flex-col gap-2">
+                  <div className="h-[11px] w-14 animate-pulse rounded-full bg-nova-slab" />
+                  <div className="h-6 w-20 animate-pulse rounded-full bg-nova-slab" />
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="h-[11px] w-20 animate-pulse rounded-full bg-nova-slab" />
+              <div className="h-14 w-full animate-pulse rounded-lg bg-nova-slab" />
+            </div>
           </div>
         </div>
       </div>

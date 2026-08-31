@@ -4,6 +4,7 @@ import { chamferClipPath } from "@/src/components/ui/nova/Chamfer";
 import Eyebrow from "@/src/components/ui/nova/Eyebrow";
 import FadeDivider from "@/src/components/ui/nova/FadeDivider";
 import Tag from "@/src/components/games/Tag";
+import RelatedGamesRow from "@/src/components/games/RelatedGamesRow";
 import TrailerEmbed from "@/src/components/games/TrailerEmbed";
 import ViewGameTracker from "@/src/components/games/ViewGameTracker";
 import VariantPicker from "@/src/components/games/VariantPicker";
@@ -109,11 +110,20 @@ export default async function GameDetailBody({
           fetchPriority="high"
           className="absolute inset-0 h-full w-full object-cover"
         />
-        {/* Vertical falloff into nova-void — merges the wallpaper into the
-            page instead of ending on a hard edge. */}
+        {/* Part B: was a full-width bottom-to-void wash — legible title, but
+            it hid most of the wallpaper behind it everywhere, not just
+            where the title actually sits. Two narrower scrims instead: a
+            short bottom fade (page-merge only, not a legibility aid) plus a
+            left-side scrim sized to the hero row's cover+title column,
+            fading out by mid-image so the right two-thirds of the artwork
+            stays clear. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-nova-void/20 to-nova-void"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-nova-void md:h-32"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-nova-void/85 via-nova-void/35 to-transparent sm:w-3/4 md:w-3/5"
         />
       </div>
 
@@ -148,95 +158,114 @@ export default async function GameDetailBody({
           </div>
         </div>
 
-        <div data-testid="game-purchase" className="mt-8 max-w-md md:mt-10">
-          <VariantPicker game={game} inStock={game.isActive && stock > 0} />
-        </div>
-
-        <FadeDivider className="my-12" />
-
-        {/* Single stacked column, not a two-column split — no seeded game
-            has a trailer_url or non-empty description today (neither
-            column ever got populated in any migration), so a
-            trailer-and-description-on-the-left / details-on-the-right
-            grid would leave the entire left column dead space on every
-            real game page. TrailerEmbed/hasDescription still render
-            correctly the moment either field is populated. */}
-        <div data-testid="game-content" className="flex max-w-3xl flex-col gap-10 pb-16">
-          <TrailerEmbed
-            trailerUrl={game.trailerUrl}
-            posterUrl={game.coverImageUrl}
-            title={game.title}
-          />
-          {hasDescription && (
-            <p className="wrap-break-word text-base text-nova-ash">{game.description}</p>
-          )}
-
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-            <div>
-              <Eyebrow tone="muted">Genre</Eyebrow>
-              <p className="mt-2 text-sm text-nova-bone">
-                <Tag>{game.genre}</Tag>
-              </p>
-            </div>
-            {game.platform && (
-              <div>
-                <Eyebrow tone="muted">Platform</Eyebrow>
-                <p className="mt-2 text-sm text-nova-bone">
-                  <Tag>{GAME_PLATFORM_LABELS[game.platform]}</Tag>
-                </p>
-              </div>
-            )}
-            {game.releaseDate && (
-              <div>
-                <Eyebrow tone="muted">Release Date</Eyebrow>
-                <p className="mt-2 text-sm text-nova-bone">{formatDate(game.releaseDate)}</p>
-              </div>
-            )}
+        {/* Two columns on desktop: ~62% content (description, details,
+            setup guide) / ~38% purchase, sticky while the (usually taller)
+            content column scrolls past it. On mobile this collapses to one
+            column and the order-* classes below reorder the DOM so price +
+            Add to Cart land right under the title — not below a long
+            description, which is where they'd fall in source order. */}
+        <div
+          data-testid="game-content"
+          className="mt-8 grid grid-cols-1 gap-10 pb-16 md:mt-10 lg:grid-cols-[minmax(0,62%)_minmax(0,38%)] lg:items-start lg:gap-12"
+        >
+          <div
+            data-testid="game-purchase"
+            className="order-1 flex flex-col gap-4 lg:order-2 lg:sticky lg:top-24 lg:self-start"
+          >
+            <VariantPicker game={game} inStock={game.isActive && stock > 0} />
+            {/* Static, factual trust copy matching what checkout/FAQ already
+                tell buyers (manual WhatsApp-verified payment, no instant/
+                automatic claims) — not a new promise invented for this
+                page. */}
+            <ul className="flex flex-col gap-1.5 border-t border-nova-hairline pt-4 text-xs text-nova-smoke">
+              <li>Verified delivery — every order checked before it ships</li>
+              <li>WhatsApp support, 9am–9pm PKT</li>
+              <li>Usually delivered within 1–2 hours</li>
+            </ul>
           </div>
 
-          <div>
-            <Eyebrow tone="muted">Setup Guide</Eyebrow>
-            {setupGuide && setupGuideHtml ? (
-              <details
-                style={chamferClipPath(10)}
-                className="group mt-2 border border-nova-hairline bg-nova-crypt"
-              >
-                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-4 py-4 text-sm font-semibold text-nova-bone">
-                  {setupGuide.title}
-                  <span className="text-nova-ash transition-transform duration-(--duration-fast) ease-standard group-open:rotate-180">
-                    ▾
-                  </span>
-                </summary>
+          <div className="order-2 flex max-w-3xl flex-col gap-10 lg:order-1">
+            <TrailerEmbed
+              trailerUrl={game.trailerUrl}
+              posterUrl={game.coverImageUrl}
+              title={game.title}
+            />
+            {hasDescription && (
+              <p className="wrap-break-word text-base text-nova-ash">{game.description}</p>
+            )}
+
+            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+              <div>
+                <Eyebrow tone="muted">Genre</Eyebrow>
+                <p className="mt-2 text-sm text-nova-bone">
+                  <Tag>{game.genre}</Tag>
+                </p>
+              </div>
+              {game.platform && (
+                <div>
+                  <Eyebrow tone="muted">Platform</Eyebrow>
+                  <p className="mt-2 text-sm text-nova-bone">
+                    <Tag>{GAME_PLATFORM_LABELS[game.platform]}</Tag>
+                  </p>
+                </div>
+              )}
+              {game.releaseDate && (
+                <div>
+                  <Eyebrow tone="muted">Release Date</Eyebrow>
+                  <p className="mt-2 text-sm text-nova-bone">{formatDate(game.releaseDate)}</p>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Eyebrow tone="muted">Setup Guide</Eyebrow>
+              {setupGuide && setupGuideHtml ? (
+                <details
+                  style={chamferClipPath(10)}
+                  className="group mt-2 border border-nova-hairline bg-nova-crypt"
+                >
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-4 py-4 text-sm font-semibold text-nova-bone">
+                    {setupGuide.title}
+                    <span className="text-nova-ash transition-transform duration-(--duration-fast) ease-standard group-open:rotate-180">
+                      ▾
+                    </span>
+                  </summary>
+                  <div
+                    className="markdown-body px-4 pb-5"
+                    dangerouslySetInnerHTML={{ __html: setupGuideHtml }}
+                  />
+                  <div className="px-4 pb-5">
+                    <Link
+                      href={`/guides/${setupGuide.slug}`}
+                      className="inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
+                    >
+                      Open the full guide →
+                    </Link>
+                  </div>
+                </details>
+              ) : (
                 <div
-                  className="markdown-body px-4 pb-5"
-                  dangerouslySetInnerHTML={{ __html: setupGuideHtml }}
-                />
-                <div className="px-4 pb-5">
+                  style={chamferClipPath(10)}
+                  className="mt-2 flex flex-col items-start gap-2 border border-dashed border-nova-hairline bg-nova-crypt px-4 py-5"
+                >
+                  <p className="text-sm text-nova-ash">This game&apos;s setup guide is coming soon.</p>
                   <Link
-                    href={`/guides/${setupGuide.slug}`}
+                    href={`/guides/${REDEMPTION_GUIDE_SLUG}`}
                     className="inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
                   >
-                    Open the full guide →
+                    In the meantime, see the general redemption guide →
                   </Link>
                 </div>
-              </details>
-            ) : (
-              <div
-                style={chamferClipPath(10)}
-                className="mt-2 flex flex-col items-start gap-2 border border-dashed border-nova-hairline bg-nova-crypt px-4 py-5"
-              >
-                <p className="text-sm text-nova-ash">This game&apos;s setup guide is coming soon.</p>
-                <Link
-                  href={`/guides/${REDEMPTION_GUIDE_SLUG}`}
-                  className="inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
-                >
-                  In the meantime, see the general redemption guide →
-                </Link>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      <div className="mx-auto max-w-page px-4 md:px-8">
+        <FadeDivider />
+      </div>
+      <RelatedGamesRow game={game} />
     </div>
   );
 }

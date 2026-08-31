@@ -75,16 +75,15 @@ export default function VariantPicker({
         )}
       </span>
 
-      {inStock ? (
-        <AddToCartButton game={game} variant={variant} />
-      ) : (
-        <p
-          style={chamferClipPath(10)}
-          className="w-fit border border-nova-hairline bg-nova-crypt px-4 py-3 text-sm text-nova-ash"
-        >
-          Out of stock — check back soon.
-        </p>
-      )}
+      {/* Always rendered, never swapped for a different element when out of
+          stock — Add to Cart is the entire purpose of this page and needs
+          to keep its visual weight as the primary action even while
+          honestly disabled, rather than reading as a dead grey box or
+          disappearing outright. */}
+      <AddToCartButton game={game} variant={variant} disabled={!inStock} className="w-full" />
+      <p className={`text-sm ${inStock ? "text-nova-ash" : "text-nova-blood"}`}>
+        {inStock ? "In stock — ready to deliver" : "Out of stock — check back soon"}
+      </p>
     </div>
   );
 }
