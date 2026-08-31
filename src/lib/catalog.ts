@@ -170,13 +170,53 @@ export async function getSliderGames(): Promise<Game[]> {
   });
 }
 
-export async function getGameBySlug(slug: string): Promise<Game | null> {
+/**
+ * React.cache-wrapped for the same reason as getPaymentMethods below: the
+ * game detail route calls this twice per request on its own — once from
+ * generateMetadata, once from GameDetailBody — which fired two separate
+ * Supabase round trips for the identical row before this wrap (confirmed
+ * via a plain call-site grep, not assumed). cache() de-dupes both calls
+ * within one request into a single in-flight promise.
+ */
+export const getGameBySlug = cache(async (slug: string): Promise<Game | null> => {
   return safeAsync("game", async () => {
     const supabase = await createClient();
     const { data, error } = await supabase.from("games").select(GAME_SELECT).eq("slug", slug).maybeSingle();
     if (error) throw error;
     return data ? mapGameRow(data) : null;
   });
+});
+
+/**
+ * Available-credential count for one game — public storefront stock check
+ * (the game detail page's "in stock" / "out of stock" state). Needs the
+ * service client because game_credentials has zero RLS policies for
+ * anon/authenticated (20260818000004_game_credentials.sql); reusing the
+ * existing get_credential_stock() RPC, which returns only aggregate counts
+ * per game, never login_enc/password_enc — the same safety property
+ * admin-queries.ts's getCredentialStock relies on, just without the
+ * requireAdmin() gate, since one game's availability number isn't
+ * sensitive the way the full admin breakdown of every game is.
+ *
+ * Fails closed to 0 (out of stock) rather than throwing: a stock-check
+ * outage shouldn't take down the whole product page or, worse, leave a
+ * live "Add to Cart" up when we can't actually confirm anything's
+ * available.
+ */
+/**
+ * get_credential_stock() returns every game's stock in one call — there's
+ * no per-game filter on the RPC itself. getGameStock (single game) and
+ * getGamesStock (bulk) both go through this so a page needing several
+ * games' stock (memberships today) calls the RPC once and reads multiple
+ * rows out of that one result, instead of once per game reissuing the same
+ * full-table query and discarding everything but one row each time.
+ */
+async function fetchCredentialStockRows(): Promise<Map<string, number>> {
+  const supabase = createServiceClient();
+  const { data, error } = await supabase.rpc("get_credential_stock");
+  if (error) throw error;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return new Map((data ?? []).map((r: any) => [r.game_id as string, Number(r.available)]));
 }
 
 /**
@@ -197,15 +237,25 @@ export async function getGameBySlug(slug: string): Promise<Game | null> {
  */
 export async function getGameStock(gameId: string): Promise<number> {
   try {
-    const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("get_credential_stock");
-    if (error) throw error;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const row = (data ?? []).find((r: any) => r.game_id === gameId);
-    return row ? Number(row.available) : 0;
+    const stock = await fetchCredentialStockRows();
+    return stock.get(gameId) ?? 0;
   } catch (error) {
     console.error("[data:game stock]", error);
     return 0;
+  }
+}
+
+/** Bulk form of getGameStock — one RPC call for every id instead of one
+ * per id. Use this whenever a page needs stock for more than one game at
+ * once (memberships today); getGameStock stays the single-game call for
+ * everywhere else, unchanged. Same fail-closed-to-0 behavior per id. */
+export async function getGamesStock(gameIds: string[]): Promise<Map<string, number>> {
+  try {
+    const stock = await fetchCredentialStockRows();
+    return new Map(gameIds.map((id) => [id, stock.get(id) ?? 0]));
+  } catch (error) {
+    console.error("[data:games stock]", error);
+    return new Map(gameIds.map((id) => [id, 0]));
   }
 }
 

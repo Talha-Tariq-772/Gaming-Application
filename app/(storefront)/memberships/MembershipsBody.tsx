@@ -3,7 +3,7 @@ import Eyebrow from "@/src/components/ui/nova/Eyebrow";
 import FadeDivider from "@/src/components/ui/nova/FadeDivider";
 import VariantPicker from "@/src/components/games/VariantPicker";
 import SetupGuideCard from "@/src/components/guides/SetupGuideCard";
-import { getGames, getGameStock } from "@/src/lib/catalog";
+import { getGames, getGamesStock } from "@/src/lib/catalog";
 import { getSetupGuideById } from "@/src/lib/setup-guides";
 import { gameWallpaperImage, membershipSectionHeaderImage } from "@/src/lib/storage-image";
 import type { Game, SetupGuide } from "@/src/types/database";
@@ -49,7 +49,12 @@ function MembershipProductCard({ game, inStock }: { game: Game; inStock: boolean
  */
 export default async function MembershipsBody() {
   const memberships = await getGames({ productType: "membership", sort: "name" });
-  const stocks = await Promise.all(memberships.map((m) => getGameStock(m.id)));
+  // Part E: was Promise.all(memberships.map(getGameStock)) — get_credential_
+  // stock() returns every game's stock in one call, so that fired the same
+  // full-table RPC once per membership (3 today) and threw away all but one
+  // row each time. getGamesStock makes the same one call and reads every
+  // membership's row out of it.
+  const stockByGameId = await getGamesStock(memberships.map((m) => m.id));
 
   // All three share one setup_guide_id today (20260831000002_seed_setup_
   // guides.sql links every membership row to the same guide) — dedupe by
@@ -129,11 +134,11 @@ export default async function MembershipsBody() {
         </div>
 
         <div data-testid="memberships-grid" className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {memberships.map((membership, i) => (
+          {memberships.map((membership) => (
             <MembershipProductCard
               key={membership.id}
               game={membership}
-              inStock={membership.isActive && stocks[i] > 0}
+              inStock={membership.isActive && (stockByGameId.get(membership.id) ?? 0) > 0}
             />
           ))}
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import SectionErrorBoundary from "@/src/components/SectionErrorBoundary";
 import OrderDetailPanel from "@/src/components/admin/OrderDetailPanel";
 import PendingQueueHero from "@/src/components/admin/PendingQueueHero";
@@ -72,14 +72,24 @@ export default function AdminDashboardClient({
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const stats = {
-    revenueToday: getRevenueToday(allOrders),
-    revenueWeek: getRevenueThisWeek(allOrders),
-    revenueMonth: getRevenueThisMonth(allOrders),
-    lowStock: getLowStockGames(credentialStock, allGames, LOW_STOCK_THRESHOLD),
-    dailyRevenue: getDailyRevenueSeries(allOrders, 30),
-    topSelling: getTopSellingGames(allOrders, allOrderItems, allGames, 6),
-  };
+  // Part E: opening/closing OrderDetailPanel (selectedId) re-renders this
+  // component but changes none of allOrders/allOrderItems/allGames/
+  // credentialStock — without this memo, every click redid
+  // getDailyRevenueSeries' 30-day loop and getTopSellingGames' sort for no
+  // reason. Confirmed via code reading (selectedId and this computation
+  // share no data), not spec­ulative: these are the same four props on
+  // every render except when the server actually re-fetches.
+  const stats = useMemo(
+    () => ({
+      revenueToday: getRevenueToday(allOrders),
+      revenueWeek: getRevenueThisWeek(allOrders),
+      revenueMonth: getRevenueThisMonth(allOrders),
+      lowStock: getLowStockGames(credentialStock, allGames, LOW_STOCK_THRESHOLD),
+      dailyRevenue: getDailyRevenueSeries(allOrders, 30),
+      topSelling: getTopSellingGames(allOrders, allOrderItems, allGames, 6),
+    }),
+    [allOrders, allOrderItems, allGames, credentialStock],
+  );
 
   const selectedOrder = queueOrders.find((o) => o.id === selectedId) ?? null;
   const selectedItems = selectedOrder

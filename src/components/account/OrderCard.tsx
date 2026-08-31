@@ -1,14 +1,20 @@
-"use client";
-
 import Link from "next/link";
-import { track } from "@/src/lib/analytics";
 import { formatDate } from "@/src/lib/date";
 import { formatPrice } from "@/src/lib/format";
 import { buildWhatsAppLink } from "@/src/lib/order";
 import type { Game, Order, OrderItem, PaymentMethod } from "@/src/types/database";
 import StatusBadge from "./StatusBadge";
+import TrackedWhatsAppLink from "./TrackedWhatsAppLink";
 
 const ACTIONABLE_STATUSES = new Set(["awaiting_payment", "payment_claimed", "under_review"]);
+
+/**
+ * Part E: was a full "use client" component whose only actual client-only
+ * need was the WhatsApp link's onClick analytics call — the rest is plain
+ * server-renderable markup. Delegates that one bit to TrackedWhatsAppLink
+ * (the same tiny client wrapper already used elsewhere for this exact
+ * pattern), so every OrderCard in a list ships no JS of its own.
+ */
 
 export default function OrderCard({
   order,
@@ -61,20 +67,14 @@ export default function OrderCard({
       )}
 
       {ACTIONABLE_STATUSES.has(order.status) && method && (
-        <a
+        <TrackedWhatsAppLink
           href={buildWhatsAppLink(order, method.label)}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() =>
-            track("open_whatsapp", {
-              context: "account",
-              orderRef: order.paymentReference,
-            })
-          }
+          context="account"
+          orderRef={order.paymentReference}
           className="-mb-2.5 mt-4 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-semibold text-nova-ember transition-colors duration-(--duration-fast) ease-standard hover:text-nova-ember-lo"
         >
           Send your screenshot to WhatsApp →
-        </a>
+        </TrackedWhatsAppLink>
       )}
     </div>
   );
