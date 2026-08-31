@@ -1,4 +1,7 @@
-export default function FeaturedGamesSkeleton() {
+/** Shared by every homepage game row (Featured, Best Sellers, New
+ * Arrivals) — same shape (heading + horizontal card row) regardless of
+ * which games fill it, so one skeleton covers all three. */
+export default function GameRowSkeleton() {
   return (
     <section aria-hidden="true" className="overflow-hidden">
       <div className="mx-auto max-w-page px-4 py-24 md:px-8">

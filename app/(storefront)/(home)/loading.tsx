@@ -1,4 +1,4 @@
-import FeaturedGamesSkeleton from "@/src/components/home/FeaturedGamesSkeleton";
+import GameRowSkeleton from "@/src/components/home/GameRowSkeleton";
 import HomeHeroSkeleton from "@/src/components/home/HomeHeroSkeleton";
 import HowItWorksSkeleton from "@/src/components/home/HowItWorksSkeleton";
 
@@ -17,13 +17,23 @@ import HowItWorksSkeleton from "@/src/components/home/HowItWorksSkeleton";
  * component's grid/padding classes so reserved height tracks the real
  * height at every breakpoint instead of hand-picked pixels that drift out
  * of sync the next time that component's copy or spacing changes.
+ *
+ * Part C: added Best Sellers and New Arrivals below Featured — same
+ * GameRowSkeleton for all three (they're the same shape), rendered three
+ * times, or this fallback would go back to being ~2 rows short of the
+ * page's real height. Both new sections' flags (is_best_seller/
+ * is_new_arrival) are false on every game today so they render nothing in
+ * practice, but this fallback still needs to cover the case once either
+ * flag is set, not just today's empty state.
  */
 export default function Loading() {
   return (
     <>
       <HomeHeroSkeleton />
       <HowItWorksSkeleton />
-      <FeaturedGamesSkeleton />
+      <GameRowSkeleton />
+      <GameRowSkeleton />
+      <GameRowSkeleton />
     </>
   );
 }
