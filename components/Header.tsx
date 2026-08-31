@@ -73,7 +73,7 @@ export default async function Header() {
       <div className="mx-auto flex max-w-page items-center justify-between px-4 py-3 md:px-8">
         <Link
           href="/"
-          className="-my-2 flex min-h-11 items-center font-display text-xl font-bold tracking-tight text-nova-bone"
+          className="-my-2 flex min-h-11 items-center font-display text-xl font-bold text-nova-bone"
         >
           NOVA
         </Link>

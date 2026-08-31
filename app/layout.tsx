@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cinzel, Barlow } from "next/font/google";
+import { Marcellus, Barlow } from "next/font/google";
 import FloatingWhatsAppButton from "@/src/components/FloatingWhatsAppButton";
 import OfflineBanner from "@/src/components/OfflineBanner";
 import Toaster from "@/src/components/Toaster";
@@ -9,10 +9,22 @@ import SmoothScrollProvider from "@/src/components/motion/SmoothScrollProvider";
 import { SITE_NAME, SITE_URL } from "@/src/lib/site-config";
 import "./globals.css";
 
-const displayFont = Cinzel({
+// Session 9: swapped from Cinzel (600/700) to Marcellus, which Google
+// Fonts only ships at weight 400 — there is no 600/700 file to request.
+// Every font-display heading's weight is centrally governed by the two
+// compound rules in globals.css (.font-display.text-display-lg/-md/-sm
+// and .font-display.text-lg/-xl/-2xl), both updated to font-weight: 400
+// alongside this change, plus a `.font-display { font-synthesis: none }`
+// safety net there for the handful of call sites that request a bold
+// utility class directly instead of going through those two rules — see
+// that file for the full reasoning. Do not add weight: ["600"] or
+// ["700"] back here; Marcellus doesn't have those files, and Next would
+// either fail to build or silently fall back in a way that reintroduces
+// the exact synthetic-bold risk this session's change is meant to avoid.
+const displayFont = Marcellus({
   variable: "--font-display-loaded",
   subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["400"],
 });
 
 const uiFont = Barlow({

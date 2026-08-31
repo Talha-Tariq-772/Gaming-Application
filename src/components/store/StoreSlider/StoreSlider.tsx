@@ -209,9 +209,19 @@ export default function StoreSlider({ games }: { games: Game[] }) {
           bottom-center, both outside this column. */}
       <div className="absolute inset-y-0 left-0 flex w-full max-w-[480px] flex-col justify-center gap-4 py-12 pr-6 pl-20 sm:pr-10 sm:pl-24 md:pr-16 md:pl-28">
         <Link href={slides[index].href} className="group w-fit">
+          {/* Session 9: no font-extrabold — this h2's size comes from an
+              inline clamp(), not one of the text-* sizes the
+              .font-display compound rules (globals.css) cover, so this
+              was requesting a weight Marcellus doesn't ship.
+              Session 9 follow-up: line-height 1.05 was left over from the
+              same rule this component doesn't use. Same real-glyph-overlap
+              bug as globals.css's .text-display-* rule (Marcellus's glyph
+              box runs ~1.25x font-size) — confirmed here too via
+              getClientRects() on "Grand Theft Auto VI" at 1366/1440px,
+              where it wraps to two lines. 1.3 matches the token rule. */}
           <h2
-            className="font-display font-extrabold uppercase text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember"
-            style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", lineHeight: 1.05 }}
+            className="font-display uppercase text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember"
+            style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", lineHeight: 1.3 }}
           >
             {slides[index].title}
           </h2>

@@ -90,7 +90,7 @@ export default async function Footer() {
 
         <div className="grid gap-16 md:grid-cols-[1.5fr_repeat(4,1fr)]">
           <div className="max-w-xs">
-            <span className="font-display text-xl font-bold tracking-tight text-nova-bone">
+            <span className="font-display text-xl font-bold text-nova-bone">
               NOVA
             </span>
             <p className="mt-4 text-sm text-nova-ash">
