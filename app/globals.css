@@ -1,5 +1,80 @@
 @import "tailwindcss";
 
+/* Hand-tuned fallback for Barlow (layout.tsx sets adjustFontFallback: false
+   and fallback: ["Barlow Fallback"] specifically to reach this rule instead
+   of Next's auto-generated one). Starting point was Next's own auto-
+   generated Barlow-fallback values (ascent-override 103.43%, descent-
+   override 20.69%, line-gap-override 0%, size-adjust 96.68% — those already
+   matched Barlow's real vertical metrics correctly) — but canvas.
+   measureText() on the actual rendered body text of a real page (/privacy,
+   1727 characters) found that fallback rendering ~0.86% WIDER than real
+   Barlow (k = 0.9914), which Next's algorithm doesn't correct for (it only
+   solves for vertical metrics). Small, but on a long-form page (several
+   1000+-character paragraphs) enough to move a wrap point and reflow.
+
+   Corrected size-adjust by that same k (95.85%, was 96.68%) to fix the
+   width, then divided ascent/descent-override by k (104.33%/20.87%, was
+   103.43%/20.69%) to compensate — size-adjust scales a font's metrics
+   uniformly, so leaving the override percentages unchanged after
+   correcting size-adjust would have shrunk the width correctly but also
+   shrunk the already-correct absolute ascent/descent by the same factor.
+   Dividing by k keeps ascent/descent's ABSOLUTE size exactly where Next
+   had already gotten it right, while only the horizontal advance widths
+   move. Re-measure with canvas.measureText() against real Barlow before
+   changing any of these four numbers again — they're a matched set, not
+   independently tunable. */
+@font-face {
+  font-family: "Barlow Fallback";
+  src: local("Arial");
+  ascent-override: 104.33%;
+  descent-override: 20.87%;
+  line-gap-override: 0%;
+  size-adjust: 95.85%;
+}
+
+/* Hand-tuned fallback for Marcellus (layout.tsx sets adjustFontFallback:
+   false and fallback: ["Marcellus Fallback"] to reach this rule instead of
+   Next's auto-generated one). Starting point was Next's own auto-generated
+   values (ascent-override 86.59%, descent-override 24.87%, line-gap-
+   override 0%, size-adjust 112.50%).
+
+   The first width check on this font (an early comment on this rule, since
+   corrected) used a synthetic mixed-case sample and found only a ~2.2%
+   gap — small enough that "block" alone looked sufficient. That was wrong:
+   every real Marcellus call site renders through text-transform:uppercase
+   (the .font-display.text-display-lg/-md/-sm and .text-lg/-xl/-2xl
+   compound rules further down this file), and canvas.measureText() against
+   the actual
+   UPPERCASE glyphs — the real wordmark, the real homepage/privacy/game-
+   detail headings, not a synthetic string — found real Marcellus running
+   8.3-17.4% narrower than its own fallback across 13 real samples,
+   averaging k = 0.86386. Marcellus's uppercase forms are proportioned
+   quite differently from Times New Roman's; lowercase text (what the
+   first measurement used) happened to sit much closer between the two
+   faces, which is why that number was so misleadingly small. Re-measuring
+   against what's actually rendered, not a representative-looking guess,
+   is what caught this.
+
+   Corrected size-adjust by that k (97.18%, was 112.50%) to fix the width,
+   then divided ascent/descent-override by k (100.24%/28.79%, was
+   86.59%/24.87%) to compensate, same reasoning as the Barlow rule above —
+   size-adjust scales the font uniformly, so the override percentages have
+   to move the opposite way to keep the already-correct absolute ascent/
+   descent from shrinking along with it. This pairs with display: "block"
+   in layout.tsx, not instead of it: block hides the fallback-to-real
+   transition from ever painting visibly; this rule is what keeps that
+   transition from having anything to reflow when it happens underneath.
+   Re-measure against real, currently-rendered (i.e. post-text-transform)
+   Marcellus strings before changing these four numbers again. */
+@font-face {
+  font-family: "Marcellus Fallback";
+  src: local("Times New Roman");
+  ascent-override: 100.24%;
+  descent-override: 28.79%;
+  line-gap-override: 0%;
+  size-adjust: 97.18%;
+}
+
 /* ==========================================================================
    Design tokens
    Single source of truth for the visual system. Every color, size, and

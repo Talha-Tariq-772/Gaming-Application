@@ -21,16 +21,53 @@ import "./globals.css";
 // ["700"] back here; Marcellus doesn't have those files, and Next would
 // either fail to build or silently fall back in a way that reintroduces
 // the exact synthetic-bold risk this session's change is meant to avoid.
+// display: "block" (not the default "swap"): Marcellus is display-only —
+// headings, the wordmark, page titles. "block" gives a short (~3s)
+// invisible period before the real font paints, instead of visibly
+// flashing fallback-then-real the way "swap" does. Correction to this
+// comment's first version: block alone does NOT stop the underlying
+// layout shift — it only makes the fallback-to-real transition invisible;
+// the browser still lays out an invisible fallback box during the block
+// period and reflows when the real font's different width replaces it,
+// which still scores as CLS even with nothing visibly flashing. Confirmed
+// by measuring /privacy with Marcellus's font file blocked outright (so
+// the swap/reflow never happens at all): CLS dropped further than "block"
+// alone achieved. So this pairs with adjustFontFallback: false below —
+// "block" hides the flash, the hand-tuned fallback (globals.css's
+// "Marcellus Fallback" rule) closes the actual width gap so there's
+// nothing left to reflow when the real font arrives. That rule's own
+// comment has the real measured delta (13.6%, not the ~2.2% this comment
+// first assumed from an unrepresentative sample — see that comment for
+// why the difference matters). Never use "block" for body text — see
+// uiFont below.
 const displayFont = Marcellus({
   variable: "--font-display-loaded",
   subsets: ["latin"],
   weight: ["400"],
+  display: "block",
+  adjustFontFallback: false,
+  fallback: ["Marcellus Fallback"],
 });
 
+// Barlow is body copy — a "block" invisible period here would leave
+// paragraphs unreadable on a slow connection, which is worse than a small
+// layout shift. Stays "swap" (the default), but adjustFontFallback is
+// disabled in favor of a hand-tuned fallback (see globals.css's
+// "Barlow Fallback" rule) — canvas.measureText() on real body text found
+// Next's auto-generated fallback rendering it ~0.86% wider than real
+// Barlow, which is small but real: on a page with several long paragraphs
+// (a legal page, easily 1500+ characters) that's enough to move a wrap
+// point. The hand-tuned rule corrects size-adjust for that specific delta
+// while preserving the same absolute ascent/descent Next's own version
+// already got right (see that rule's comment for the math) — a "swap" font
+// this precisely metric-matched should approach zero measurable reflow
+// without ever going invisible.
 const uiFont = Barlow({
   variable: "--font-ui-loaded",
   subsets: ["latin"],
   weight: ["400", "500"],
+  adjustFontFallback: false,
+  fallback: ["Barlow Fallback"],
 });
 
 const DEFAULT_TITLE = `${SITE_NAME} — Cinematic Game Storefront`;
