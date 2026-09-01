@@ -1,7 +1,6 @@
 import Button from "@/components/Button";
-import HeroVisual from "@/src/components/home/HeroVisual";
-import HeroVisualV2 from "@/src/components/home/HeroVisualV2";
 import MagneticButton from "@/src/components/motion/MagneticButton";
+import NovaFigureVisual from "@/src/components/home/NovaFigureVisual";
 
 /**
  * Pure CSS reveal (.hero-reveal, defined in globals.css) — no gsap, no JS
@@ -13,18 +12,13 @@ import MagneticButton from "@/src/components/motion/MagneticButton";
  * this was the only static importer of it on this route). Reduced motion
  * is handled by the CSS itself — see globals.css.
  *
- * HeroVisual (the 3D moment) is a separate client component with its own
- * eligibility gating and lazy-loaded scene — see HeroVisual.tsx.
- *
- * HERO_VARIANT: local-only toggle for comparing HeroVisual (existing,
- * tested, R3F) against HeroVisualV2 (placeholder-image CSS/GSAP variant —
- * see HeroVisualV2.tsx). Currently "v2" for local review of the Ken Burns/
- * rim-light/particle treatment — its placeholder image lives in
- * public/hero-test/, which is gitignored and won't exist in any deployed
- * build, so flip this back to "v1" (or swap in the real asset — see the
- * PLACEHOLDER comment in HeroVisualV2.tsx) before deploying.
+ * The figure column now renders NovaFigureVisual — the real fire/ember
+ * WebGL effect (Part D) over the real artwork (figure-color.webp), not
+ * either of the two comparison variants that used to live here.
+ * HeroVisual.tsx (R3F) and HeroVisualV2.tsx (the Pinterest-placeholder
+ * CSS variant, gitignored, never shippable) are both left in the tree
+ * unimported in case they're wanted again, rather than deleted.
  */
-const HERO_VARIANT: "v1" | "v2" = "v2";
 
 /**
  * Session 8: the section used to be a plain grid with no min-height at
@@ -100,7 +94,7 @@ export default function HomeHero() {
             flexbox + aspect-ratio interaction, not specific to this
             component. */}
         <div className="flex min-w-0 flex-1 items-center justify-center">
-          {HERO_VARIANT === "v2" ? <HeroVisualV2 /> : <HeroVisual />}
+          <NovaFigureVisual />
         </div>
       </div>
     </section>
