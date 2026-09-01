@@ -237,7 +237,7 @@ export default async function GameDetailBody({
                   <div className="px-4 pb-5">
                     <Link
                       href={`/guides/${setupGuide.slug}`}
-                      className="inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
+                      className="inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
                     >
                       Open the full guide →
                     </Link>
@@ -251,7 +251,7 @@ export default async function GameDetailBody({
                   <p className="text-sm text-nova-ash">This game&apos;s setup guide is coming soon.</p>
                   <Link
                     href={`/guides/${REDEMPTION_GUIDE_SLUG}`}
-                    className="inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
+                    className="inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
                   >
                     In the meantime, see the general redemption guide →
                   </Link>

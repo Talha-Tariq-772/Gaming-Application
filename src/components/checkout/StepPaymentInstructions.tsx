@@ -165,7 +165,7 @@ export default function StepPaymentInstructions({
               href="/refund-policy"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-nova-ember underline underline-offset-2 hover:text-nova-ember-lo"
+              className="font-semibold text-nova-ember-text underline underline-offset-2 hover:text-nova-ember-lo"
             >
               refund policy
             </Link>
@@ -214,7 +214,7 @@ export default function StepPaymentInstructions({
         </span>
         {/* Session 9: no font-bold — see the amount-to-transfer span
             above for why. */}
-        <span className="text-3xl font-display text-nova-ember">
+        <span className="text-3xl font-display text-nova-ember-text">
           <CountdownTimer
             expiresAt={order.reservedUntil}
             onExpire={() => {

@@ -29,7 +29,7 @@ export default function StepConfirmation({
       <span className="text-4xl font-display text-nova-bone">
         {order.paymentReference}
       </span>
-      <span className="inline-flex items-center rounded-full border border-nova-ember bg-nova-crypt px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-nova-ember">
+      <span className="inline-flex items-center rounded-full border border-nova-ember bg-nova-crypt px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-nova-ember-text">
         Awaiting Verification
       </span>
 
@@ -60,7 +60,7 @@ export default function StepConfirmation({
         hours (9am–9pm PKT). Wondering how that works?{" "}
         <Link
           href={`/faq#${PAYMENT_VERIFICATION_FAQ_ID}`}
-          className="font-semibold text-nova-ember hover:text-nova-ember-lo"
+          className="font-semibold text-nova-ember-text hover:text-nova-ember-lo"
         >
           See the payment FAQ
         </Link>
@@ -69,7 +69,7 @@ export default function StepConfirmation({
 
       <Link
         href="/account"
-        className="text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
+        className="text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
       >
         Track your order status →
       </Link>

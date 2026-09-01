@@ -129,7 +129,7 @@ export default function CredentialReveal({
             <p className="text-sm text-nova-ash">{setupGuide}</p>
             <Link
               href={`/guides/${REDEMPTION_GUIDE_SLUG}`}
-              className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
+              className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
             >
               Read the full redemption guide →
             </Link>

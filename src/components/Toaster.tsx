@@ -22,7 +22,7 @@ export default function Toaster() {
                 toast.action?.onClick();
                 dismissToast(toast.id);
               }}
-              className="-my-2.5 flex min-h-11 items-center px-2 text-xs font-semibold uppercase tracking-wider text-nova-ember hover:text-nova-ember-lo"
+              className="-my-2.5 flex min-h-11 items-center px-2 text-xs font-semibold uppercase tracking-wider text-nova-ember-text hover:text-nova-ember-lo"
             >
               {toast.action.label}
             </button>

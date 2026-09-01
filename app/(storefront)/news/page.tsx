@@ -64,7 +64,7 @@ export default async function NewsPage() {
                   {post.publishedAt && (
                     <span className="text-xs text-nova-smoke">{formatDate(post.publishedAt)}</span>
                   )}
-                  <h2 className="line-clamp-2 wrap-break-word font-display text-lg font-bold text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember">
+                  <h2 className="line-clamp-2 wrap-break-word font-display text-lg font-bold text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember-text">
                     {post.title}
                   </h2>
                   {post.excerpt && <p className="line-clamp-2 text-sm text-nova-ash">{post.excerpt}</p>}

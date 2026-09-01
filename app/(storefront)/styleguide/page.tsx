@@ -36,6 +36,7 @@ const COLOR_GROUPS: {
       { name: "Ember", varName: "--color-nova-ember", hex: "#C1440E" },
       { name: "Ember Lo", varName: "--color-nova-ember-lo", hex: "#8B2F09" },
       { name: "Ember Deep", varName: "--color-nova-ember-deep", hex: "#612106" },
+      { name: "Ember Text", varName: "--color-nova-ember-text", hex: "#DB5D1F" },
       { name: "Blood", varName: "--color-nova-blood", hex: "#E0484D" },
       { name: "Gild", varName: "--color-nova-gild", hex: "#C9A227" },
     ],
@@ -95,7 +96,7 @@ function Section({
   return (
     <section className="border-t border-nova-hairline py-24 first:border-t-0 first:pt-0">
       <div className="mb-8">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember-text">
           {eyebrow}
         </span>
         <h2 className="mt-2 text-2xl font-display font-bold text-nova-bone">
@@ -111,7 +112,7 @@ export default function StyleguidePage() {
   return (
     <div className="mx-auto max-w-page px-4 py-24 md:px-8">
       <header className="mb-24">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember-text">
           Reference
         </span>
         <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">
@@ -299,7 +300,7 @@ export default function StyleguidePage() {
           </div>
 
           <div className="rounded-lg border border-nova-ember bg-nova-crypt p-8 shadow-glow">
-            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-nova-ember">
+            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-nova-ember-text">
               Featured
             </span>
             <h3 className="mt-2 text-xl font-display font-bold text-nova-bone">

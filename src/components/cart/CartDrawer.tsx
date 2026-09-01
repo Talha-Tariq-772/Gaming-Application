@@ -87,7 +87,7 @@ export default function CartDrawer() {
                         <Link
                           href={`/games/${item.slug}`}
                           onClick={close}
-                          className="wrap-break-word text-sm font-semibold text-nova-bone hover:text-nova-ember"
+                          className="wrap-break-word text-sm font-semibold text-nova-bone hover:text-nova-ember-text"
                         >
                           {item.title}
                         </Link>
@@ -106,7 +106,7 @@ export default function CartDrawer() {
                           removeItem(item.gameId);
                           track("remove_from_cart", { gameId: item.gameId });
                         }}
-                        className="-my-2.5 -ml-1 w-fit px-1 py-2.5 text-xs font-medium uppercase tracking-wider text-nova-smoke hover:text-nova-ember"
+                        className="-my-2.5 -ml-1 w-fit px-1 py-2.5 text-xs font-medium uppercase tracking-wider text-nova-smoke hover:text-nova-ember-text"
                       >
                         Remove
                       </button>

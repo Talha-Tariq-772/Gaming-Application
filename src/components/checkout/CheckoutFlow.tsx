@@ -95,7 +95,7 @@ export default function CheckoutFlow({
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
       <div className="mb-12">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember-text">
           Checkout
         </span>
         <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">
@@ -106,7 +106,7 @@ export default function CheckoutFlow({
             <li key={label} className="flex items-center gap-3">
               <span
                 className={`flex items-center gap-2 ${
-                  i + 1 <= step ? "text-nova-ember" : ""
+                  i + 1 <= step ? "text-nova-ember-text" : ""
                 }`}
               >
                 <span

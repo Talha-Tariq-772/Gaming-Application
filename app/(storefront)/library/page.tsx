@@ -51,7 +51,7 @@ export default async function LibraryPage() {
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
       <div className="mb-12">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">Library</span>
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember-text">Library</span>
         <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">My Library</h1>
       </div>
 

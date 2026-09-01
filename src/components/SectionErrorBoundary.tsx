@@ -53,7 +53,7 @@ class SectionErrorBoundaryInner extends Component<InnerProps, InnerState> {
           <button
             type="button"
             onClick={this.handleRetry}
-            className="-my-2.5 min-h-11 px-4 py-2.5 text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
+            className="-my-2.5 min-h-11 px-4 py-2.5 text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
           >
             Retry
           </button>

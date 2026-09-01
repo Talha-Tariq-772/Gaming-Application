@@ -63,7 +63,7 @@ export default function HomeHero() {
       <div className="mx-auto flex w-full max-w-page flex-col gap-12 px-4 py-12 md:flex-row md:px-8 md:py-16">
         <div className="flex min-w-0 flex-1 flex-col items-start justify-center gap-8">
           <span
-            className="hero-reveal text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember"
+            className="hero-reveal text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember-text"
             style={{ animationDelay: "0s" }}
           >
             Now live

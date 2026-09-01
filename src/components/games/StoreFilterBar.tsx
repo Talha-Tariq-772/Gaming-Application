@@ -220,7 +220,7 @@ export default function StoreFilterBar() {
       {hasActiveFilters && (
         <Link
           href={pathname}
-          className="min-h-11 content-center text-xs font-semibold uppercase tracking-[0.08em] text-nova-ember hover:text-nova-ember-lo"
+          className="min-h-11 content-center text-xs font-semibold uppercase tracking-[0.08em] text-nova-ember-text hover:text-nova-ember-lo"
         >
           Clear all
         </Link>

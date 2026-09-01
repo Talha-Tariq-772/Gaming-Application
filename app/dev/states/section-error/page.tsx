@@ -33,7 +33,7 @@ export default function SectionErrorTriggerPage() {
         <AlwaysThrows />
       </SectionErrorBoundary>
 
-      <div className="mt-8 rounded-lg border border-nova-ember/30 bg-nova-ember/15 p-6 text-sm text-nova-ember">
+      <div className="mt-8 rounded-lg border border-nova-ember/30 bg-nova-ember/15 p-6 text-sm text-nova-ember-text">
         Unaffected content — if you can read this, the failure above
         stayed contained.
       </div>

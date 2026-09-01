@@ -321,7 +321,7 @@ function DevStatesContent() {
           {storagePatched && (
             <Link
               href="/games"
-              className="flex min-h-11 items-center text-xs font-semibold text-nova-ember hover:text-nova-ember-lo"
+              className="flex min-h-11 items-center text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo"
             >
               Go add something to cart →
             </Link>

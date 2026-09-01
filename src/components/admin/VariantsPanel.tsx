@@ -328,7 +328,7 @@ export default function VariantsPanel({
                             type="button"
                             disabled={busy}
                             onClick={() => startEdit(variant)}
-                            className="min-h-8 rounded border border-nova-hairline px-2 text-xs font-semibold text-nova-ember hover:text-nova-ember-lo disabled:cursor-not-allowed disabled:opacity-40"
+                            className="min-h-8 rounded border border-nova-hairline px-2 text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             Edit
                           </button>

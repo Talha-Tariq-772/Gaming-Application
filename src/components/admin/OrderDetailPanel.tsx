@@ -206,7 +206,7 @@ export default function OrderDetailPanel({
                   orderRef: order.paymentReference,
                 })
               }
-              className="text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
+              className="text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
             >
               Message customer on WhatsApp →
             </a>

@@ -62,7 +62,7 @@ export default async function FaqPage() {
           Can&rsquo;t find what you&rsquo;re after? See the full{" "}
           <Link
             href="/guides"
-            className="text-nova-ember underline underline-offset-2 hover:text-nova-ember-lo"
+            className="text-nova-ember-text underline underline-offset-2 hover:text-nova-ember-lo"
           >
             guides
           </Link>{" "}

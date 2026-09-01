@@ -45,7 +45,7 @@ export default function GameCard({
         />
       </NovaCard>
       <div className="flex flex-col gap-1.5">
-        <h3 className="line-clamp-2 font-sans text-[15px] font-semibold uppercase tracking-[0.06em] text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember">
+        <h3 className="line-clamp-2 font-sans text-[15px] font-semibold uppercase tracking-[0.06em] text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember-text">
           {game.title}
         </h3>
         <div className="flex flex-wrap gap-2">

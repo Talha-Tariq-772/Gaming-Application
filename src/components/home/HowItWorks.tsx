@@ -29,7 +29,7 @@ export default function HowItWorks() {
         <ol className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, i) => (
             <li key={step.label} className="flex flex-col gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-nova-ember text-sm font-bold text-nova-ember">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-nova-ember text-sm font-bold text-nova-ember-text">
                 {i + 1}
               </span>
               {/* Barlow, not the display face — a label, not display type. See

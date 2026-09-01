@@ -71,7 +71,7 @@ export default function OrderCard({
           href={buildWhatsAppLink(order, method.label)}
           context="account"
           orderRef={order.paymentReference}
-          className="-mb-2.5 mt-4 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-semibold text-nova-ember transition-colors duration-(--duration-fast) ease-standard hover:text-nova-ember-lo"
+          className="-mb-2.5 mt-4 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-semibold text-nova-ember-text transition-colors duration-(--duration-fast) ease-standard hover:text-nova-ember-lo"
         >
           Send your screenshot to WhatsApp →
         </TrackedWhatsAppLink>

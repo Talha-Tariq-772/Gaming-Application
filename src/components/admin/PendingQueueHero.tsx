@@ -17,7 +17,7 @@ export default function PendingQueueHero({
     <section>
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-nova-ember">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-nova-ember-text">
             Pending Verification
           </h2>
           <p className="mt-1 text-xs text-nova-ash">
@@ -26,14 +26,14 @@ export default function PendingQueueHero({
         </div>
         <Link
           href="/admin/orders"
-          className="-my-2.5 flex min-h-11 items-center py-2.5 text-xs font-semibold text-nova-ember hover:text-nova-ember-lo"
+          className="-my-2.5 flex min-h-11 items-center py-2.5 text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo"
         >
           View all →
         </Link>
       </div>
       {orders.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-nova-ember/30 bg-nova-ember/15 px-4 py-12 text-center">
-          <p className="text-sm font-semibold text-nova-ember">
+          <p className="text-sm font-semibold text-nova-ember-text">
             You&rsquo;re all caught up
           </p>
           <p className="text-xs text-nova-ash">

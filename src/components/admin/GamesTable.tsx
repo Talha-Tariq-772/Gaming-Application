@@ -112,7 +112,7 @@ export default function GamesTable({
                       <button
                         type="button"
                         onClick={() => onEdit(game)}
-                        className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember hover:text-nova-ember-lo"
+                        className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo"
                       >
                         Edit
                       </button>
@@ -167,7 +167,7 @@ export default function GamesTable({
                   <button
                     type="button"
                     onClick={() => onEdit(game)}
-                    className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember hover:text-nova-ember-lo"
+                    className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo"
                   >
                     Edit
                   </button>

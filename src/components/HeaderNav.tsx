@@ -33,7 +33,7 @@ export default function HeaderNav() {
         href="/"
         aria-current={onHome ? "page" : undefined}
         className={`-my-2 flex min-h-11 items-center font-display text-xl font-bold transition-colors duration-(--duration-fast) ease-standard ${
-          onHome ? "text-nova-ember" : "text-nova-bone"
+          onHome ? "text-nova-ember-text" : "text-nova-bone"
         }`}
       >
         NOVA

@@ -115,7 +115,7 @@ export default function AdminCredentialsClient({
                     <button
                       type="button"
                       onClick={() => setSelectedGameId(game.id)}
-                      className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember hover:text-nova-ember-lo"
+                      className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo"
                     >
                       Manage
                     </button>

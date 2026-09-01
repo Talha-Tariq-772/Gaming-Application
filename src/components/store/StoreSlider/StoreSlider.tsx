@@ -95,7 +95,7 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
 }
 
 const CONTROL_BUTTON_CLASSES =
-  "flex min-h-11 min-w-11 items-center justify-center rounded-full border border-nova-hairline bg-nova-void/60 text-nova-bone backdrop-blur-sm transition-colors duration-(--duration-fast) ease-standard hover:border-nova-ember/60 hover:text-nova-ember focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nova-ember";
+  "flex min-h-11 min-w-11 items-center justify-center rounded-full border border-nova-hairline bg-nova-void/60 text-nova-bone backdrop-blur-sm transition-colors duration-(--duration-fast) ease-standard hover:border-nova-ember/60 hover:text-nova-ember-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nova-ember";
 
 /**
  * 5 slides from games.slider_position, ordered by it. WebGL2 dissolve
@@ -220,7 +220,7 @@ export default function StoreSlider({ games }: { games: Game[] }) {
               getClientRects() on "Grand Theft Auto VI" at 1366/1440px,
               where it wraps to two lines. 1.3 matches the token rule. */}
           <h2
-            className="font-display uppercase text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember"
+            className="font-display uppercase text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember-text"
             style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", lineHeight: 1.3 }}
           >
             {slides[index].title}

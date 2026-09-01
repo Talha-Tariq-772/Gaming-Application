@@ -144,7 +144,7 @@ export default function AdminSliderClient({ games: initialGames }: { games: Game
                     type="button"
                     disabled={busy || !pendingGameId[position]}
                     onClick={() => handleAdd(position)}
-                    className="min-h-11 shrink-0 rounded-md border border-nova-hairline px-3 py-2 text-xs font-semibold text-nova-ember hover:text-nova-ember-lo disabled:cursor-not-allowed disabled:opacity-40"
+                    className="min-h-11 shrink-0 rounded-md border border-nova-hairline px-3 py-2 text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {busy ? "…" : "Add"}
                   </button>

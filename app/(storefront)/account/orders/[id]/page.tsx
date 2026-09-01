@@ -62,7 +62,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
       <div className="mb-12 flex flex-wrap items-start justify-between gap-6">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember">Order</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember-text">Order</span>
           <h1 className="mt-2 font-mono text-4xl font-bold text-nova-bone">{order.paymentReference}</h1>
           <p className="mt-2 text-sm text-nova-ash">Placed {formatDate(order.createdAt)}</p>
         </div>
@@ -103,7 +103,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             href={buildWhatsAppLink(order, method.label)}
             context="order-detail"
             orderRef={order.paymentReference}
-            className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
+            className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
           >
             Send your screenshot to WhatsApp →
           </TrackedWhatsAppLink>
@@ -126,7 +126,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                     <div className="flex flex-1 items-center justify-between gap-4">
                       <Link
                         href={`/games/${game.slug}`}
-                        className="flex min-h-11 items-center text-sm font-semibold text-nova-bone hover:text-nova-ember"
+                        className="flex min-h-11 items-center text-sm font-semibold text-nova-bone hover:text-nova-ember-text"
                       >
                         {game.title}
                       </Link>

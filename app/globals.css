@@ -66,10 +66,25 @@
      with bone text instead of ember itself: bone/ember-lo measures 6.34:1.
      ember-deep is that same fill darkened further, for hover/active states
      on top of it — 9.20:1, so hover strictly increases contrast rather
-     than reducing it. Bright ember stays reserved for text/accents/focus
-     rings directly on a dark surface (void/crypt/slab), where it already
-     passes on its own. */
+     than reducing it.
+
+     Correction to this comment's old claim: bright ember as TEXT directly
+     on a dark surface does NOT already pass on its own — measured 3.94:1
+     on void and 3.68:1 on crypt (both under 4.5:1), and void is the
+     lightest-possible ceiling for ember-as-text, so no surface in this
+     palette gets it to 4.5. That was a real, shipped failure at 60+
+     call sites (Eyebrow labels, nav/footer links, checkout steps) before
+     the token below. */
   --color-nova-ember-deep: #612106;
+  /* Text-only sibling of ember: same hue, lightened until it clears 4.5:1
+     against every surface ember-as-text is actually used on (void 5.38,
+     crypt 5.03, slab 4.70 — all measured via audit/section7-contrast.mjs,
+     not eyeballed). ember itself is UNCHANGED and stays exactly where it
+     was for fills, borders, focus rings, and gradient stops — none of
+     those needed fixing (buttons/badges/chips already moved to ember-lo
+     in Part A3; focus rings pass the lower 3:1 UI floor as bright ember
+     already). Only plain text-color call sites move to this token. */
+  --color-nova-ember-text: #db5d1f;
   /* Session 6 WCAG audit: the spec's #7a1518 measured 1.6-1.9:1 as text
      against every nova surface — invisible for danger/error copy, badly
      failing AA's 4.5:1. Lightened via HSL (same hue/sat, L 28%->58%) to
@@ -262,6 +277,7 @@
   --color-nova-ember: var(--color-nova-ember);
   --color-nova-ember-lo: var(--color-nova-ember-lo);
   --color-nova-ember-deep: var(--color-nova-ember-deep);
+  --color-nova-ember-text: var(--color-nova-ember-text);
   --color-nova-blood: var(--color-nova-blood);
   --color-nova-gild: var(--color-nova-gild);
   --color-nova-bone: var(--color-nova-bone);

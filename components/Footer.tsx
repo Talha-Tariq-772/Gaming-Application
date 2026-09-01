@@ -79,7 +79,7 @@ export default async function Footer() {
               <WhatsAppLink
                 href={buildGeneralWhatsAppLink()}
                 context="footer"
-                className="-my-2.5 inline-flex min-h-11 items-center py-2.5 font-semibold text-nova-ember hover:text-nova-ember-lo"
+                className="-my-2.5 inline-flex min-h-11 items-center py-2.5 font-semibold text-nova-ember-text hover:text-nova-ember-lo"
               >
                 Message us on WhatsApp
               </WhatsAppLink>{" "}
@@ -129,7 +129,7 @@ export default async function Footer() {
               <Link
                 key={label}
                 href="#"
-                className="-my-2.5 flex min-h-11 min-w-11 items-center justify-center py-2.5 text-xs font-medium uppercase tracking-[0.08em] text-nova-ash transition-colors duration-(--duration-fast) ease-standard hover:text-nova-ember"
+                className="-my-2.5 flex min-h-11 min-w-11 items-center justify-center py-2.5 text-xs font-medium uppercase tracking-[0.08em] text-nova-ash transition-colors duration-(--duration-fast) ease-standard hover:text-nova-ember-text"
               >
                 {label}
               </Link>

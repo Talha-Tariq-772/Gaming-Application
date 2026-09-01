@@ -19,6 +19,7 @@ const PALETTE = {
   "nova-ember": "#c1440e",
   "nova-ember-lo": "#8b2f09",
   "nova-ember-deep": "#612106",
+  "nova-ember-text": "#db5d1f",
   "nova-blood": "#e0484d",
   "nova-gild": "#c9a227",
   "nova-bone": "#e8dfd0",
@@ -87,19 +88,17 @@ for (const surface of ["nova-void", "nova-crypt"]) {
   textPair(`blood error text on ${surface}`, "nova-blood", hex(surface));
   textPair(`gild warning/highlight text on ${surface}`, "nova-gild", hex(surface));
 }
-// KNOWN, UNFIXED, REPORTED (not silently patched — see audit report):
-// plain nova-ember as small/normal text tops out at 3.94:1 (on void, the
-// darkest surface) and 3.68:1 on crypt — under the 4.5:1 text floor, and
-// this is a hard ceiling: no surface in the palette is dark enough to get
-// ember-as-text to 4.5:1. This pattern (eyebrow labels, inline links,
-// hover states) is used at 60+ call sites sitewide as the site's core
-// accent-as-text language, predating this audit. Fixing it means picking
-// a lighter "ember for text" shade and re-theming every one of those call
-// sites — a sitewide design-language change, not a bounded bug fix like
-// the badge/button/chip cases below. Left alone pending a product
-// decision; flagged here so it isn't silently missed.
-textPair("[UNFIXED] ember as small text on nova-void (60+ call sites)", "nova-ember", hex("nova-void"));
-textPair("[UNFIXED] ember as small text on nova-crypt (60+ call sites)", "nova-ember", hex("nova-crypt"));
+// FIXED: plain nova-ember as small/normal text topped out at 3.94:1 (on
+// void, the lightest-possible ceiling for ember-as-text) and 3.68:1 on
+// crypt — under the 4.5:1 text floor at every surface in the palette, no
+// exceptions. Rather than re-theme the 60+ call sites (Eyebrow labels,
+// nav/footer links, checkout steps) that used bare `nova-ember` for text,
+// added a text-only sibling token (nova-ember-text, #db5d1f) and pointed
+// those call sites at it — nova-ember itself is untouched for fills,
+// borders, focus rings, and gradient stops.
+textPair("ember-text as small text on nova-void", "nova-ember-text", hex("nova-void"));
+textPair("ember-text as small text on nova-crypt", "nova-ember-text", hex("nova-crypt"));
+textPair("ember-text as small text on nova-slab", "nova-ember-text", hex("nova-slab"));
 
 // ---- Tinted badges: text-nova-X on bg-nova-X/alpha, composited over crypt
 // (StatusBadge, VariantsPanel gild pill, ChangeRoleDialog notice, blood

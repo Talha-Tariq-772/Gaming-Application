@@ -141,7 +141,7 @@ export default function CredentialGamePanel({
                 className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 font-mono text-sm text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
               />
               {singleError && <p className="text-xs text-nova-blood">{singleError}</p>}
-              {singleSuccess && <p className="text-xs text-nova-ember">Credential added.</p>}
+              {singleSuccess && <p className="text-xs text-nova-ember-text">Credential added.</p>}
               <button
                 type="submit"
                 disabled={singleSubmitting}

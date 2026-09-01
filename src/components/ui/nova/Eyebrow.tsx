@@ -7,7 +7,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
  *
  * Defaults to ember: every page-header kicker this replaces (news,
  * community, faq, guides, the homepage hero) already used
- * text-nova-ember for this exact role before this component existed.
+ * text-nova-ember-text for this exact role before this component existed.
  * `tone="muted"` opts into ash instead for a quieter label (e.g. a
  * section sub-heading like "Latest News") — pass `className` only to
  * override something other than color, since a second `text-*` utility
@@ -23,7 +23,7 @@ export default function Eyebrow({
   className?: string;
   children?: ReactNode;
 } & Omit<ComponentPropsWithoutRef<"span">, "className" | "children">) {
-  const toneClass = tone === "muted" ? "text-nova-ash" : "text-nova-ember";
+  const toneClass = tone === "muted" ? "text-nova-ash" : "text-nova-ember-text";
   return (
     <span
       className={`font-medium uppercase ${toneClass} ${className ?? ""}`}

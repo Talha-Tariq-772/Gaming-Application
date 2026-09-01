@@ -20,7 +20,7 @@ export default function TableOfContents({
           <li key={heading.id}>
             <a
               href={`#${heading.id}`}
-              className={`-my-1 block py-1 text-sm text-nova-ash transition-colors duration-(--duration-fast) ease-standard hover:text-nova-ember ${
+              className={`-my-1 block py-1 text-sm text-nova-ash transition-colors duration-(--duration-fast) ease-standard hover:text-nova-ember-text ${
                 heading.depth === 3 ? "pl-3" : ""
               }`}
             >

@@ -18,7 +18,7 @@ export default function SetupGuideCard({ guide }: { guide: SetupGuide }) {
         <span className="text-xs font-semibold uppercase tracking-[0.08em] text-nova-smoke">
           {subtitle(guide)}
         </span>
-        <h3 className="wrap-break-word font-display text-lg font-bold text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember">
+        <h3 className="wrap-break-word font-display text-lg font-bold text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember-text">
           {guide.title}
         </h3>
       </NovaCard>

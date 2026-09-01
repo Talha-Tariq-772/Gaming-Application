@@ -21,13 +21,13 @@ export default function LibraryCard({ game, orderId }: { game: Game; orderId: st
             className="object-cover"
           />
         </div>
-        <h3 className="line-clamp-2 wrap-break-word font-display text-lg font-bold text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember">
+        <h3 className="line-clamp-2 wrap-break-word font-display text-lg font-bold text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember-text">
           {game.title}
         </h3>
       </Link>
       <Link
         href={`/guides/${REDEMPTION_GUIDE_SLUG}`}
-        className="-my-2.5 flex min-h-11 w-fit items-center py-2.5 text-sm font-semibold text-nova-ember hover:text-nova-ember-lo"
+        className="-my-2.5 flex min-h-11 w-fit items-center py-2.5 text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
       >
         View setup guide →
       </Link>
