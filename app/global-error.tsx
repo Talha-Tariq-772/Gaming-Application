@@ -37,7 +37,7 @@ export default function GlobalError({
         <button
           type="button"
           onClick={() => reset()}
-          className="min-h-11 rounded-full bg-nova-ember-lo px-6 py-3 text-sm font-semibold text-nova-bone hover:bg-nova-ember-deep"
+          className="min-h-11 rounded-full bg-nova-ember-bright px-6 py-3 text-sm font-semibold text-nova-void hover:bg-nova-ember-bright-hover"
         >
           Reload
         </button>

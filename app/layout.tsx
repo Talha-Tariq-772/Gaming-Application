@@ -3,6 +3,7 @@ import { Marcellus, Barlow } from "next/font/google";
 import FloatingWhatsAppButton from "@/src/components/FloatingWhatsAppButton";
 import OfflineBanner from "@/src/components/OfflineBanner";
 import Toaster from "@/src/components/Toaster";
+import ThemeProvider from "@/src/components/ThemeProvider";
 import { AnalyticsConsentProvider } from "@/src/contexts/AnalyticsConsentContext";
 import { AuthProvider } from "@/src/contexts/AuthContext";
 import SmoothScrollProvider from "@/src/components/motion/SmoothScrollProvider";
@@ -100,7 +101,16 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#08080a",
+  // Media-query pair (not a single value) so the mobile browser-chrome
+  // tint follows OS-level light/dark — matches nova-void's two theme
+  // values (globals.css). This is a static <meta> tag, so it can only ever
+  // track `prefers-color-scheme`, not an explicit in-app ThemeToggle
+  // override (that would need a client-side meta tag rewrite); same
+  // limitation most sites with a manual theme toggle accept.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f1ea" },
+    { media: "(prefers-color-scheme: dark)", color: "#08060a" },
+  ],
 };
 
 const organizationJsonLd = {
@@ -117,7 +127,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${displayFont.variable} ${uiFont.variable}`}>
+    <html
+      lang="en"
+      className={`${displayFont.variable} ${uiFont.variable}`}
+      suppressHydrationWarning
+    >
       <body className="flex min-h-screen flex-col antialiased">
         {/* Our own static config, not user input — safe to serialize directly. */}
         <script
@@ -130,35 +144,57 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <AuthProvider>
-          <AnalyticsConsentProvider>
-            <OfflineBanner />
-            <SmoothScrollProvider>
-              {children}
-              <Toaster />
-            </SmoothScrollProvider>
-            <FloatingWhatsAppButton />
-          </AnalyticsConsentProvider>
-        </AuthProvider>
-        {/*
-          NOVA_DESIGN_SPEC.md #2 texture layer. z-30 is deliberate, not the
-          spec's literal z-index:50 — every modal/drawer/panel in this app
-          (CartDrawer, the admin dialogs) already uses
-          z-40 or z-50, so z-50 here would visually wash the texture over
-          them. z-30 sits above ordinary page content (z-auto) and below
-          every one of those, including the lowest (z-40 slide-over panels).
-          Grain renders first, vignette second, so the vignette's edge
-          darkening composites on top of the grain speckle, matching the
-          spec's own listed order.
-        */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none fixed inset-0 z-30 bg-[url('/grain.png')] bg-repeat opacity-[0.035] mix-blend-overlay"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none fixed inset-0 z-30 bg-[radial-gradient(ellipse_at_center,transparent_35%,var(--color-nova-void)_100%)] opacity-70"
-        />
+        <ThemeProvider>
+          <AuthProvider>
+            <AnalyticsConsentProvider>
+              <OfflineBanner />
+              <SmoothScrollProvider>
+                {children}
+                <Toaster />
+              </SmoothScrollProvider>
+              <FloatingWhatsAppButton />
+            </AnalyticsConsentProvider>
+          </AuthProvider>
+          {/*
+            NOVA_DESIGN_SPEC.md #2 texture layer. z-30 is deliberate, not the
+            spec's literal z-index:50 — every modal/drawer/panel in this app
+            (CartDrawer, the admin dialogs) already uses
+            z-40 or z-50, so z-50 here would visually wash the texture over
+            them. z-30 sits above ordinary page content (z-auto) and below
+            every one of those, including the lowest (z-40 slide-over panels).
+            Grain renders first, vignette second, so the vignette's edge
+            darkening composites on top of the grain speckle, matching the
+            spec's own listed order.
+
+            Light theme: opacity classes below are the DARK-mode values;
+            globals.css's `.light` block turns both down (grain) or off
+            (vignette) — see that file for why a dark-tuned vignette can't
+            just be left as-is on a light page.
+          */}
+          <div
+            aria-hidden="true"
+            className="nova-grain pointer-events-none fixed inset-0 z-30 bg-[url('/grain.png')] bg-repeat opacity-[0.035] mix-blend-overlay"
+          />
+          {/*
+            Vignette opacity was 70% — measured (Sept 2026 button-brightness
+            investigation) to composite up to ~70% flat black over anything
+            sitting in its outer band, since this sits in front of ordinary
+            content (see comment above) with no blend mode, not multiplied
+            against it. A primary CTA (ember-bright, #E85D1F) positioned
+            there measured 4.03:1 against its own text at the old 70%,
+            under the 4.5:1 floor, despite the button's own computed
+            background-color being the correct token value — the dimming was
+            happening one paint layer above it. 10% keeps a real corner
+            darkening but stays under the ~14% ceiling (verified via
+            audit/section7-contrast.mjs-style luminance math) where a
+            full-strength ember-bright fill in the outer band still clears
+            4.5:1 against void text.
+          */}
+          <div
+            aria-hidden="true"
+            className="nova-vignette pointer-events-none fixed inset-0 z-30 bg-[radial-gradient(ellipse_at_center,transparent_35%,var(--color-nova-void)_100%)] opacity-10"
+          />
+        </ThemeProvider>
       </body>
     </html>
   );

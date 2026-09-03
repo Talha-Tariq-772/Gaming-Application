@@ -15,13 +15,16 @@ const PULL_STRENGTH = 0.4;
 
 type Variant = "primary" | "ghost";
 
-// Part A3: bone-on-ember measures 3.88:1 (below the 4.5:1 text floor) and
-// ~4.3:1 is the ceiling for any text color against ember's luminance — the
-// fill has to change, not the text. ember-lo + bone measures 6.34:1;
-// ember-deep on hover (9.20:1) so hover strictly increases contrast rather
-// than reducing it. See globals.css's --color-nova-ember-lo comment.
+// bone-on-ember measures 3.88:1 (below the 4.5:1 text floor) and ~4.3:1 is
+// the ceiling for any text color against ember's luminance — the fill has
+// to change, not the text. Tried a dark-fill/light-text pair first
+// (ember-lo + bone, 6.34:1) — passed contrast math but read as dark and
+// muddy as an actual button once shipped. void-on-ember-bright (5.78:1)
+// is the bright, confident-CTA direction instead; ember-bright-hover on
+// hover (6.87:1) so hover strictly increases contrast rather than
+// reducing it. See globals.css's --color-nova-ember-bright comment.
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: "bg-nova-ember-lo text-nova-bone hover:bg-nova-ember-deep",
+  primary: "bg-nova-ember-bright text-nova-void hover:bg-nova-ember-bright-hover",
   ghost: "border border-nova-hairline bg-transparent text-nova-bone hover:border-nova-ember/40",
 };
 

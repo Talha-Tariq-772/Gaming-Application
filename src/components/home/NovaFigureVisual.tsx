@@ -1,57 +1,65 @@
-import Image from "next/image";
-import NovaCanvasGate from "@/src/components/hero/Nova/NovaCanvasGate";
+import NovaFigureStage from "./NovaFigureStage";
 
 /**
  * The homepage hero figure — real artwork, not a placeholder.
  *
- * The static image below IS figure-color.webp itself, not a separate
- * "poster" of the same subject: confirmed byte-for-byte (well, pixel-
- * dimension-for-pixel-dimension) that public/hero-test/hero-1.png — the
- * placeholder HeroVisualV2 previously cycled through — is exactly the
- * 408x612 source figure-color.webp/figure-depth.webp were generated from
- * (`file` reports hero-1.png as 408x612 PNG; NovaCanvas.tsx's own comment
- * says the point-cloud textures are "a 408x612 source resized to a 1024px
- * long edge" — same number, not a coincidence). Using figure-color.webp
- * directly rather than keeping hero-1.png as a separate asset means the
- * alpha mask the fire effect samples (sampleAlphaEdgeUVs) and the image a
- * reduced-motion/no-WebGL visitor actually sees are pixel-identical.
+ * The WebGL fire/ember canvas (NovaCanvasGate -> NovaCanvas, Part D) has
+ * been pulled from this path — the hero is a plain static image now. The
+ * canvas component, its shaders, and the source assets are untouched in
+ * the tree; this file just no longer imports or mounts them.
  *
- * hero-2.png (HeroVisualV2's other cycled placeholder, 435x573) is a
- * DIFFERENT, unrelated illustration — different pose, different aspect
- * ratio, never matched figure-color.webp. Dropped along with the rest of
- * HeroVisualV2's cycling/localStorage code, which was explicitly "local
- * dev/testing only" and sourced from Pinterest (gitignored, not rights-
- * cleared, never shipped) — HeroVisual.tsx (the R3F variant) and
- * HeroVisualV2.tsx are both left in place, just no longer wired into
- * HomeHero, in case they're wanted again for comparison.
+ * TWO figures rotate here, restoring the behavior HeroVisualV2 had before
+ * commit 777f4e6 ("Wire the Part D fire effect into the live homepage
+ * hero") replaced its HERO_VARIANT toggle with a single static image:
  *
- * No CSS motion of its own (no Ken Burns, no particle layer, no pointer
- * parallax) — NovaCanvasGate's WebGL canvas already drives its own
- * pointer-orbit and particle system once it's eligible; layering
- * HeroVisualV2's independent CSS transforms on top of that would move the
- * static image and the WebGL point-cloud out of sync with each other.
- * This image is what a reduced-motion or no-WebGL visitor sees,
- * unanimated, and it's the LCP candidate either way — `priority`, never
- * opacity-animated, same reasoning as every other hero visual in this
- * codebase.
+ * - FIGURE_BACK ("/hero/figure-color.webp", 683x1024): the detailed
+ *   back-view figure, sword over the shoulder. Confirmed byte-for-byte
+ *   the same source as HeroVisualV2's old public/hero-test/hero-1.png
+ *   (408x612 — the number NovaCanvas.tsx's own comment says the point-
+ *   cloud textures were generated from).
+ * - FIGURE_CROUCH ("/hero/figure-alt.webp", 435x573): the dark crouched
+ *   samurai holding two swords. Same illustration as HeroVisualV2's old
+ *   public/hero-test/hero-2.png, converted from PNG to WebP and moved
+ *   from hero-test/ (gitignored — see .gitignore's "local experimentation
+ *   only" comment, never shipped to any deployed build) into hero/ (not
+ *   gitignored) so this rotation actually ships. hero-test/hero-2.png
+ *   itself is untouched on disk, still gitignored, no longer referenced
+ *   by anything live.
+ *
+ * figure-depth.webp (the file sitting next to figure-color.webp in
+ * public/hero/) is NOT a third figure and never was — it's an ML-
+ * generated (Depth-Anything-V2) grayscale depth map, near=white/far=black,
+ * built by scripts/generate-figure-assets.mjs specifically as shader input
+ * for the old point-cloud reconstruction pass (figure.ts's predecessor,
+ * see spec/PATH_A_POINT_CLOUD.md). NovaCanvas.tsx's own comment confirms
+ * it: "figure-depth.webp is no longer loaded here — the rim/ember passes
+ * only ever needed the color texture's alpha channel." Composited as an
+ * image it reads as a washed-out grayscale silhouette, not art — it stays
+ * in public/hero/ as figure-color.webp's generated-alongside companion,
+ * unused by this component on purpose.
+ *
+ * The pick happens HERE, in a Server Component, not in NovaFigureStage.tsx
+ * (the "use client" half) — `Math.random()` in a client component would
+ * only run after hydration, disagreeing with whatever the server already
+ * sent down and popping the figure right after paint; done server-side,
+ * the browser only ever receives, and only ever requests, the one chosen
+ * image. app/(storefront)/(home)/page.tsx is marked `force-dynamic` (see
+ * that file) specifically so this pick is re-evaluated per request rather
+ * than baked in once at build time.
+ *
+ * Both figures share the exact same reserved box regardless of their own
+ * (different) native aspect ratios — see NovaFigureStage.tsx's container
+ * comment. Whichever renders gets the same pointer parallax
+ * (useFigureParallax, inside NovaFigureStage.tsx) — the hook targets
+ * whatever `src` it was handed, not a specific figure.
  */
+const FIGURE_BACK = "/hero/figure-color.webp";
+const FIGURE_CROUCH = "/hero/figure-alt.webp";
+
+function pickFigureSrc(): string {
+  return Math.random() < 0.5 ? FIGURE_BACK : FIGURE_CROUCH;
+}
+
 export default function NovaFigureVisual() {
-  return (
-    // Same container contract HeroVisualV2 established (Session 8): w-full
-    // is the driving dimension against the bounded row from HomeHero.tsx,
-    // md:max-h-full is the real ceiling if that width-derived square would
-    // ever exceed the row's available height. Reused verbatim rather than
-    // re-derived, so this doesn't reopen the CLS bug that sizing fixed.
-    <div className="relative aspect-square w-full max-w-full overflow-hidden bg-nova-void md:max-h-full">
-      <Image
-        src="/hero/figure-color.webp"
-        alt=""
-        fill
-        sizes="(min-width: 768px) 50vw, 100vw"
-        className="object-contain"
-        priority
-      />
-      <NovaCanvasGate />
-    </div>
-  );
+  return <NovaFigureStage src={pickFigureSrc()} />;
 }

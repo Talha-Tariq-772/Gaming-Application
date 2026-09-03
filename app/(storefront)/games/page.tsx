@@ -4,7 +4,7 @@ import GamesPageSkeleton from "@/src/components/games/GamesPageSkeleton";
 import GamesPageBody, { type RawSearchParams } from "./GamesPageBody";
 
 const TITLE = "Store";
-const DESCRIPTION = "Browse the full Nova catalog.";
+const DESCRIPTION = "Browse the full PSCBUNDLE catalog.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
     url: "/games",
   },
   twitter: {
     card: "summary_large_image",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
   },
 };

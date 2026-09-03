@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import CartTriggerButton from "@/src/components/cart/CartTriggerButton";
 import HeaderAuthMenu from "@/src/components/HeaderAuthMenu";
 import HeaderNav from "@/src/components/HeaderNav";
+import ThemeToggle from "@/src/components/ThemeToggle";
 import { createClient } from "@/src/lib/supabase/server-session";
 import Button from "./Button";
 
@@ -68,6 +69,7 @@ export default async function Header() {
         <HeaderNav />
 
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <CartTriggerButton />
           {authSlot}
         </div>

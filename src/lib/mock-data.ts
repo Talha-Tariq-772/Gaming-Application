@@ -286,7 +286,7 @@ export const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: "pm-bank-transfer",
     label: "Bank Transfer",
-    accountTitle: "Nova Games (Pvt) Ltd",
+    accountTitle: "PSCBUNDLE Games (Pvt) Ltd",
     accountNumber: "01234567890123",
     iban: "PK36SCBL0000001123456702",
     raastId: null,
@@ -298,7 +298,7 @@ export const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: "pm-jazzcash",
     label: "JazzCash",
-    accountTitle: "Nova Games",
+    accountTitle: "PSCBUNDLE Games",
     accountNumber: "03001234567",
     iban: null,
     raastId: "03001234567",
@@ -310,7 +310,7 @@ export const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: "pm-easypaisa",
     label: "Easypaisa",
-    accountTitle: "Nova Games",
+    accountTitle: "PSCBUNDLE Games",
     accountNumber: "03111234567",
     iban: null,
     raastId: "03111234567",
@@ -322,7 +322,7 @@ export const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: "pm-sadapay",
     label: "SadaPay",
-    accountTitle: "Nova Games",
+    accountTitle: "PSCBUNDLE Games",
     accountNumber: "03211234567",
     iban: "PK65SADA0000001123456789",
     raastId: "03211234567",
@@ -334,7 +334,7 @@ export const MOCK_PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: "pm-nayapay",
     label: "NayaPay",
-    accountTitle: "Nova Games",
+    accountTitle: "PSCBUNDLE Games",
     accountNumber: "03451234567",
     iban: "PK12NAYA0000001123456780",
     raastId: "03451234567",

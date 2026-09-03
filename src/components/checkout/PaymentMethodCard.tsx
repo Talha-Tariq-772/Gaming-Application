@@ -37,7 +37,7 @@ export default function PaymentMethodCard({
       </span>
       <span className="font-medium text-nova-bone">{method.label}</span>
       {selected && (
-        <span className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-nova-ember-lo text-xs text-nova-bone">
+        <span className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-nova-ember-bright text-xs text-nova-void">
           ✓
         </span>
       )}

@@ -53,7 +53,12 @@ import NovaFigureVisual from "@/src/components/home/NovaFigureVisual";
  */
 export default function HomeHero() {
   return (
-    <section className="flex min-h-svh w-full overflow-hidden bg-nova-void">
+    // nova-theme-lock-dark: hero stays dark in both themes — see the
+    // long comment on that class in globals.css for why. Pins every
+    // nova-* token this section (and everything inside it, including
+    // NovaFigureVisual/NovaFigureStage) uses back to its dark value,
+    // regardless of the light/dark class on <html>.
+    <section className="nova-theme-lock-dark flex min-h-svh w-full overflow-hidden bg-nova-void">
       <div className="mx-auto flex w-full max-w-page flex-col gap-12 px-4 py-12 md:flex-row md:px-8 md:py-16">
         <div className="flex min-w-0 flex-1 flex-col items-start justify-center gap-8">
           <span

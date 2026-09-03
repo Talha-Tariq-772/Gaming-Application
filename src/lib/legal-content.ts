@@ -5,7 +5,7 @@
  * Every page here is scaffolding: real structure and headings, but the
  * substantive terms (windows, jurisdictions, contact details, refund
  * mechanics) are either lifted from mock data already in this codebase
- * (business hours, WhatsApp number, "Nova Games (Pvt) Ltd" as the entity
+ * (business hours, WhatsApp number, "PSCBUNDLE Games (Pvt) Ltd" as the entity
  * name from the bank-transfer payment method) or explicitly marked
  * **[PLACEHOLDER: ...]** for the business owner to decide and a lawyer to
  * review before this ever governs a real transaction. Same pattern as
@@ -26,13 +26,13 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
     slug: "terms",
     title: "Terms of Service",
     description:
-      "The terms governing orders, payment, and delivery on Nova. Placeholder copy — not yet reviewed by counsel.",
+      "The terms governing orders, payment, and delivery on PSCBUNDLE. Placeholder copy — not yet reviewed by counsel.",
     updatedAt: "2026-03-01T00:00:00.000Z",
-    body: `These terms cover your use of Nova and any order you place with us. By placing an order, you agree to them.
+    body: `These terms cover your use of PSCBUNDLE and any order you place with us. By placing an order, you agree to them.
 
 ## Who We Are
 
-Nova is operated by **[PLACEHOLDER: legal entity name, likely "Nova Games (Pvt) Ltd" — confirm against actual company registration]**, registered in **[PLACEHOLDER: jurisdiction / registration number]**.
+PSCBUNDLE is operated by **[PLACEHOLDER: legal entity name, likely "PSCBUNDLE Games (Pvt) Ltd" — confirm against actual company registration]**, registered in **[PLACEHOLDER: jurisdiction / registration number]**.
 
 ## Orders and Pricing
 
@@ -75,13 +75,13 @@ Questions about these terms — see our [Contact page](/contact).`,
     slug: "privacy",
     title: "Privacy Policy",
     description:
-      "What information Nova collects, why, and how it's used. Placeholder copy — not yet reviewed by counsel.",
+      "What information PSCBUNDLE collects, why, and how it's used. Placeholder copy — not yet reviewed by counsel.",
     updatedAt: "2026-03-01T00:00:00.000Z",
-    body: `This describes what information we collect when you use Nova, and what we do with it.
+    body: `This describes what information we collect when you use PSCBUNDLE, and what we do with it.
 
 ## Information We Collect
 
-Placing an order requires a name and phone number — see [Setting Up and Securing Your Nova Account](/guides/setting-up-your-account) for how that's used. We also keep a record of your orders, the payment method you selected, and the screenshot you send us on WhatsApp for verification purposes.
+Placing an order requires a name and phone number — see [Setting Up and Securing Your PSCBUNDLE Account](/guides/setting-up-your-account) for how that's used. We also keep a record of your orders, the payment method you selected, and the screenshot you send us on WhatsApp for verification purposes.
 
 ## What We Don't Collect
 
@@ -172,11 +172,11 @@ If you're unsure whether your situation is covered, ask before revealing credent
   about: {
     slug: "about",
     title: "About",
-    description: "What Nova is and how it works.",
+    description: "What PSCBUNDLE is and how it works.",
     updatedAt: "2026-03-01T00:00:00.000Z",
     body: `## What We Do
 
-Nova is a curated storefront for game accounts and keys across PC, PlayStation 5, Xbox, and Nintendo Switch — see [Which Platforms Do You Support](/faq#faq-platforms-supported). Browse the catalog, check out, and get your credentials once a real person on our team has verified your payment.
+PSCBUNDLE is a curated storefront for game accounts and keys across PC, PlayStation 5, Xbox, and Nintendo Switch — see [Which Platforms Do You Support](/faq#faq-platforms-supported). Browse the catalog, check out, and get your credentials once a real person on our team has verified your payment.
 
 ## Why Manual Verification
 
@@ -192,7 +192,7 @@ We don't currently have automatic payment gateway integration, so every order is
 
 ## Company Details
 
-Nova is operated by **[PLACEHOLDER: legal entity name — see Terms of Service]**. Registered address: **[PLACEHOLDER]**.
+PSCBUNDLE is operated by **[PLACEHOLDER: legal entity name — see Terms of Service]**. Registered address: **[PLACEHOLDER]**.
 
 ## Get in Touch
 
@@ -203,7 +203,7 @@ Questions, feedback, or partnership inquiries — see our [Contact page](/contac
     slug: "contact",
     title: "Contact",
     description:
-      "How to reach Nova support — WhatsApp, operating hours, and where to look first.",
+      "How to reach PSCBUNDLE support — WhatsApp, operating hours, and where to look first.",
     updatedAt: "2026-03-01T00:00:00.000Z",
     body: `## Fastest: WhatsApp
 

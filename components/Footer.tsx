@@ -91,7 +91,7 @@ export default async function Footer() {
         <div className="grid gap-16 md:grid-cols-[1.5fr_repeat(4,1fr)]">
           <div className="max-w-xs">
             <span className="font-display text-xl font-bold text-nova-bone">
-              NOVA
+              PSCBUNDLE
             </span>
             <p className="mt-4 text-sm text-nova-ash">
               A cinematic home for the games you play next. Curated
@@ -122,7 +122,7 @@ export default async function Footer() {
 
         <div className="mt-24 flex flex-col-reverse items-center justify-between gap-6 border-t border-nova-hairline pt-8 md:flex-row">
           <p className="text-xs text-nova-smoke">
-            &copy; {new Date().getFullYear()} Nova. All rights reserved.
+            &copy; {new Date().getFullYear()} PSCBUNDLE. All rights reserved.
           </p>
           <div className="flex items-center gap-8">
             {SOCIALS.map((label) => (

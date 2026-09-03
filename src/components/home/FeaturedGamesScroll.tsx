@@ -71,6 +71,18 @@ export default function FeaturedGamesScroll({
     import("@/src/lib/use-gsap").then(({ gsap, ScrollTrigger }) => {
       if (cancelled) return;
 
+      // The layout effect above already inflated containerEl's own height
+      // by `distance` (inline minHeight) to reserve scroll room before
+      // GSAP was ready. ScrollTrigger's `pin: true` below builds its OWN
+      // pin-spacer sized off containerEl's height AT THIS MOMENT, plus
+      // another `distance` for the pin's scroll range — left in place,
+      // the two stack into naturalHeight + distance*2, which measured out
+      // to almost a full extra viewport of empty space after this
+      // section. Clearing it here, synchronously before ScrollTrigger
+      // measures anything and before the next paint, hands sizing off to
+      // the pin-spacer with nothing left to double-count.
+      containerEl.style.minHeight = "";
+
       const distance = trackEl.scrollWidth - containerEl.clientWidth;
       if (distance <= 0) return;
 

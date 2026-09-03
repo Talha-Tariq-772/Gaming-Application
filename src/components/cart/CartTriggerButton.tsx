@@ -36,7 +36,7 @@ export default function CartTriggerButton() {
         <circle cx="17" cy="20" r="1.5" />
       </svg>
       {displayCount > 0 && (
-        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-nova-ember-lo px-1 text-xs font-bold text-nova-bone">
+        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-nova-ember-bright px-1 text-xs font-bold text-nova-void">
           {displayCount}
         </span>
       )}

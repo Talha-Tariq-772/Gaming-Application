@@ -198,14 +198,14 @@ If you're ordering during business hours and want the fastest possible turnaroun
   {
     id: "guide-5",
     slug: "setting-up-your-account",
-    title: "Setting Up and Securing Your Nova Account",
+    title: "Setting Up and Securing Your PSCBUNDLE Account",
     category: "account-setup",
     excerpt:
       "Creating your account, verifying your phone number, and keeping it secure.",
     isPublished: true,
     sortOrder: 1,
     updatedAt: "2026-02-14T15:45:00.000Z",
-    body: `Your Nova account is where your order history and revealed game credentials live — separate from the game accounts themselves.
+    body: `Your PSCBUNDLE account is where your order history and revealed game credentials live — separate from the game accounts themselves.
 
 ## Creating Your Account
 

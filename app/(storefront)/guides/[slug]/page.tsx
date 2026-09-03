@@ -42,14 +42,14 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "article",
-      title: `${title} — Nova`,
+      title: `${title} — PSCBUNDLE`,
       description,
       url: `/guides/${slug}`,
       modifiedTime,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${title} — Nova`,
+      title: `${title} — PSCBUNDLE`,
       description,
     },
   };

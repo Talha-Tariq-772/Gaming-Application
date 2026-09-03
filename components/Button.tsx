@@ -9,13 +9,16 @@ const base =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nova-ember focus-visible:ring-offset-2 focus-visible:ring-offset-nova-void " +
   "disabled:cursor-not-allowed disabled:opacity-40";
 
-// Part A3: bone-on-ember measures 3.88:1 (below the 4.5:1 text floor) and
-// ~4.3:1 is the ceiling for any text color against ember's luminance — the
-// fill has to change, not the text. ember-lo + bone measures 6.34:1;
-// ember-deep on hover (9.20:1) so hover strictly increases contrast rather
-// than reducing it. See globals.css's --color-nova-ember-lo comment.
+// bone-on-ember measures 3.88:1 (below the 4.5:1 text floor) and ~4.3:1 is
+// the ceiling for any text color against ember's luminance — the fill has
+// to change, not the text. Tried a dark-fill/light-text pair first
+// (ember-lo + bone, 6.34:1) — passed contrast math but read as dark and
+// muddy as an actual button once shipped. void-on-ember-bright (5.78:1)
+// is the bright, confident-CTA direction instead; ember-bright-hover on
+// hover (6.87:1) so hover strictly increases contrast rather than
+// reducing it. See globals.css's --color-nova-ember-bright comment.
 const variants: Record<Variant, string> = {
-  primary: "bg-nova-ember-lo text-nova-bone hover:bg-nova-ember-deep",
+  primary: "bg-nova-ember-bright text-nova-void hover:bg-nova-ember-bright-hover",
   secondary:
     "bg-nova-slab text-nova-bone border border-nova-hairline hover:border-nova-ember/40 hover:bg-nova-hairline",
   ghost: "bg-transparent text-nova-ash hover:text-nova-bone",

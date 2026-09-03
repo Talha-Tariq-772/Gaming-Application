@@ -31,14 +31,14 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "article",
-      title: `${post.title} — Nova`,
+      title: `${post.title} — PSCBUNDLE`,
       description: post.excerpt,
       url: `/news/${post.slug}`,
       publishedTime: post.publishedAt ?? undefined,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${post.title} — Nova`,
+      title: `${post.title} — PSCBUNDLE`,
       description: post.excerpt,
     },
   };

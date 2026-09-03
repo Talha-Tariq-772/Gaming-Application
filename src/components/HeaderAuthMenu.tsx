@@ -59,7 +59,7 @@ export default function HeaderAuthMenu({
             className="h-8 w-8 rounded-full object-cover"
           />
         ) : (
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-nova-ember-lo text-xs font-bold text-nova-bone">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-nova-ember-bright text-xs font-bold text-nova-void">
             {initial}
           </span>
         )}

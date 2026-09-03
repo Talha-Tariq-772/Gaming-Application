@@ -49,7 +49,7 @@ export default async function Image({
             color: "#f5f5f7",
           }}
         >
-          Nova
+          PSCBUNDLE
         </div>
       ),
       { ...size }
@@ -133,7 +133,7 @@ export default async function Image({
               marginTop: 40,
             }}
           >
-            NOVA
+            PSCBUNDLE
           </div>
         </div>
       </div>

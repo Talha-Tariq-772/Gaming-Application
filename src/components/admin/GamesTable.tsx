@@ -1,8 +1,60 @@
-import Image from "next/image";
 import { formatPrice } from "@/src/lib/format";
+import { gameCoverImage } from "@/src/lib/storage-image";
 import type { Game } from "@/src/types/database";
 
 const LOW_STOCK_THRESHOLD = 5;
+
+/**
+ * Theme sweep (light/dark session) found every row here rendering a solid
+ * black square in light mode — this table was reading `game.coverImageUrl`
+ * (the legacy column, unpopulated on every seeded game) instead of
+ * `coverPath`, so every real cover fell through to GAME_COVER_PLACEHOLDER,
+ * a static PNG deliberately drawn dark-on-transparent for the dark theme —
+ * fine as a near-invisible tile against a dark admin sidebar, a stark black
+ * hole against a light one. Fixed two ways: real games now resolve their
+ * cover the same way GameCard/GameDetailBody already do (coverPath through
+ * gameCoverImage — the 400w derivative is plenty for a 32-44px thumbnail,
+ * no need for the 800w one those larger call sites use), and the "no cover
+ * uploaded yet" case gets an inline icon on bg-nova-slab instead of a baked
+ * image, so it re-themes for free instead of needing a second static asset.
+ * Plain <img>, not next/image, matching gameCoverImage's own doc comment:
+ * these are already exact pre-sized .webp files.
+ */
+function GameCoverThumb({ game, className }: { game: Game; className: string }) {
+  const cover = game.coverPath ? gameCoverImage(game.coverPath) : null;
+
+  return (
+    <div
+      className={`relative shrink-0 overflow-hidden rounded border border-nova-hairline bg-nova-slab ${className}`}
+    >
+      {cover ? (
+        // eslint-disable-next-line @next/next/no-img-element -- coverPath derivatives are already exact pre-sized .webp files; see storage-image.ts
+        <img
+          src={cover.sizes[0].url}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-nova-smoke">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4"
+            aria-hidden="true"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="M21 15l-5-5L5 21" />
+          </svg>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ActiveToggle({
   game,
@@ -85,9 +137,7 @@ export default function GamesTable({
                 <tr key={game.id} className="border-b border-nova-hairline last:border-b-0">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-8 shrink-0 overflow-hidden rounded border border-nova-hairline bg-nova-slab">
-                        <Image src={game.coverImageUrl} alt="" fill sizes="32px" className="object-cover" />
-                      </div>
+                      <GameCoverThumb game={game} className="h-10 w-8" />
                       <span className="font-medium text-nova-bone">{game.title}</span>
                     </div>
                   </td>
@@ -139,9 +189,7 @@ export default function GamesTable({
           return (
             <div key={game.id} className="flex flex-col gap-3 rounded-lg border border-nova-hairline bg-nova-void p-4">
               <div className="flex items-center gap-3">
-                <div className="relative h-14 w-11 shrink-0 overflow-hidden rounded border border-nova-hairline bg-nova-slab">
-                  <Image src={game.coverImageUrl} alt="" fill sizes="44px" className="object-cover" />
-                </div>
+                <GameCoverThumb game={game} className="h-14 w-11" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-nova-bone">{game.title}</p>
                   <p className="truncate text-xs text-nova-smoke">

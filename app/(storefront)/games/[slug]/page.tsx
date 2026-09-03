@@ -29,7 +29,7 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "website",
-      title: `${game.title} — Nova`,
+      title: `${game.title} — PSCBUNDLE`,
       description: game.description,
       url: `/games/${game.slug}`,
       // Image itself comes from opengraph-image.tsx in this route segment
@@ -38,7 +38,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `${game.title} — Nova`,
+      title: `${game.title} — PSCBUNDLE`,
       description: game.description,
     },
   };

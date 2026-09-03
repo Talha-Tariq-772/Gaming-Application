@@ -9,7 +9,7 @@ import { getNewsPosts } from "@/src/lib/news";
 import { buildGeneralWhatsAppLink } from "@/src/lib/order";
 
 const TITLE = "Community";
-const DESCRIPTION = "Join the conversation, get quick support, and keep up with what's new at Nova.";
+const DESCRIPTION = "Join the conversation, get quick support, and keep up with what's new at PSCBUNDLE.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -19,13 +19,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
     url: "/community",
   },
   twitter: {
     card: "summary_large_image",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
   },
 };

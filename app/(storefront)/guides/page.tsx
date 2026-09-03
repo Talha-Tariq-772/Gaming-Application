@@ -8,7 +8,7 @@ import GuidesResults from "./GuidesResults";
 
 const TITLE = "Guides";
 const DESCRIPTION =
-  "Redemption instructions, payment help, account setup, and troubleshooting for the Nova storefront.";
+  "Redemption instructions, payment help, account setup, and troubleshooting for the PSCBUNDLE storefront.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -18,13 +18,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
     url: "/guides",
   },
   twitter: {
     card: "summary_large_image",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
   },
 };

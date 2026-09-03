@@ -47,6 +47,12 @@ float fbm(vec2 p) {
 
 void main() {
   vec2 uv = gl_FragCoord.xy / uResolution.xy;
+  // WebGL's gl_FragCoord.y increases UPWARD from the viewport's bottom-left
+  // (unlike CSS/canvas 2D), so uv.y is 0 at the screen's bottom and 1 at
+  // its top. Flipped here once so every position-based term below (ground
+  // glow, heat shimmer) can be written the intuitive way — uv.y near 1 =
+  // near the bottom / the figure's base — without each one re-deriving it.
+  uv.y = 1.0 - uv.y;
   vec2 p  = uv * vec2(uResolution.x / uResolution.y, 1.0);
 
   float t = uTime * 0.045;
@@ -57,30 +63,45 @@ void main() {
   );
   float f = fbm(p * 1.9 + q * 0.85 + vec2(t * 0.5, -t));
 
-  vec3 vd   = vec3(0.031, 0.024, 0.039);
-  vec3 fog  = vec3(0.129, 0.086, 0.063);
-  vec3 col  = mix(vd, fog, smoothstep(0.28, 0.88, f) * uIntensity);
+  // This pass used to paint a full-bleed opaque atmospheric background
+  // (ambient haze + top glow + vignette + grain, alpha always 1.0) — that
+  // was fine as the WHOLE hero when nothing but this canvas existed (the
+  // old /dev/nova-hero route), but the homepage now renders the real
+  // artwork as a plain, sharp <img> underneath this canvas (see
+  // NovaFigureVisual.tsx) and only wants two ACCENT effects layered
+  // OVER it: ground glow beneath the figure, and heat shimmer near its
+  // base. Everywhere else must stay fully transparent (alpha 0) so the
+  // real image shows through untouched, so col/alpha here only ever
+  // accumulate from those two accents, never a full-frame base tint.
+  vec3 ember = vec3(0.757, 0.267, 0.055);
+  vec3 col = vec3(0.0);
+  float alpha = 0.0;
 
-  float glow = smoothstep(0.9, 0.0, uv.y) * f;
-  col += vec3(0.757, 0.267, 0.055) * glow * 0.16 * uIntensity;
-
-  // Part D, layer 4 (ground glow): soft warm radial falloff centered at
-  // the figure's base (screen-center-x, near the bottom) — on top of the
-  // fog's existing ambient bottom-glow above, not a replacement for it.
-  // The figure sits horizontally centered in world space at rest (no
-  // orbit offset), which maps to uv.x ~= 0.5 in this fullscreen pass.
+  // Ground glow: soft warm radial falloff centered at the figure's base
+  // (screen-center-x, near the bottom). The figure sits horizontally
+  // centered in world space at rest (no orbit offset), which maps to
+  // uv.x ~= 0.5 in this fullscreen pass. f modulates it slightly so it
+  // isn't perfectly static.
   vec2 groundCenter = vec2(0.5, 1.05);
   float groundDist = length((uv - groundCenter) * vec2(1.6, 1.0));
-  float groundGlow = smoothstep(0.85, 0.0, groundDist);
-  col += vec3(0.757, 0.267, 0.055) * groundGlow * 0.22 * uIntensity;
+  float groundGlow = smoothstep(0.85, 0.0, groundDist) * (0.65 + 0.35 * f);
+  col += ember * groundGlow * 0.9 * uIntensity;
+  alpha += groundGlow * 0.75 * uIntensity;
 
-  vec2 v = uv - 0.5;
-  col *= 1.0 - dot(v, v) * 1.75;
+  // Heat shimmer: a fast-flickering warm haze band low in frame, much
+  // higher spatial + time frequency than the ground glow's slow fbm so it
+  // reads as a distinct, faster-moving layer. This pass never samples the
+  // figure's own texture (it's a plain fullscreen pass behind a real
+  // <img>), so this can only ever be an additive warm overlay, never a
+  // refraction/distortion of the actual artwork's pixels.
+  float shimmerT = uTime * 0.9;
+  float shimmerNoise = fbm(vec2(p.x * 6.0 + shimmerT, p.y * 2.5 - shimmerT * 1.3));
+  float shimmerBand = smoothstep(0.5, 0.8, uv.y) * smoothstep(1.05, 0.78, uv.y);
+  float shimmer = shimmerBand * (shimmerNoise * 0.5 + 0.5);
+  col += ember * shimmer * 0.5 * uIntensity;
+  alpha += shimmer * 0.35 * uIntensity;
 
-  float g = hash(gl_FragCoord.xy + fract(uTime)) - 0.5;
-  col += g * 0.035;
-
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = vec4(col, clamp(alpha, 0.0, 0.95));
 }
 `;
 

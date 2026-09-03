@@ -214,7 +214,7 @@ export default function VariantsPanel({
                   aria-pressed={variantMode === mode}
                   className={`min-h-11 flex-1 rounded-md border px-3 py-2 text-sm font-semibold capitalize transition-colors duration-(--duration-fast) ease-standard disabled:cursor-not-allowed disabled:opacity-40 ${
                     variantMode === mode
-                      ? "border-nova-ember bg-nova-ember-lo text-nova-bone"
+                      ? "border-nova-ember bg-nova-ember-bright text-nova-void"
                       : "border-nova-hairline text-nova-ash hover:text-nova-bone"
                   }`}
                 >
@@ -426,7 +426,7 @@ export default function VariantsPanel({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="min-h-11 flex-1 rounded-md bg-nova-ember-lo px-4 py-2 text-sm font-semibold text-nova-bone transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-deep disabled:cursor-not-allowed disabled:opacity-40"
+                  className="min-h-11 flex-1 rounded-md bg-nova-ember-bright px-4 py-2 text-sm font-semibold text-nova-void transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-bright-hover disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {isSubmitting ? "Saving…" : editingVariantId ? "Save Changes" : "Add Variant"}
                 </button>

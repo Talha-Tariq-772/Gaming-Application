@@ -16,13 +16,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: `${page.title} — Nova`,
+    title: `${page.title} — PSCBUNDLE`,
     description: page.description,
     url: "/contact",
   },
   twitter: {
     card: "summary_large_image",
-    title: `${page.title} — Nova`,
+    title: `${page.title} — PSCBUNDLE`,
     description: page.description,
   },
 };

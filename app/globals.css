@@ -109,7 +109,19 @@
   --color-accent: #00e6d8;
   --color-accent-strong: #4dfff2;
   --color-accent-dim: #0a3d3a;
-  --color-on-accent: #04100f;
+  /* Theme session WCAG re-audit: was #04100f (near-black) — on-accent's only
+     two live call sites (layout.tsx's skip-to-content link, and ::selection
+     below) both place it as TEXT on a `nova-ember` (#c1440e) fill, which
+     measures 3.78:1 against near-black — under the 4.5:1 text floor, and
+     unrelated to the light/dark theme work (ember itself doesn't change
+     between themes, so this was failing identically in both). Near-black
+     text doesn't work here at all: even pure #000 tops out at 4.10:1 against
+     this fill (the ceiling for ANY dark color), which still fails — light
+     text is the only direction that clears 4.5, unlike nova-void's
+     button-fill role (paired with the brighter ember-bright, not base
+     ember). Warm near-white (not pure #fff, matching the "no pure white
+     text" rule elsewhere in this palette) measures 4.83:1. */
+  --color-on-accent: #faf8f5;
 
   /* ---- Color: status ----
      Form validation and status badges only — never used for emphasis.
@@ -129,10 +141,28 @@
   --color-nova-pitch: #0d0a0c;
   --color-nova-crypt: #141013;
   --color-nova-slab: #1e1719;
-  --color-nova-hairline: #2a2124;
+  /* Theme session WCAG re-audit: was #2a2124, measuring 1.13-1.29:1 against
+     void/crypt/slab — catastrophically under the 3:1 UI-component floor,
+     on the token that's the DEFAULT border-color for every element on the
+     site (see the *, *::before, *::after rule below). No prior audit
+     caught this — section7-contrast.mjs's uiPair list includes it, but
+     nothing had re-run that check since nova-hairline's value was last
+     set. Brightened (same warm hue family as ash/smoke) to clear 3:1 with
+     margin (3.39-3.88) — same fix shape as this file's existing
+     --color-border precedent below. This is a real, visible change: what
+     was a near-invisible hairline is now a clearly visible divider. */
+  --color-nova-hairline: #7e6954;
 
   --color-nova-ember: #c1440e;
-  --color-nova-ember-lo: #8b2f09;
+  /* Theme session WCAG re-audit: was #8b2f09, measuring 2.10-2.41:1 as text
+     — this token is used as a hover-state TEXT color (`hover:text-nova-
+     ember-lo`, always paired with nova-ember-text as the resting color) at
+     20+ call sites — checkout, account, admin tables, FAQ, library — none
+     of which were in section7-contrast.mjs's pair list, so this shipped
+     failing 4.5:1 undetected. Brightened past ember-text (#db5d1f, itself
+     ~5.0-5.4:1) so hover still strictly increases contrast, same rule as
+     ember-bright-hover below: 6.70-7.67:1. */
+  --color-nova-ember-lo: #fa7c29;
   /* Grand session Part A3: bone-on-ember (the filled-button/active-tab
      pairing) measures 3.88:1 — under the 4.5:1 text floor, and ~4.3:1 is
      the mathematical ceiling against ember's luminance for ANY text color,
@@ -143,6 +173,14 @@
      on top of it — 9.20:1, so hover strictly increases contrast rather
      than reducing it.
 
+     SUPERSEDED for buttons/filled interactive states — see ember-bright
+     below. ember-lo/ember-deep passed contrast math but read as dark,
+     muddy, and unconfident as an actual CTA fill once shipped and looked
+     at. Still correct as a description of why plain ember-as-fill doesn't
+     work; just the wrong direction of fix. ember-lo/ember-deep are kept
+     for whatever non-button call sites still reference them directly
+     (check before reusing either for a new button).
+
      Correction to this comment's old claim: bright ember as TEXT directly
      on a dark surface does NOT already pass on its own — measured 3.94:1
      on void and 3.68:1 on crypt (both under 4.5:1), and void is the
@@ -151,6 +189,17 @@
      call sites (Eyebrow labels, nav/footer links, checkout steps) before
      the token below. */
   --color-nova-ember-deep: #612106;
+  /* Replaces ember-lo/ember-deep for every filled button and filled
+     interactive state (nav active tabs, filter chips, avatar fills) —
+     a bright, confident fill with dark (void) text, not a dark fill with
+     light text. void/ember-bright measures 5.78:1; the hover state
+     (ember-bright-hover, a lightened version of the same hue) measures
+     6.87:1 — brighter fill, so hover strictly increases contrast, same
+     rule as the superseded ember-lo/ember-deep pair, just inverted
+     (lighter fill = more contrast against dark text, where darker fill
+     was more contrast against light text). */
+  --color-nova-ember-bright: #e85d1f;
+  --color-nova-ember-bright-hover: #eb7541;
   /* Text-only sibling of ember: same hue, lightened until it clears 4.5:1
      against every surface ember-as-text is actually used on (void 5.38,
      crypt 5.03, slab 4.70 — all measured via audit/section7-contrast.mjs,
@@ -316,6 +365,127 @@
 }
 
 /* ==========================================================================
+   Light theme
+   next-themes (attribute="class", see src/components/ThemeProvider.tsx)
+   toggles a "light"/"dark" class on <html>; :root above stays the DARK
+   values (the site's original, unconditional default) and this block is
+   the only place light-mode diverges from it. Deliberately does NOT
+   rename any --color-nova-* token or touch a single call site — every
+   component still just says `bg-nova-void`/`text-nova-bone`/etc exactly as
+   before; only the VALUE behind the name changes when this class is
+   present. That means the names go semantically odd in light mode
+   (`nova-void`, meant to name the darkest surface, is now the LIGHTEST —
+   `nova-bone`, a warm off-white in dark mode, is now a near-black text
+   color) — that's intentional, not a bug to "fix" by renaming later: doing
+   the rename properly would mean touching the 100+ existing nova-*
+   call sites across the app for a purely cosmetic naming concern, for no
+   functional gain. If you're staring at `nova-void: #F5F1EA` and it looks
+   backwards, it isn't — re-read this comment before renaming anything.
+
+   ember and ember-deep are ABSENT below on purpose — ember (#c1440e)
+   already clears the 3:1 UI floor against every light surface (4.55/3.69/
+   3.13 on void/crypt/slab) unchanged, and ember-deep has no live call
+   sites in either theme (styleguide swatch display only). Every other
+   token here was computed (not eyeballed) via the same luminance math as
+   audit/section7-contrast.mjs — see that script, extended in this session
+   to check both themes — with one asymmetry worth calling out: ember-text/
+   ember-lo/ember-bright/ember-bright-hover get DARKER (not a "light
+   equivalent" of the same lightness) than their dark-mode values, because
+   they're used as fills/text a shade needs to sit on the OPPOSITE side of
+   for contrast — a bright orange that pops off a near-black surface reads
+   as too pale to pass 4.5:1 against a warm off-white one; a darker burnt
+   orange does the reverse job. gild in particular had to go noticeably
+   darker (#624808) than a first pass suggested (#76570a passed on plain
+   surfaces at 4.45-5.94:1 but failed StatusBadge's own gild-tinted-over-
+   crypt composite backgrounds at 15/20% opacity, down to 3.72:1 — the
+   tightest constraint turned out to be gild-on-a-tint-of-itself, not
+   gild-on-plain-crypt). */
+.light {
+  color-scheme: light;
+
+  --color-nova-void: #f5f1ea;
+  --color-nova-pitch: #eee7d9;
+  --color-nova-crypt: #e4dac6;
+  --color-nova-slab: #d6c9af;
+  --color-nova-hairline: #7d634a;
+
+  --color-nova-ember-lo: #6c2a09;
+  --color-nova-ember-text: #8b380f;
+  --color-nova-ember-bright: #a83c0a;
+  --color-nova-ember-bright-hover: #8c3008;
+
+  --color-nova-blood: #a01c21;
+  --color-nova-gild: #624808;
+
+  --color-nova-bone: #29241f;
+  --color-nova-ash: #514436;
+  --color-nova-smoke: #605040;
+}
+
+/* Grain: a paper-speckle texture tuned for a near-black backdrop (see
+   layout.tsx) reads as visible dirt/noise at the same opacity on a light
+   warm surface — halved, not removed, to keep a trace of the same brand
+   texture. Vignette: its dark corner-darkening gradient targets
+   nova-void as its outer stop, which is now a light color — the effect
+   is already inert (a transparent-to-off-white gradient darkens nothing),
+   so this switches it off outright rather than leave a no-op layer
+   painting every frame. Both selectors are deliberately unlayered (same
+   reasoning as :focus-visible/border-color above): Tailwind's own
+   opacity-[...] utility lives in a layered @layer, which always loses to
+   an unlayered rule regardless of specificity. */
+.light .nova-grain {
+  opacity: 0.018;
+}
+.light .nova-vignette {
+  opacity: 0;
+}
+
+/* Hero section lock (src/components/home/HomeHero.tsx) — per the explicit
+   product decision made before this theme session started: the hero
+   figures (figure-color.webp / figure-alt.webp) are dark ink-on-
+   transparent art that only reads correctly against a near-black
+   background. RGB-inverting them for a light variant was tested and
+   rejected (muddy tonal reversal on one, near-total wash-out on the
+   other — see that session's findings). Rather than give the hero a
+   per-theme asset path, the whole section — background AND its own
+   headline/body text, which use nova-bone/nova-ash/nova-ember-text —
+   is pinned back to the ORIGINAL dark values via this one class on
+   HomeHero's root <section>, re-declaring the same custom properties
+   :root already sets. CSS custom properties resolve from the nearest
+   ancestor-or-self definition, so this override cascades to every
+   descendant (including NovaFigureStage's own bg-nova-void) without
+   touching a single line inside HomeHero.tsx's children or
+   NovaFigureStage.tsx — do not remove this class or "fix" the hero to
+   follow the light palette; that was a deliberate, tested call, not an
+   oversight. Values duplicated from :root's dark block on purpose (no
+   var()-of-a-var indirection here) — if the base dark palette ever
+   changes, update both places, same as the .light block above already
+   requires reasoning about both sides. */
+.nova-theme-lock-dark {
+  color-scheme: dark;
+
+  --color-nova-void: #08060a;
+  --color-nova-pitch: #0d0a0c;
+  --color-nova-crypt: #141013;
+  --color-nova-slab: #1e1719;
+  --color-nova-hairline: #7e6954;
+
+  --color-nova-ember: #c1440e;
+  --color-nova-ember-lo: #fa7c29;
+  --color-nova-ember-deep: #612106;
+  --color-nova-ember-text: #db5d1f;
+  --color-nova-ember-bright: #e85d1f;
+  --color-nova-ember-bright-hover: #eb7541;
+
+  --color-nova-blood: #e0484d;
+  --color-nova-gild: #c9a227;
+
+  --color-nova-bone: #e8dfd0;
+  --color-nova-ash: #9a8f84;
+  --color-nova-smoke: #8d857c;
+}
+
+/* ==========================================================================
    Tailwind theme mapping
    Exposes the tokens above as Tailwind utilities (bg-surface-1, text-muted,
    font-display, rounded-lg, etc.) so components can stay utility-first.
@@ -353,6 +523,8 @@
   --color-nova-ember-lo: var(--color-nova-ember-lo);
   --color-nova-ember-deep: var(--color-nova-ember-deep);
   --color-nova-ember-text: var(--color-nova-ember-text);
+  --color-nova-ember-bright: var(--color-nova-ember-bright);
+  --color-nova-ember-bright-hover: var(--color-nova-ember-bright-hover);
   --color-nova-blood: var(--color-nova-blood);
   --color-nova-gild: var(--color-nova-gild);
   --color-nova-bone: var(--color-nova-bone);

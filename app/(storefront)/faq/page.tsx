@@ -7,7 +7,7 @@ import { getFaqItems } from "@/src/lib/mock-guides";
 
 const TITLE = "FAQ";
 const DESCRIPTION =
-  "Answers to common questions about payment verification, account setup, and troubleshooting on Nova.";
+  "Answers to common questions about payment verification, account setup, and troubleshooting on PSCBUNDLE.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -17,13 +17,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
     url: "/faq",
   },
   twitter: {
     card: "summary_large_image",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
   },
 };

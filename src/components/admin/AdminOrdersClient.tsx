@@ -56,7 +56,7 @@ export default function AdminOrdersClient({
             onClick={() => setStatusFilter(f.value)}
             className={`flex min-h-11 items-center rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors duration-(--duration-fast) ease-standard ${
               statusFilter === f.value
-                ? "border-nova-ember bg-nova-ember-lo text-nova-bone"
+                ? "border-nova-ember bg-nova-ember-bright text-nova-void"
                 : "border-nova-hairline text-nova-ash hover:border-nova-ember/40"
             }`}
           >

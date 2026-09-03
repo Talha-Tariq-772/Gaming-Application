@@ -1,5 +1,8 @@
 "use client";
 
+"use client";
+
+import { useTheme } from "next-themes";
 import {
   Bar,
   BarChart,
@@ -15,11 +18,15 @@ import type { TopSellingGame } from "@/src/lib/admin-stats";
 // renders plain SVG attributes, so CSS custom properties aren't a reliable
 // fit here. Was teal (#00e6d8), the pre-nova accent — the Session 6 rename
 // only touched Tailwind classes, missing these hardcoded chart props.
-const ACCENT = "#c1440e";
-const GRID = "#2a2124";
-const MUTED = "#8d857c";
+// Theme session: split into DARK/LIGHT — see RevenueLineChart.tsx's
+// matching comment, same reasoning applies here.
+const DARK = { accent: "#c1440e", grid: "#7e6954", muted: "#8d857c", tooltipBg: "#141013", tooltipBorder: "#7e6954", tooltipText: "#e8dfd0" };
+const LIGHT = { accent: "#a83c0a", grid: "#7d634a", muted: "#605040", tooltipBg: "#e4dac6", tooltipBorder: "#7d634a", tooltipText: "#29241f" };
 
 export default function TopSellingBarChart({ data }: { data: TopSellingGame[] }) {
+  const { resolvedTheme } = useTheme();
+  const c = resolvedTheme === "light" ? LIGHT : DARK;
+
   const chartData = data.map((d) => ({
     title: d.game.title,
     units: d.unitsSold,
@@ -41,19 +48,19 @@ export default function TopSellingBarChart({ data }: { data: TopSellingGame[] })
           layout="vertical"
           margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
         >
-          <CartesianGrid stroke={GRID} strokeDasharray="3 3" horizontal={false} />
+          <CartesianGrid stroke={c.grid} strokeDasharray="3 3" horizontal={false} />
           <XAxis
             type="number"
-            stroke={MUTED}
+            stroke={c.muted}
             fontSize={11}
             tickLine={false}
-            axisLine={{ stroke: GRID }}
+            axisLine={{ stroke: c.grid }}
             allowDecimals={false}
           />
           <YAxis
             type="category"
             dataKey="title"
-            stroke={MUTED}
+            stroke={c.muted}
             fontSize={11}
             tickLine={false}
             axisLine={false}
@@ -61,15 +68,15 @@ export default function TopSellingBarChart({ data }: { data: TopSellingGame[] })
           />
           <Tooltip
             contentStyle={{
-              background: "#1c1c21",
-              border: "1px solid #2f2f36",
+              background: c.tooltipBg,
+              border: `1px solid ${c.tooltipBorder}`,
               borderRadius: 8,
               fontSize: 12,
             }}
-            labelStyle={{ color: "#f5f5f7" }}
+            labelStyle={{ color: c.tooltipText }}
             formatter={(value) => [Number(value), "Units sold"]}
           />
-          <Bar dataKey="units" fill={ACCENT} radius={[0, 4, 4, 0]} />
+          <Bar dataKey="units" fill={c.accent} radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

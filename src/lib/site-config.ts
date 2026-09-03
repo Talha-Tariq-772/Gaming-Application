@@ -10,4 +10,4 @@
  */
 export const SITE_URL = "https://nova.example";
 
-export const SITE_NAME = "Nova";
+export const SITE_NAME = "PSCBUNDLE";

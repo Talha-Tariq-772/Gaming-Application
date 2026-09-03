@@ -59,6 +59,6 @@ export function buildWhatsAppLink(
 /** Generic support contact link (footer, /contact) — not tied to a
  * specific order, unlike buildWhatsAppLink above. */
 export function buildGeneralWhatsAppLink(): string {
-  const text = "Hi! I have a question about Nova.";
+  const text = "Hi! I have a question about PSCBUNDLE.";
   return `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }

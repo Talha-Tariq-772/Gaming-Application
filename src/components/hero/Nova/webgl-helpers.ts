@@ -134,6 +134,12 @@ export function sampleAlphaEdgeUVs(image: HTMLImageElement, count: number): Floa
   const weights = new Float32Array(EDGE_SAMPLE_W * EDGE_SAMPLE_H);
   let total = 0;
   for (let y = 0; y < EDGE_SAMPLE_H; y++) {
+    // Real fire is densest at its base and thins with height — bias raw
+    // edge weight by row before normalizing, rather than relying on the
+    // per-particle lifetime falloff alone to thin the crowd once airborne.
+    // y=0 is the image's top, y=EDGE_SAMPLE_H-1 its bottom, so this ramps
+    // from 0.25x weight at the top to 1x at the bottom.
+    const baseBias = 0.25 + 0.75 * (y / (EDGE_SAMPLE_H - 1));
     for (let x = 0; x < EDGE_SAMPLE_W; x++) {
       const gx = alphaAt(x + 1, y) - alphaAt(x - 1, y);
       const gy = alphaAt(x, y + 1) - alphaAt(x, y - 1);
@@ -141,7 +147,7 @@ export function sampleAlphaEdgeUVs(image: HTMLImageElement, count: number): Floa
       // (gradient 0) still have a tiny chance of being sampled, rather
       // than a hard zero that could leave `total` at 0 for a degenerate
       // (e.g. fully-transparent) image.
-      const w = Math.sqrt(gx * gx + gy * gy) + 0.001;
+      const w = (Math.sqrt(gx * gx + gy * gy) + 0.001) * baseBias;
       weights[y * EDGE_SAMPLE_W + x] = w;
       total += w;
     }
@@ -203,14 +209,6 @@ export function textureFromImage(gl: WebGL2RenderingContext, image: HTMLImageEle
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.bindTexture(gl.TEXTURE_2D, null);
   return texture;
-}
-
-/** Loads an image and uploads it into a WebGLTexture in one step — the
- * common case (depth texture; color texture also needs the raw
- * HTMLImageElement for sampleAlphaEdgeUVs, so it calls loadImage +
- * textureFromImage separately instead of this). */
-export function loadTexture(gl: WebGL2RenderingContext, url: string): Promise<WebGLTexture> {
-  return loadImage(url).then((image) => textureFromImage(gl, image));
 }
 
 /** Standard right-handed perspective projection (WebGL NDC z in [-1, 1]) —

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Button from "@/components/Button";
+import SwatchHexLabel from "@/src/components/styleguide/SwatchHexLabel";
 
 export const metadata: Metadata = {
   title: "Styleguide",
@@ -19,7 +20,7 @@ const COLOR_GROUPS: {
       { name: "Pitch", varName: "--color-nova-pitch", hex: "#0D0A0C" },
       { name: "Crypt", varName: "--color-nova-crypt", hex: "#141013" },
       { name: "Slab", varName: "--color-nova-slab", hex: "#1E1719" },
-      { name: "Hairline", varName: "--color-nova-hairline", hex: "#2A2124" },
+      { name: "Hairline", varName: "--color-nova-hairline", hex: "#7E6954" },
     ],
   },
   {
@@ -34,7 +35,7 @@ const COLOR_GROUPS: {
     heading: "Accent",
     swatches: [
       { name: "Ember", varName: "--color-nova-ember", hex: "#C1440E" },
-      { name: "Ember Lo", varName: "--color-nova-ember-lo", hex: "#8B2F09" },
+      { name: "Ember Lo", varName: "--color-nova-ember-lo", hex: "#FA7C29" },
       { name: "Ember Deep", varName: "--color-nova-ember-deep", hex: "#612106" },
       { name: "Ember Text", varName: "--color-nova-ember-text", hex: "#DB5D1F" },
       { name: "Blood", varName: "--color-nova-blood", hex: "#E0484D" },
@@ -119,7 +120,7 @@ export default function StyleguidePage() {
           Styleguide
         </h1>
         <p className="mt-4 max-w-lg text-lg text-nova-ash">
-          Every color, size, and interaction token that makes up the Nova
+          Every color, size, and interaction token that makes up the PSCBUNDLE
           design system.
         </p>
       </header>
@@ -144,7 +145,7 @@ export default function StyleguidePage() {
                       {s.varName}
                     </span>
                     <span className="font-mono text-xs text-nova-smoke">
-                      {s.hex}
+                      <SwatchHexLabel varName={s.varName} fallbackHex={s.hex} />
                     </span>
                   </div>
                 ))}

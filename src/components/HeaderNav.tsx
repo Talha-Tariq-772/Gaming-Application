@@ -32,11 +32,30 @@ export default function HeaderNav() {
       <Link
         href="/"
         aria-current={onHome ? "page" : undefined}
-        className={`-my-2 flex min-h-11 items-center font-display text-xl font-bold transition-colors duration-(--duration-fast) ease-standard ${
-          onHome ? "text-nova-ember-text" : "text-nova-bone"
-        }`}
+        className="-my-2 flex min-h-11 items-center"
       >
-        NOVA
+        {/* logo.webp is a 500x500 canvas but the actual mark only occupies
+            a 180x83 region within it at (249,207) (measured via sharp
+            .trim()) — sizing the whole square small enough for the header
+            would render that mark at a few px, illegible. object-fit:cover
+            can't fix this: cropping a wide region out of a SQUARE source
+            with a landscape container picks the width-matching scale
+            (no horizontal crop at all) rather than the crop I want, since
+            cover always avoids under-filling either axis. A plain
+            background-image with explicit background-size/-position (a
+            fixed 0.4x zoom into that exact region) gives the independent
+            horizontal+vertical crop cover can't. */}
+        <span
+          className="block h-[33px] w-[72px]"
+          role="img"
+          aria-label="PSCBUNDLE"
+          style={{
+            backgroundImage: "url(/logo.webp)",
+            backgroundSize: "200px 200px",
+            backgroundPosition: "-99.6px -82.8px",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
       </Link>
 
       <nav aria-label="Primary" className="hidden items-center gap-8 md:flex lg:gap-16">

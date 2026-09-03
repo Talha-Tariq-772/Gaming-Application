@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Nova — Cinematic Game Storefront";
+export const alt = "PSCBUNDLE — Cinematic Game Storefront";
 
 export default function Image() {
   return new ImageResponse(
@@ -44,7 +44,7 @@ export default function Image() {
             lineHeight: 1.02,
           }}
         >
-          NOVA
+          PSCBUNDLE
         </div>
         <div
           style={{

@@ -30,7 +30,7 @@ function parseList(value: string | null): string[] {
 function chipClasses(active: boolean): string {
   return `min-h-11 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] transition-colors duration-(--duration-fast) ease-standard ${
     active
-      ? "border-nova-ember bg-nova-ember-lo text-nova-bone"
+      ? "border-nova-ember bg-nova-ember-bright text-nova-void"
       : "border-nova-hairline bg-nova-crypt text-nova-ash hover:text-nova-bone"
   }`;
 }

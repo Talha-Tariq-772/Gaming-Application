@@ -680,7 +680,7 @@ export default function GameFormDialog({
             type="button"
             disabled={isSubmitting}
             onClick={handleSave}
-            className="min-h-11 flex-1 rounded-md bg-nova-ember-lo px-4 py-2 text-sm font-semibold text-nova-bone transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-deep disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 flex-1 rounded-md bg-nova-ember-bright px-4 py-2 text-sm font-semibold text-nova-void transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-bright-hover disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isSubmitting ? "Saving…" : game ? "Save Changes" : "Add Game"}
           </button>

@@ -14,13 +14,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
     url: "/memberships",
   },
   twitter: {
     card: "summary_large_image",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
   },
 };

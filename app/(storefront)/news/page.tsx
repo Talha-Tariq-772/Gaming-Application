@@ -7,7 +7,7 @@ import { formatDate } from "@/src/lib/date";
 import { getNewsPosts } from "@/src/lib/news";
 
 const TITLE = "News";
-const DESCRIPTION = "Announcements, updates, and drops from Nova.";
+const DESCRIPTION = "Announcements, updates, and drops from PSCBUNDLE.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -17,13 +17,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
     url: "/news",
   },
   twitter: {
     card: "summary_large_image",
-    title: `${TITLE} — Nova`,
+    title: `${TITLE} — PSCBUNDLE`,
     description: DESCRIPTION,
   },
 };
@@ -37,7 +37,7 @@ export default async function NewsPage() {
         <Eyebrow>News</Eyebrow>
         <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">News</h1>
         <p className="mt-4 max-w-lg text-base text-nova-ash">
-          Announcements, updates, and drops from the Nova team.
+          Announcements, updates, and drops from the PSCBUNDLE team.
         </p>
       </div>
 

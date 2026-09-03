@@ -231,7 +231,7 @@ export default function OrderDetailPanel({
               type="button"
               onClick={() => setShowApprove(true)}
               disabled={deciding}
-              className="flex-1 rounded-md bg-nova-ember-lo px-4 py-2 text-sm font-semibold text-nova-bone transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-deep disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex-1 rounded-md bg-nova-ember-bright px-4 py-2 text-sm font-semibold text-nova-void transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-bright-hover disabled:cursor-not-allowed disabled:opacity-40"
             >
               Approve
             </button>

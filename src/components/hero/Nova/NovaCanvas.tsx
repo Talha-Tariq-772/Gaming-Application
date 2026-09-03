@@ -14,36 +14,35 @@ import {
   createProgram,
   FULLSCREEN_TRIANGLE_POSITIONS,
   loadImage,
-  loadTexture,
   perspective,
   sampleAlphaEdgeUVs,
   textureFromImage,
   withOctaves,
 } from "./webgl-helpers";
 
-// ---- Point-cloud figure: fixed scene constants (spec/PATH_A_POINT_CLOUD.md
-// Session B + its Session-A amendments) ----
+// ---- Rim-glow + ember fire effect: fixed scene constants ----
+// (figure.ts's point-cloud-reconstruction predecessor came from
+// spec/PATH_A_POINT_CLOUD.md; this file no longer draws a body
+// reconstruction, so most of that spec's per-point depth/dissolve-escape
+// math doesn't apply here anymore — see figure.ts's own header.)
 
-// figure-color.webp / figure-depth.webp are both 683x1024 (portrait — a
-// 408x612 source resized to a 1024px long edge, see
-// scripts/generate-figure-assets.mjs). Hardcoded rather than read back from
-// the loaded Image because both files are committed, fixed-aspect assets,
-// not user content.
+// figure-color.webp is 683x1024 (portrait — a 408x612 source resized to a
+// 1024px long edge, see scripts/generate-figure-assets.mjs). Hardcoded
+// rather than read back from the loaded Image because it's a committed,
+// fixed-aspect asset, not user content. figure-depth.webp is no longer
+// loaded here — the rim/ember passes only ever needed the color texture's
+// alpha channel, never real depth; the point-cloud pass that used to need
+// it for per-point z displacement is gone (see figure.ts).
 const FIGURE_ASPECT = 683 / 1024;
 const FIGURE_COLOR_URL = "/hero/figure-color.webp";
-const FIGURE_DEPTH_URL = "/hero/figure-depth.webp";
 
 const FOV_Y = (30 * Math.PI) / 180;
 const CAMERA_NEAR = 0.1;
 const CAMERA_FAR = 10;
 // World units back from the origin. The figure occupies roughly
 // FIGURE_ASPECT wide x 1.0 tall (see figure.ts's `pos.x`/`pos.y`), so this
-// leaves headroom for the orbit + dissolve without clipping through the
-// near plane. NOT verified in a real browser (no browser in this
-// environment) — first thing to eyeball once this renders.
+// leaves headroom for the orbit without clipping through the near plane.
 const CAMERA_DISTANCE = 2.5;
-
-const DEPTH_SCALE = 0.35; // uDepthScale — spec's given starting value.
 
 // uPointScale target-size factor: how much larger than the grid's own
 // point-to-point spacing a point should render, in screen pixels — enough
@@ -92,7 +91,16 @@ export default function NovaCanvas() {
     const config = detectDeviceTier();
     const gl = canvas.getContext("webgl2", {
       antialias: false, // upscaled low-res render already softens edges
-      alpha: false,
+      // The real artwork now renders as a plain <img> underneath this
+      // canvas (see NovaFigureVisual.tsx) — the canvas itself must be
+      // transparent wherever the fog/rim/ember passes don't contribute, or
+      // it paints over the image instead of layering fire on top of it.
+      // premultipliedAlpha: false so the browser treats this pass's
+      // straight (non-premultiplied) fragColor output correctly when
+      // compositing over the DOM instead of double-darkening translucent
+      // pixels.
+      alpha: true,
+      premultipliedAlpha: false,
       powerPreference: "low-power",
       depth: false,
       stencil: false,
@@ -169,21 +177,19 @@ export default function NovaCanvas() {
     let emberBaseBuffer: WebGLBuffer | null = null;
     let embersReady = false;
 
-    // ---- Figure program: point-cloud hero figure, additive, full-res ----
+    // ---- Figure program: edge-detected rim glow, additive, full-res ----
     // No vertex buffer, no attributes — the vertex shader derives its grid
     // position from gl_VertexID alone, so this VAO stays empty; it only
     // needs to exist because WebGL2 requires one bound to draw at all.
     const figureProgram = createProgram(gl, figureVertexShader, figureFragmentShader);
     const figureUniforms = {
       uColor: gl.getUniformLocation(figureProgram, "uColor"),
-      uDepth: gl.getUniformLocation(figureProgram, "uDepth"),
       uGrid: gl.getUniformLocation(figureProgram, "uGrid"),
       uTime: gl.getUniformLocation(figureProgram, "uTime"),
       uDissolve: gl.getUniformLocation(figureProgram, "uDissolve"),
       uProjection: gl.getUniformLocation(figureProgram, "uProjection"),
       uView: gl.getUniformLocation(figureProgram, "uView"),
       uPointScale: gl.getUniformLocation(figureProgram, "uPointScale"),
-      uDepthScale: gl.getUniformLocation(figureProgram, "uDepthScale"),
       uAspect: gl.getUniformLocation(figureProgram, "uAspect"),
     };
     const figureVao = gl.createVertexArray();
@@ -192,29 +198,26 @@ export default function NovaCanvas() {
     // not in resize() or the render loop.
     gl.useProgram(figureProgram);
     gl.uniform1i(figureUniforms.uColor, 1);
-    gl.uniform1i(figureUniforms.uDepth, 2);
     gl.useProgram(emberProgram);
     gl.uniform1f(emberUniforms.uAspect, FIGURE_ASPECT);
 
-    // Textures load asynchronously; the figure pass is skipped entirely
-    // until both resolve (renderFrame checks figureReady), and permanently
-    // skipped if either fails — fog + embers must never block or flash
-    // while this loads. The color image is loaded as a plain
-    // HTMLImageElement first (not straight to a texture) because
-    // sampleAlphaEdgeUVs needs to read its pixels on the CPU side to build
-    // the embers' edge-weighted base positions — the texture itself is
-    // then created from that same already-loaded image, no double fetch.
+    // The color image loads asynchronously; the figure (rim-glow) pass is
+    // skipped entirely until it resolves (renderFrame checks figureReady),
+    // and permanently skipped if it fails — fog + embers must never block
+    // or flash while this loads. Loaded as a plain HTMLImageElement first
+    // (not straight to a texture) because sampleAlphaEdgeUVs needs to read
+    // its pixels on the CPU side to build the embers' edge-weighted base
+    // positions — the texture itself is then created from that same
+    // already-loaded image, no double fetch.
     let figureColorTexture: WebGLTexture | null = null;
-    let figureDepthTexture: WebGLTexture | null = null;
     let figureReady = false;
     let figureLoggedFailure = false;
     let texturesCancelled = false;
 
-    Promise.all([loadImage(FIGURE_COLOR_URL), loadTexture(gl, FIGURE_DEPTH_URL)])
-      .then(([colorImage, depthTexture]) => {
+    loadImage(FIGURE_COLOR_URL)
+      .then((colorImage) => {
         if (texturesCancelled) return;
         figureColorTexture = textureFromImage(gl, colorImage);
-        figureDepthTexture = depthTexture;
         figureReady = true;
 
         const emberBaseUVs = sampleAlphaEdgeUVs(colorImage, config.emberCount);
@@ -270,7 +273,6 @@ export default function NovaCanvas() {
       );
       gl.uniform2f(figureUniforms.uGrid, config.figureGrid[0], config.figureGrid[1]);
       gl.uniform1f(figureUniforms.uAspect, FIGURE_ASPECT);
-      gl.uniform1f(figureUniforms.uDepthScale, DEPTH_SCALE);
 
       // Perspective-correct point size: pixels-per-world-unit at
       // CAMERA_DISTANCE, times the grid's own point spacing (figure spans
@@ -420,15 +422,13 @@ export default function NovaCanvas() {
       const viewMatrix = buildOrbitView(CAMERA_DISTANCE, orbitState.yaw, orbitState.offset);
 
       // Figure BEFORE embers — embers must read as floating in front of it.
-      if (figureReady && figureColorTexture && figureDepthTexture) {
+      if (figureReady && figureColorTexture) {
         gl.useProgram(figureProgram);
         gl.uniform1f(figureUniforms.uTime, elapsed);
         gl.uniform1f(figureUniforms.uDissolve, dissolveState.value);
         gl.uniformMatrix4fv(figureUniforms.uView, false, viewMatrix);
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, figureColorTexture);
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, figureDepthTexture);
         gl.bindVertexArray(figureVao);
         gl.drawArrays(gl.POINTS, 0, config.figurePointCount);
       }
@@ -529,7 +529,6 @@ export default function NovaCanvas() {
       gl.deleteVertexArray(figureVao);
       gl.deleteTexture(rtTexture);
       if (figureColorTexture) gl.deleteTexture(figureColorTexture);
-      if (figureDepthTexture) gl.deleteTexture(figureDepthTexture);
       gl.deleteFramebuffer(framebuffer);
     };
   }, []);
