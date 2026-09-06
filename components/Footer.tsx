@@ -8,6 +8,7 @@ const LINK_GROUPS = [
     heading: "Platform",
     links: [
       { label: "Store", href: "/games" },
+      { label: "Gift Cards", href: "/gift-cards" },
       { label: "Library", href: "/library" },
       { label: "News", href: "/news" },
       { label: "Community", href: "/community" },
