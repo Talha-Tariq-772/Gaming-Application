@@ -10,9 +10,14 @@ const MIN_GENRE_MATCHES = 3;
  * "More <Genre>" below the fold on a game detail page — same pinned
  * horizontal-scroll row as the homepage's Featured/Best Sellers/New
  * Arrivals sections (FeaturedGamesScroll), not a second implementation.
- * Falls back to "More Games" (any 8 other titles) when fewer than 3 games
- * share this genre, and renders nothing at all if even that fallback can't
- * find a single other game — never an empty heading or empty carousel.
+ *
+ * Below MIN_GENRE_MATCHES, this KEEPS whatever same-genre matches exist
+ * (there may be 1 or 2 — discarding them and showing an unrelated list
+ * instead would throw away a real, honest match) and pads the remainder
+ * with other games, relabeling the heading "More Games" since the result
+ * is then a mixed list, not a pure genre match. Renders nothing at all if
+ * even that fallback can't find a single other game — never an empty
+ * heading or empty carousel.
  */
 export default async function RelatedGamesRow({ game }: { game: Game }) {
   const sameGenre = (await getGames({ genre: [game.genre] })).filter((g) => g.id !== game.id);
@@ -21,9 +26,10 @@ export default async function RelatedGamesRow({ game }: { game: Game }) {
   let related: Game[] = sameGenre;
 
   if (sameGenre.length < MIN_GENRE_MATCHES) {
-    const anyGames = (await getGames()).filter((g) => g.id !== game.id);
+    const sameGenreIds = new Set(sameGenre.map((g) => g.id));
+    const others = (await getGames()).filter((g) => g.id !== game.id && !sameGenreIds.has(g.id));
     heading = "More Games";
-    related = anyGames;
+    related = [...sameGenre, ...others];
   }
 
   if (related.length === 0) return null;
