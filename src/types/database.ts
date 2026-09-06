@@ -218,6 +218,79 @@ export interface GameFilters {
   productType?: ProductType;
 }
 
+// Matches the gift_card_products.platform check constraint in
+// supabase/migrations/20260901000002_gift_cards.sql exactly — change one,
+// change the other.
+export const GIFT_CARD_PLATFORMS = ["psn", "xbox", "steam", "google_play", "apple"] as const;
+
+export type GiftCardPlatform = (typeof GIFT_CARD_PLATFORMS)[number];
+
+export const GIFT_CARD_PLATFORM_LABELS: Record<GiftCardPlatform, string> = {
+  psn: "PlayStation Network",
+  xbox: "Xbox",
+  steam: "Steam",
+  google_play: "Google Play",
+  apple: "Apple",
+};
+
+// Matches the gift_card_products.region check constraint in
+// supabase/migrations/20260901000002_gift_cards.sql exactly — change one,
+// change the other.
+export const GIFT_CARD_REGIONS = ["US", "UK", "EU", "TR", "PK", "GLOBAL"] as const;
+
+export type GiftCardRegion = (typeof GIFT_CARD_REGIONS)[number];
+
+export const GIFT_CARD_REGION_LABELS: Record<GiftCardRegion, string> = {
+  US: "United States",
+  UK: "United Kingdom",
+  EU: "European Union",
+  TR: "Turkey",
+  PK: "Pakistan",
+  GLOBAL: "Global",
+};
+
+/**
+ * A gift card is a single redemption code, not a login pair — a separate
+ * shape from Game/game_credentials, not a third ProductType value on
+ * `games`. See supabase/migrations/20260901000002_gift_cards.sql.
+ */
+export interface GiftCardProduct {
+  id: string;
+  slug: string;
+  title: string;
+  platform: GiftCardPlatform;
+  region: GiftCardRegion;
+  denominationValue: number | null;
+  denominationCurrency: string | null;
+  pricePkr: number;
+  /** Plain absolute URL, unlike Game.coverPath — gift cards have no
+   * Supabase Storage-managed art pipeline (yet), just an optional direct
+   * link. Null falls back to the placeholder, same as Game.coverImageUrl. */
+  cardImageUrl: string | null;
+  headerImageUrl: string | null;
+  description: string;
+  /** Rendered verbatim on the detail page — never through markdown/HTML
+   * sanitization, unlike Guide/SetupGuide bodies. */
+  redemptionInstructions: string;
+  isActive: boolean;
+  sortOrder: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type GiftCardSort = "newest" | "price_asc" | "price_desc" | "name";
+
+/** Query shape accepted by `getGiftCardProducts`. */
+export interface GiftCardFilters {
+  platform?: GiftCardPlatform[];
+  region?: GiftCardRegion[];
+  search?: string;
+  sort?: GiftCardSort;
+  /** Defaults to true (only active products) when omitted — mirrors
+   * GameFilters.isActive. */
+  isActive?: boolean;
+}
+
 export const GUIDE_CATEGORIES = [
   "getting-started",
   "payment",
