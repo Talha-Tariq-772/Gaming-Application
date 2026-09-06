@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { safeAsync } from "@/src/lib/safe-async";
 import { GAME_COVER_PLACEHOLDER } from "@/src/lib/game-placeholder";
@@ -260,24 +261,40 @@ export async function getGamesStock(gameIds: string[]): Promise<Map<string, numb
 }
 
 /**
- * React.cache-wrapped so every caller within the same request (Footer in
- * the shared layout, checkout/page.tsx, anywhere else) shares one in-flight
- * promise instead of firing a fresh Supabase query each time it's invoked —
- * without this, a second render pass of Footer during streaming re-suspends
- * on a brand-new, uncached fetch instead of reusing the already-resolved one.
+ * Payment methods are not user-specific and rarely change (admin-managed,
+ * edited maybe a few times a year) — Footer renders on every single route
+ * in the app, so an uncached fetch here means a transient Supabase hiccup
+ * (a DNS blip, a cold pooler connection, anything) errors every page, not
+ * just this one. unstable_cache persists the result across requests (Next's
+ * Data Cache, not just React's per-request one below) for 5 minutes, so a
+ * hiccup only breaks whichever single request is unlucky enough to hit the
+ * cache miss — everything else keeps serving the last good value.
+ *
+ * React.cache still wraps the outer export on top of that: within one
+ * request, every caller (Footer in the shared layout, checkout/page.tsx,
+ * anywhere else) shares one in-flight promise instead of each independently
+ * awaiting the cache lookup — without this, a second render pass of Footer
+ * during streaming would redundantly re-enter unstable_cache instead of
+ * reusing the already-resolved value from the first.
  */
-export const getPaymentMethods = cache(async (): Promise<PaymentMethod[]> => {
-  return safeAsync("payment methods", async () => {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("payment_methods")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true });
-    if (error) throw error;
-    return (data ?? []).map(mapPaymentMethodRow);
-  });
-});
+const getPaymentMethodsCached = unstable_cache(
+  async (): Promise<PaymentMethod[]> => {
+    return safeAsync("payment methods", async () => {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map(mapPaymentMethodRow);
+    });
+  },
+  ["payment-methods"],
+  { revalidate: 300, tags: ["payment-methods"] },
+);
+
+export const getPaymentMethods = cache(getPaymentMethodsCached);
 
 /**
  * Batch lookups for order-history display. Service role, not the public
