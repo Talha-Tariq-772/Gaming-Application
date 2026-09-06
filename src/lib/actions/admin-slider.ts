@@ -3,7 +3,7 @@
 import { requireAdmin } from "@/src/lib/auth/session";
 import { createClient as createServiceClient } from "@/src/lib/supabase/server";
 
-const MAX_SLOTS = 5;
+const MAX_SLOTS = 6;
 
 function isValidSlot(position: unknown): position is number {
   return typeof position === "number" && Number.isInteger(position) && position >= 1 && position <= MAX_SLOTS;
@@ -20,9 +20,13 @@ export type SliderActionResult = { ok: true; updates: SliderUpdate[] } | { ok: f
  * Puts a game in slot `position`. Rejects if the slot already holds a
  * different game (advisory pre-check; games_slider_position_unique —
  * 20260831000005_slider_position_unique.sql — is the real boundary against
- * a race). "Max 5 slots" isn't a separate rule to enforce: position is
- * restricted to 1-5 here, and uniqueness means at most 5 rows can ever
- * hold a non-null value at once.
+ * a race). "Max N slots" isn't a separate rule to enforce: position is
+ * restricted to 1-MAX_SLOTS here, and uniqueness means at most MAX_SLOTS
+ * rows can ever hold a non-null value at once. That migration's unique
+ * index has no range check of its own — MAX_SLOTS here is the only place
+ * the slot count is enforced, so raising it (as done for Dead Island 2's
+ * 6th slot) never needs a schema change, only this constant plus
+ * AdminSliderClient.tsx's SLOT_COUNT and StoreSlider.tsx's slice() cap.
  */
 export async function assignSliderSlot(gameId: string, position: number): Promise<SliderActionResult> {
   await requireAdmin();

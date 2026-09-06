@@ -19,7 +19,7 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <section className="border-y border-nova-hairline bg-nova-crypt">
+    <section className="border-y border-nova-hairline bg-nova-void">
       <div className="mx-auto max-w-page px-4 py-16 md:px-8">
         {/* Single fluid size (--text-heading, globals.css), not a
             breakpoint jump to text-3xl — see Session 7's typography pass. */}

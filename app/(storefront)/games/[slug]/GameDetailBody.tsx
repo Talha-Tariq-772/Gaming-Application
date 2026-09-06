@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CardImage from "@/components/ui/CardImage";
+import HeaderImage from "@/components/ui/HeaderImage";
 import { chamferClipPath } from "@/src/components/ui/nova/Chamfer";
 import Eyebrow from "@/src/components/ui/nova/Eyebrow";
 import FadeDivider from "@/src/components/ui/nova/FadeDivider";
@@ -14,7 +16,6 @@ import { renderMarkdown } from "@/src/lib/markdown";
 import { REDEMPTION_GUIDE_SLUG } from "@/src/lib/mock-guides";
 import { getSetupGuideById } from "@/src/lib/setup-guides";
 import { SITE_URL } from "@/src/lib/site-config";
-import { gameCoverImage, gameWallpaperImage } from "@/src/lib/storage-image";
 import { GAME_PLATFORM_LABELS } from "@/src/types/database";
 
 /**
@@ -71,8 +72,6 @@ export default async function GameDetailBody({
     ],
   };
 
-  const wallpaper = game.wallpaperPath ? gameWallpaperImage(game.wallpaperPath, game.productType) : null;
-  const cover = game.coverPath ? gameCoverImage(game.coverPath) : null;
   const eyebrowText = [game.genre, game.platform ? GAME_PLATFORM_LABELS[game.platform] : null]
     .filter(Boolean)
     .join(" · ");
@@ -92,40 +91,16 @@ export default async function GameDetailBody({
       <ViewGameTracker gameId={game.id} genre={game.genre} platform={game.platform} />
 
       {/* Full-bleed wallpaper header — outside the max-w-page wrapper below,
-          same edge-to-edge treatment as StoreSliderSection, same reserved
-          clamp() height as the slider so it never sizes off the loaded
-          image. Falls back to the flat cover image (still inside a
-          fixed-height container) for the handful of rows without a
-          wallpaper_path — memberships today. */}
-      <div
-        className="relative w-full overflow-hidden bg-nova-crypt"
-        style={{ height: "clamp(420px, 45vw, 620px)" }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element -- wallpaperPath derivatives are already exact pre-sized .webp files; see storage-image.ts */}
-        <img
-          src={wallpaper ? wallpaper.src : game.coverImageUrl}
-          srcSet={wallpaper?.srcSet}
-          sizes="100vw"
-          alt=""
-          fetchPriority="high"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        {/* Part B: was a full-width bottom-to-void wash — legible title, but
-            it hid most of the wallpaper behind it everywhere, not just
-            where the title actually sits. Two narrower scrims instead: a
-            short bottom fade (page-merge only, not a legibility aid) plus a
-            left-side scrim sized to the hero row's cover+title column,
-            fading out by mid-image so the right two-thirds of the artwork
-            stays clear. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-nova-void md:h-32"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-nova-void/85 via-nova-void/35 to-transparent sm:w-3/4 md:w-3/5"
-        />
-      </div>
+          same edge-to-edge treatment as StoreSliderSection. HeaderImage's
+          own aspect-[12/5] box shows the full artwork at its native ratio;
+          scrolling past a tall hero is expected now, not something this
+          page tries to prevent. */}
+      {/* No scrim/fade over the artwork — the title below gets its own
+          text-shadow for legibility over the overlap zone instead of a
+          gradient wash on the image (a nova-void-tokened wash here would
+          also invert to a light/fog gradient in light mode, which is
+          exactly the effect this is meant to avoid). */}
+      <HeaderImage game={game} className="bg-nova-crypt" />
 
       <div className="mx-auto max-w-page px-4 md:px-8">
         {/* Cover overlapping the wallpaper's bottom edge on the left, title
@@ -136,23 +111,25 @@ export default async function GameDetailBody({
           data-testid="game-hero-row"
           className="relative -mt-16 flex items-end gap-5 sm:-mt-20 md:-mt-24 md:gap-8"
         >
-          <div
+          <CardImage
+            game={game}
+            priority
             style={chamferClipPath(12)}
-            className="relative aspect-3/4 w-28 shrink-0 overflow-hidden border border-nova-hairline bg-nova-crypt sm:w-36 md:w-44"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- coverPath derivatives are already exact pre-sized .webp files; see storage-image.ts */}
-            <img
-              src={cover ? cover.src : game.coverImageUrl}
-              srcSet={cover?.srcSet}
-              sizes="(min-width: 768px) 176px, 112px"
-              alt={game.title}
-              fetchPriority="high"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          </div>
+            className="w-28 shrink-0 border border-nova-hairline bg-nova-crypt sm:w-36 md:w-44"
+          />
           <div className="flex flex-col gap-2 pb-1 md:pb-2">
-            {eyebrowText && <Eyebrow>{eyebrowText}</Eyebrow>}
-            <h1 className="wrap-break-word font-display text-display-sm font-extrabold text-nova-bone">
+            {eyebrowText && (
+              <Eyebrow className="[text-shadow:0_1px_3px_rgba(0,0,0,0.8),0_2px_10px_rgba(0,0,0,0.6)]">
+                {eyebrowText}
+              </Eyebrow>
+            )}
+            {/* Fixed white, not text-nova-bone: this title overlaps the
+                hero image's scrim (negative-margin overlap above), never
+                the page background, so it can't use a theme-aware token —
+                nova-bone flips to near-black ink in light mode
+                (app/globals.css), invisible against the scrim. Overridden
+                locally here only; nova-bone itself is untouched. */}
+            <h1 className="wrap-break-word font-display text-display-sm font-extrabold text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.8),0_4px_20px_rgba(0,0,0,0.6)]">
               {game.title}
             </h1>
           </div>

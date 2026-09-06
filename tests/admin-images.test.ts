@@ -82,11 +82,14 @@ beforeAll(async () => {
   if (membershipErr) throw membershipErr;
   membership = membershipRow;
 
-  // Real source art already on disk (checked into the repo for the catalog
-  // seed script) — a genuine, decodable jpeg, not a synthetic fixture.
-  const productsDir = path.join(process.cwd(), "public", "products");
-  const [firstFile] = await fs.readdir(productsDir);
-  realImageBuffer = await fs.readFile(path.join(productsDir, firstFile));
+  // Real source art already on disk (raw catalog art scripts/upload-catalog-images.mjs
+  // and scripts/generate-image-manifest.mjs both process) — a genuine,
+  // decodable jpeg, not a synthetic fixture. public/products/card|header
+  // hold only generated derivatives (see that script's own header comment),
+  // so the real, unprocessed source lives in assets/product-images instead.
+  const cardSourceDir = path.join(process.cwd(), "assets", "product-images", "card");
+  const [firstFile] = await fs.readdir(cardSourceDir);
+  realImageBuffer = await fs.readFile(path.join(cardSourceDir, firstFile));
 });
 
 afterAll(async () => {

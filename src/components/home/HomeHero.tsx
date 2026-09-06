@@ -1,106 +1,136 @@
+import Image from "next/image";
+import type { ReactNode } from "react";
 import Button from "@/components/Button";
 import MagneticButton from "@/src/components/motion/MagneticButton";
-import NovaFigureVisual from "@/src/components/home/NovaFigureVisual";
 
 /**
- * Pure CSS reveal (.hero-reveal, defined in globals.css) — no gsap, no JS
- * at all for the text side. The headline is deliberately NOT animated:
- * it's this page's LCP element, and even a fast gsap-driven opacity
- * reveal measurably delayed LCP in testing (both from the
- * opacity-animated-elements-aren't-LCP-eligible-until-opaque rule, and
- * from gsap-core's parse/exec cost sitting in the critical path since
- * this was the only static importer of it on this route). Reduced motion
- * is handled by the CSS itself — see globals.css.
+ * Full-bleed header-image hero, replacing the old two-column
+ * text/NovaFigureVisual split layout. The figure art
+ * (NovaFigureVisual/NovaFigureStage, figure-color.webp) is no longer
+ * rendered here — left unimported rather than deleted, same as this file's
+ * previous convention already did for HeroVisual.tsx/HeroVisualV2.tsx, in
+ * case it's wanted again elsewhere.
  *
- * The figure column now renders NovaFigureVisual — the real fire/ember
- * WebGL effect (Part D) over the real artwork (figure-color.webp), not
- * either of the two comparison variants that used to live here.
- * HeroVisual.tsx (R3F) and HeroVisualV2.tsx (the Pinterest-placeholder
- * CSS variant, gitignored, never shippable) are both left in the tree
- * unimported in case they're wanted again, rather than deleted.
+ * This also means the old .nova-theme-lock-dark wrapper is gone: that
+ * class existed specifically because the dark ink-on-transparent figure
+ * art only read correctly against a near-black background (see its own
+ * comment in globals.css) — a constraint about that specific asset, which
+ * this hero no longer renders. Locking the whole section dark would also
+ * actively break requirement 5 below (the bottom blend deliberately reads
+ * the REAL page background token so it merges correctly in both themes,
+ * which a section-wide dark lock would override back to always-dark).
+ * Every color that must stay fixed regardless of theme (the scrim, the
+ * overlay text) is hardcoded explicitly instead, the same way the store
+ * hero's identical scrim/text bug was fixed.
  */
 
-/**
- * Session 8: the section used to be a plain grid with no min-height at
- * all, sized purely by its own py-32/md:py-48 padding plus the figure's
- * old `aspect-square w-full` — that made the figure's HEIGHT follow its
- * COLUMN'S WIDTH (~627-644px at 1366-1440px), which is far taller than
- * any reasonable viewport. The grid row sized to that, the section sized
- * to the row plus its huge padding, and the whole thing measured
- * 1011-1028px tall against a 768-900px viewport — confirmed via
- * getBoundingClientRect(), not assumed. items-center was already present
- * and centering correctly; it just had a hugely oversized row to center
- * *within*.
- *
- * Fix is structural, not a padding tweak: <section> is now `flex
- * min-h-svh` (same shape as NovaHero.tsx's section — the hero is still
- * guaranteed at least one full viewport tall, per the CLS requirement,
- * but no longer taller than that from its own content), deliberately with
- * NO items-center of its own — default `align-items: stretch` instead, so
- * its single child (the two-column wrapper) stretches to the section's
- * full resolved height, a real known value, rather than shrinking to its
- * own content height. That wrapper is a flex row (flex-col below md) with
- * `flex-1` on each column for equal WIDTH; the same default stretch gives
- * both columns that same real height. The text column's own
- * `justify-center` (unchanged) centers its content within it, and the
- * figure wrapper mirrors that with `items-center justify-center`. The
- * figure itself (HeroVisual/HeroVisualV2) now takes its height FROM that
- * bounded row (`md:h-full md:w-auto`) and derives width from its own
- * aspect-ratio, capped by `max-w-full` — sized to fit the available
- * height, not the other way around. Below md (stacked, single column)
- * it's unchanged: `w-full`, height following from aspect-ratio, same as
- * before this fix.
- */
+function HeroCopy(): ReactNode {
+  return (
+    <>
+      {/* Fixed colors, not nova-* tokens: this text always sits on the
+          artwork (or, on mobile, on this same hardcoded-dark band below
+          it — never the page background), so it can't flip with theme.
+          nova-ember-text/nova-bone would turn dark ink in light mode
+          (app/globals.css) and disappear — the exact bug already fixed on
+          the store hero and detail-page hero this session. #db5d1f is
+          nova-ember-text's own dark-mode value, hardcoded so it stays the
+          same "existing accent orange" in both themes. */}
+      <span
+        className="hero-reveal text-xs font-semibold uppercase tracking-[0.2em] text-[#db5d1f]"
+        style={{ animationDelay: "0s" }}
+      >
+        Now live
+      </span>
+      <h1 className="w-full text-display-lg font-display font-extrabold text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.8),0_4px_20px_rgba(0,0,0,0.6)]">
+        Play what&rsquo;s
+        <br />
+        next.
+      </h1>
+      <p className="hero-reveal w-full text-lg text-white" style={{ animationDelay: "0.1s" }}>
+        A curated, cinematic storefront for the games worth your time. No
+        noise, no clutter — just what&rsquo;s worth playing.
+      </p>
+      <div className="hero-reveal flex items-center gap-6" style={{ animationDelay: "0.18s" }}>
+        <MagneticButton as="a" href="/styleguide" variant="primary">
+          View Styleguide
+        </MagneticButton>
+        {/* !text-white: Button's own "ghost" variant hardcodes
+            text-nova-ash (theme-conditional, and too dim over artwork
+            regardless) — the `!` is needed to reliably win over that
+            class from a shared component rather than restyling the
+            variant itself for every other ghost button on the site. */}
+        <Button as="a" href="/games" variant="ghost" className="!text-white">
+          Browse Store
+        </Button>
+      </div>
+    </>
+  );
+}
+
 export default function HomeHero() {
   return (
-    // nova-theme-lock-dark: hero stays dark in both themes — see the
-    // long comment on that class in globals.css for why. Pins every
-    // nova-* token this section (and everything inside it, including
-    // NovaFigureVisual/NovaFigureStage) uses back to its dark value,
-    // regardless of the light/dark class on <html>.
-    <section className="nova-theme-lock-dark flex min-h-svh w-full overflow-hidden bg-nova-void">
-      <div className="mx-auto flex w-full max-w-page flex-col gap-12 px-4 py-12 md:flex-row md:px-8 md:py-16">
-        <div className="flex min-w-0 flex-1 flex-col items-start justify-center gap-8">
-          <span
-            className="hero-reveal text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember-text"
-            style={{ animationDelay: "0s" }}
-          >
-            Now live
-          </span>
-          <h1 className="w-full text-display-lg font-display font-extrabold text-nova-bone">
-            Play what&rsquo;s
-            <br />
-            next.
-          </h1>
-          <p
-            className="hero-reveal w-full max-w-lg text-lg text-nova-ash"
-            style={{ animationDelay: "0.1s" }}
-          >
-            A curated, cinematic storefront for the games worth your time. No
-            noise, no clutter — just what&rsquo;s worth playing.
-          </p>
-          <div
-            className="hero-reveal mt-4 flex items-center gap-6"
-            style={{ animationDelay: "0.18s" }}
-          >
-            <MagneticButton as="a" href="/styleguide" variant="primary">
-              View Styleguide
-            </MagneticButton>
-            <Button as="a" href="#" variant="ghost">
-              Browse Store
-            </Button>
+    <section className="w-full overflow-hidden bg-nova-void">
+      <div className="relative aspect-[12/5] w-full">
+        <Image
+          src="/main-header.jpeg"
+          alt=""
+          fill
+          unoptimized
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+
+        {/* Text scrim: left 40%, fully faded out before mid-frame — the
+            right 60% (well past the requested 55%) stays completely
+            untinted, so the characters are never dimmed. Hardcoded dark
+            in both themes, not a nova-void-tokened wash: nova-void flips
+            to a light cream in light mode, which would turn this into
+            exactly the "white/fog gradient" the store hero's identical
+            scrim was explicitly fixed to avoid. Peak opacity 70%, same
+            cap as the store hero. Desktop/tablet only: below md the copy
+            moves to its own solid-dark band beneath the image instead of
+            overlaying it (see the mobile block further down). */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 hidden w-2/5 bg-gradient-to-r from-[#08060a]/70 via-[#08060a]/35 to-transparent md:block"
+        />
+        {/* Bottom blend: dissolves the artwork into the page background
+            instead of terminating on a visible line. Hardcoded #08060A,
+            not the nova-void token — a plain from/to gradient never has a
+            solid run at its base, so the seam was visible even at the
+            darkest stop. This holds solid to 35%, then eases through a
+            mid step before fading out, which is what actually kills the
+            line. Fixed height via clamp (not h-1/4 of the hero box) so it
+            reads the same regardless of the hero's aspect-ratio height. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0"
+          style={{
+            height: "clamp(120px, 18vh, 220px)",
+            background:
+              "linear-gradient(to top, #08060A 0%, #08060A 35%, rgba(8,6,10,0.7) 60%, transparent 100%)",
+          }}
+        />
+
+        {/* Overlay copy — md+ only. Centered vertically, left-aligned to
+            the site's normal content column, constrained to max-w-xl so
+            it never runs into the right side of the artwork. */}
+        <div className="absolute inset-0 z-10 mx-auto hidden w-full max-w-page items-center px-4 md:flex md:px-8">
+          <div className="flex w-full max-w-xl flex-col items-start gap-7 md:gap-9">
+            <HeroCopy />
           </div>
         </div>
-        {/* min-w-0 overrides the flex item default of min-width:auto —
-            without it, the aspect-square figure's transferred min-content
-            size (from height:100%) floors this column wider than an even
-            flex-1 split, stealing ~13px from the text column at
-            1366x768 (measured: 640px vs 614px before this fix). Classic
-            flexbox + aspect-ratio interaction, not specific to this
-            component. */}
-        <div className="flex min-w-0 flex-1 items-center justify-center">
-          <NovaFigureVisual />
-        </div>
+      </div>
+
+      {/* Mobile-only stacked copy, below the image in normal flow — an
+          aspect-[12/5] box is even shorter at phone widths than the old
+          16:9 one, nowhere near enough to overlay this much text without
+          it overflowing the artwork. Same hardcoded
+          dark band color as the scrim above, so the white text keeps the
+          exact same guaranteed contrast here as it has on the overlay. */}
+      <div className="flex w-full flex-col items-start gap-7 bg-[#08060a] px-4 py-10 md:hidden">
+        <HeroCopy />
       </div>
     </section>
   );

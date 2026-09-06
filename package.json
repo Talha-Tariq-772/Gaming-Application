@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "npm run generate-image-manifest",
     "dev": "next dev",
+    "prebuild": "npm run generate-image-manifest",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "upload-catalog-images": "node --experimental-strip-types scripts/upload-catalog-images.mjs"
+    "generate-image-manifest": "node --experimental-strip-types scripts/generate-image-manifest.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

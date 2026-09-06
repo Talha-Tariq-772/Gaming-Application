@@ -3,12 +3,12 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getHeaderImageResponsive } from "@/lib/product-image";
 import { canCreateWebGLContext } from "@/src/components/hero/Nova/webgl-support";
 import NovaButton from "@/src/components/ui/nova/NovaButton";
 import { formatPrice } from "@/src/lib/format";
 import { prefersReducedMotion } from "@/src/lib/motion-guards";
 import { priceDisplay } from "@/src/lib/price-display";
-import { gameWallpaperImage } from "@/src/lib/storage-image";
 import type { Game } from "@/src/types/database";
 
 /**
@@ -28,8 +28,12 @@ const SliderCanvas = dynamic(() => import("./SliderCanvas"), {
 const AUTO_ADVANCE_MS = 6000;
 /** How many derivative widths to eagerly consider "loaded" ahead of the
  * current slide — 1 means "prefetch exactly one slide ahead", matching the
- * brief's "prefetch slide 2 only, slides 3-5 load lazily on advance". */
+ * brief's "prefetch slide 2 only, the rest load lazily on advance". */
 const PREFETCH_AHEAD = 1;
+/** Matches admin-slider.ts's MAX_SLOTS / AdminSliderClient.tsx's
+ * SLOT_COUNT — not importable directly (admin-slider.ts is a "use server"
+ * module, which can only export async actions), so kept in sync by hand. */
+const MAX_SLIDES = 6;
 
 interface Slide {
   key: string;
@@ -38,15 +42,18 @@ interface Slide {
   priceLabel: string | null;
   wasPriceLabel: string | null;
   src: string;
-  srcSet: string;
+  srcSet?: string;
 }
 
 function buildSlides(games: Game[]): Slide[] {
   return games
     .filter((game): game is Game & { wallpaperPath: string } => Boolean(game.wallpaperPath))
-    .slice(0, 5)
+    .slice(0, MAX_SLIDES)
     .map((game) => {
-      const wallpaper = gameWallpaperImage(game.wallpaperPath, game.productType);
+      // Local products/header manifest art first, falling back to the
+      // Supabase-managed wallpaperPath derivative — same priority order as
+      // every other card/header call site (see lib/product-image.ts).
+      const wallpaper = getHeaderImageResponsive(game);
       const price = priceDisplay(game);
       return {
         key: game.id,
@@ -162,8 +169,7 @@ export default function StoreSlider({ games }: { games: Game[] }) {
           setHoverOrFocusPaused(false);
         }
       }}
-      className="relative w-full overflow-hidden bg-nova-crypt"
-      style={{ height: "clamp(420px, 45vw, 620px)" }}
+      className="relative aspect-[12/5] w-full overflow-hidden bg-nova-crypt"
     >
       {useWebGL ? (
         <SliderCanvas urls={urls} activeIndex={index} onError={() => setUseWebGL(false)} />
@@ -171,42 +177,66 @@ export default function StoreSlider({ games }: { games: Game[] }) {
         <div className="absolute inset-0">
           {slides.map((slide, i) =>
             i <= maxRendered ? (
-              // eslint-disable-next-line @next/next/no-img-element -- wallpaperPath derivatives are already exact pre-sized .webp files; see storage-image.ts and GameCard.tsx's identical reasoning
-              <img
+              // Identical wrapper on every slide — same classes, only the
+              // crossfade opacity differs — so nothing about the box's
+              // size or content shifts when the active slide changes.
+              // Just one image layer: the section is aspect-[12/5] (2.4:1),
+              // matching the source artwork's own ratio, so object-cover
+              // fills it exactly with no cropping and no letterbox gap —
+              // no blurred fill layer needed to paper over a mismatch.
+              <div
                 key={slide.key}
-                src={slide.src}
-                srcSet={slide.srcSet}
-                sizes="100vw"
-                alt=""
-                loading={i === 0 ? "eager" : "lazy"}
-                fetchPriority={i === 0 ? "high" : undefined}
                 aria-hidden={i !== index}
-                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out ${
+                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
                   i === index ? "opacity-100" : "opacity-0"
                 }`}
-              />
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- wallpaperPath derivatives are already exact pre-sized .webp files; see storage-image.ts and GameCard.tsx's identical reasoning */}
+                <img
+                  src={slide.src}
+                  srcSet={slide.srcSet}
+                  sizes="100vw"
+                  alt=""
+                  loading={i === 0 ? "eager" : "lazy"}
+                  fetchPriority={i === 0 ? "high" : undefined}
+                  className="absolute inset-0 h-full w-full object-cover object-center"
+                />
+              </div>
             ) : null,
           )}
         </div>
       )}
 
-      {/* Horizontal scrim behind the text zone — keeps the title/price/CTA
-          legible over any wallpaper, regardless of its own brightness. */}
+      {/* Text scrim: left ~40% only — where the title/price/CTA actually
+          sit — fading to fully transparent before mid-frame, so the
+          center/right of the artwork (where the characters are) stays
+          completely untouched. Hardcoded dark color, NOT the nova-void
+          token: this must stay the same dark scrim in both themes — a
+          token-driven wash here previously inverted to a washed-out
+          light/fog gradient in light mode, which is exactly what this
+          avoids. Capped at 70% opacity at its darkest point. Shared once
+          (not duplicated per slide) so it's identical across every slide
+          by construction. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-nova-void/85 via-nova-void/40 to-transparent"
+        className="pointer-events-none absolute inset-y-0 left-0 w-2/5 bg-gradient-to-r from-[#08060a]/70 via-[#08060a]/30 to-transparent"
       />
-      {/* Separate, shallow scrim for the bottom control strip (pause/dots) —
-          independent of the text scrim above since the controls sit outside
-          the text zone entirely. */}
+      {/* Bottom blend: thin band (~1/5 of the height) so the hero merges
+          into whatever section follows on the page, fading upward to
+          transparent — unlike the text scrim above, this one deliberately
+          DOES use the nova-void token, since the whole point is to match
+          each theme's actual page background at the seam, not to darken
+          the art. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-nova-void/80 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-1/5 bg-gradient-to-t from-nova-void to-transparent"
       />
 
       {/* Text zone: left-anchored, vertically centered, nothing else lives
           here — prev/next sit at the outer edges and pause/dots sit at the
-          bottom-center, both outside this column. */}
+          bottom-center, both outside this column. Legibility over bright
+          art comes from both the scrim above and the text's own drop
+          shadow (below). */}
       <div className="absolute inset-y-0 left-0 flex w-full max-w-[480px] flex-col justify-center gap-4 py-12 pr-6 pl-20 sm:pr-10 sm:pl-24 md:pr-16 md:pl-28">
         <Link href={slides[index].href} className="group w-fit">
           {/* Session 9: no font-extrabold — this h2's size comes from an
@@ -219,18 +249,25 @@ export default function StoreSlider({ games }: { games: Game[] }) {
               box runs ~1.25x font-size) — confirmed here too via
               getClientRects() on "Grand Theft Auto VI" at 1366/1440px,
               where it wraps to two lines. 1.3 matches the token rule. */}
+          {/* Fixed white, not text-nova-bone: this text always sits on
+              artwork (never the page background), so it can't use a
+              theme-aware token — nova-bone flips to near-black ink in
+              light mode (app/globals.css), which was invisible against
+              the scrim. Same reasoning on the price/was-price below.
+              Overridden locally here only; nova-bone itself (used
+              everywhere else as the real body-text token) is untouched. */}
           <h2
-            className="font-display uppercase text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember-text"
+            className="font-display uppercase text-white transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember-text [text-shadow:0_2px_4px_rgba(0,0,0,0.8),0_4px_20px_rgba(0,0,0,0.6)]"
             style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", lineHeight: 1.3 }}
           >
             {slides[index].title}
           </h2>
         </Link>
         {slides[index].priceLabel && (
-          <span className="flex items-baseline gap-2 font-sans">
-            <span className="text-lg font-semibold text-nova-bone">{slides[index].priceLabel}</span>
+          <span className="flex items-baseline gap-2 font-sans [text-shadow:0_1px_3px_rgba(0,0,0,0.8),0_2px_10px_rgba(0,0,0,0.6)]">
+            <span className="text-lg font-semibold text-white">{slides[index].priceLabel}</span>
             {slides[index].wasPriceLabel && (
-              <span className="text-sm text-nova-smoke line-through">{slides[index].wasPriceLabel}</span>
+              <span className="text-sm text-white/70 line-through">{slides[index].wasPriceLabel}</span>
             )}
           </span>
         )}

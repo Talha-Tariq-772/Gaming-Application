@@ -10,7 +10,7 @@ import {
 import { gameWallpaperImage } from "@/src/lib/storage-image";
 import type { Game } from "@/src/types/database";
 
-const SLOT_COUNT = 5;
+const SLOT_COUNT = 6;
 
 export default function AdminSliderClient({ games: initialGames }: { games: Game[] }) {
   const [games, setGames] = useState(initialGames);
@@ -75,7 +75,7 @@ export default function AdminSliderClient({ games: initialGames }: { games: Game
       <div data-testid="slider-heading">
         <h1 className="text-xl font-bold text-nova-bone">Homepage Slider</h1>
         <p className="mt-1 text-sm text-nova-ash">
-          5 ordered slots. Only games with a wallpaper actually render on the storefront.
+          {SLOT_COUNT} ordered slots. Only games with a wallpaper actually render on the storefront.
         </p>
       </div>
 

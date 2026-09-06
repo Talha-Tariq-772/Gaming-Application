@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import CardImage from "@/components/ui/CardImage";
 import { REDEMPTION_GUIDE_SLUG } from "@/src/lib/mock-guides";
 import type { Game } from "@/src/types/database";
 
@@ -12,15 +12,7 @@ export default function LibraryCard({ game, orderId }: { game: Game; orderId: st
   return (
     <div className="flex flex-col gap-3">
       <Link href={`/account/orders/${orderId}`} className="group flex flex-col gap-3">
-        <div className="relative aspect-3/4 overflow-hidden rounded-lg border border-nova-hairline bg-nova-crypt">
-          <Image
-            src={game.coverImageUrl}
-            alt={game.title}
-            fill
-            sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
-            className="object-cover"
-          />
-        </div>
+        <CardImage game={game} className="rounded-lg border border-nova-hairline bg-nova-crypt" />
         <h3 className="line-clamp-2 wrap-break-word font-display text-lg font-bold text-nova-bone transition-colors duration-(--duration-fast) ease-standard group-hover:text-nova-ember-text">
           {game.title}
         </h3>

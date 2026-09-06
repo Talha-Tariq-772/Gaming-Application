@@ -13,3 +13,14 @@
  * guarantee actually true.
  */
 export const GAME_COVER_PLACEHOLDER = "/game-cover-placeholder.png";
+
+/** Same rationale as GAME_COVER_PLACEHOLDER above, at HeaderImage's 16:9
+ * ratio instead of CardImage's 3:4 — see
+ * scripts/generate-header-placeholder.mjs for how it was generated. Used
+ * by lib/product-image.ts's getHeaderImage() when a game has neither a
+ * local products/header manifest entry nor a wallpaperPath. */
+export const GAME_HEADER_PLACEHOLDER = "/game-header-placeholder.png";
+export const GAME_HEADER_PLACEHOLDER_WIDTH = 1280;
+export const GAME_HEADER_PLACEHOLDER_HEIGHT = 720;
+export const GAME_COVER_PLACEHOLDER_WIDTH = 640;
+export const GAME_COVER_PLACEHOLDER_HEIGHT = 853;

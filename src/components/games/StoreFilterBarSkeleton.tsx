@@ -17,8 +17,10 @@ export default function StoreFilterBarSkeleton() {
       aria-hidden="true"
       className="mb-8 flex flex-wrap items-center gap-3 border-b border-nova-hairline pb-6"
     >
-      {CHIP_WIDTHS.map((w) => (
-        <div key={w} className={`h-11 ${w} animate-pulse rounded-full bg-nova-crypt`} />
+      {CHIP_WIDTHS.map((w, i) => (
+        // Index in the key: CHIP_WIDTHS has duplicate widths ("w-24" twice)
+        // and this list is static, so an index-based key is safe here.
+        <div key={`${w}-${i}`} className={`h-11 ${w} animate-pulse rounded-full bg-nova-crypt`} />
       ))}
       <div className="ml-auto h-11 w-40 animate-pulse rounded-md bg-nova-crypt" />
     </div>

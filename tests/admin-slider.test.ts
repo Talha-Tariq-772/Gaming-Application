@@ -98,8 +98,8 @@ afterAll(async () => {
 }, 40_000);
 
 /**
- * These do NOT touch any of the 5 real slider slots — this live project's
- * slider is normally fully occupied by real catalog games (all 5 slots
+ * These do NOT touch any of the 6 real slider slots — this live project's
+ * slider is normally fully occupied by real catalog games (all 6 slots
  * taken), so anything that only ever gets REJECTED, or that fails before
  * ever reaching the database, is safe to run by default. Anything that
  * needs an actual free slot to succeed lives in the gated block below.
@@ -115,8 +115,8 @@ describe("safe by construction — no real slot is ever written to", () => {
     sessionState.client = await signedInClient(admin.email, password);
   });
 
-  it("rejects a position outside 1-5 (this is the whole 'max 5 slots' enforcement)", async () => {
-    for (const bad of [0, 6, -1]) {
+  it("rejects a position outside 1-6 (this is the whole 'max 6 slots' enforcement)", async () => {
+    for (const bad of [0, 7, -1]) {
       const result = await assignSliderSlot(gameA.id, bad);
       expect(result.ok).toBe(false);
     }
@@ -143,14 +143,14 @@ describe("safe by construction — no real slot is ever written to", () => {
 });
 
 /**
- * The live project's slider is normally fully occupied (all 5 slots taken
+ * The live project's slider is normally fully occupied (all 6 slots taken
  * by real catalog games), so testing a successful assign/reorder/remove —
  * or the DB unique index actually rejecting a duplicate — needs at least
  * one genuinely free slot. There's no test-owned slot to use: the domain
- * is exactly 5 fixed values, all already spoken for. The only way to
+ * is exactly 6 fixed values, all already spoken for. The only way to
  * exercise this without guessing at which slot might be safe is to
- * temporarily clear all 5 real assignments, run the real flow against
- * test-owned games, and restore the original 5 in a `finally` — same
+ * temporarily clear all real assignments, run the real flow against
+ * test-owned games, and restore the originals in a `finally` — same
  * shape as admin-users.test.ts's prevent_last_admin_demotion race test,
  * and for the same reason: a real, if small, live-project blast radius if
  * this gets interrupted mid-run (killed process, crash between clearing
