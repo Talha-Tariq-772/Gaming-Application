@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const NAV_LINKS = [
+/** Shared with MobileNav.tsx — one source of truth for the link set so the
+ * two nav presentations (desktop bar, mobile slide-over) can never drift. */
+export const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Store", href: "/games" },
   { label: "Gift Cards", href: "/gift-cards" },
@@ -14,7 +16,7 @@ const NAV_LINKS = [
 
 /** Exact match for "/" (otherwise every route would match it); prefix match
  * for everything else so a game detail page still shows Store as active. */
-function isActive(pathname: string, href: string): boolean {
+export function isActive(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 

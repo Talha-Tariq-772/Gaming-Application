@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import CartTriggerButton from "@/src/components/cart/CartTriggerButton";
 import HeaderAuthMenu from "@/src/components/HeaderAuthMenu";
 import HeaderNav from "@/src/components/HeaderNav";
+import MobileNav, { type MobileAuthState } from "@/src/components/MobileNav";
 import ThemeToggle from "@/src/components/ThemeToggle";
 import { createClient } from "@/src/lib/supabase/server-session";
 import Button from "./Button";
@@ -22,6 +23,7 @@ export default async function Header() {
   } = await supabase.auth.getUser();
 
   let authSlot: ReactNode;
+  let mobileAuth: MobileAuthState;
 
   if (!user) {
     authSlot = (
@@ -29,6 +31,7 @@ export default async function Header() {
         Sign In
       </Button>
     );
+    mobileAuth = { status: "signed-out" };
   } else {
     const { data: profile } = await supabase
       .from("profiles")
@@ -45,6 +48,7 @@ export default async function Header() {
           Complete your profile
         </Link>
       );
+      mobileAuth = { status: "needs-profile" };
     } else {
       // Read straight from the Google session's own metadata rather than
       // our profiles table — profiles.full_name is only ever set once, at
@@ -60,6 +64,7 @@ export default async function Header() {
       const isStaff = profile.role === "admin" || profile.role === "agent";
 
       authSlot = <HeaderAuthMenu name={name} avatarUrl={avatarUrl} isStaff={isStaff} />;
+      mobileAuth = { status: "signed-in", name, avatarUrl, isStaff };
     }
   }
 
@@ -71,7 +76,13 @@ export default async function Header() {
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <CartTriggerButton />
-          {authSlot}
+          {/* Below md, auth moves into MobileNav's panel instead (its own
+              "Sign In" full-width CTA, or the signed-in Account/Admin/Sign
+              Out rows) — there's no room left in the bar once the
+              hamburger sits here too, and the panel already has to carry
+              this content regardless. */}
+          <div className="hidden md:block">{authSlot}</div>
+          <MobileNav mobileAuth={mobileAuth} />
         </div>
       </div>
     </header>
