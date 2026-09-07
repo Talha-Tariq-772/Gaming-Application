@@ -75,8 +75,14 @@ export default function AdminUsersClient({
         </div>
       ) : (
         <>
-          {/* Table — md and up */}
-          <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline md:block">
+          {/* Table — md and up. contain-layout: see GamesTable.tsx's
+              identical wrapper for why this is required, not decorative —
+              overflow-x-auto alone still lets this table's true width
+              leak into document.documentElement.scrollWidth in this
+              Chromium build, when html/body have overflow-x:clip
+              (globals.css). Measured leak here was worse than Games'
+              (63px vs 37px at 768px) despite less internal overflow. */}
+          <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline contain-layout md:block">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-nova-hairline bg-nova-crypt text-xs uppercase tracking-wider text-nova-smoke">

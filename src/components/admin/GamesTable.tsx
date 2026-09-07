@@ -114,8 +114,21 @@ export default function GamesTable({
 
   return (
     <>
-      {/* Table — md and up */}
-      <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline md:block">
+      {/* Table — md and up. contain-layout is load-bearing, not decorative:
+          without it, this wrapper's own overflow-x-auto correctly scrolls
+          the table internally (its own scrollWidth/clientWidth are
+          properly split), but its content's true width still leaks into
+          document.documentElement.scrollWidth — measured at 768px, a
+          768px-wide document with this table inside reports 805px
+          scrollWidth, and window.scrollTo(x, 0) genuinely moves the whole
+          page sideways. Confirmed via direct isolation (toggling this
+          property alone) that the leak is specifically an overflow-auto
+          vs document-level overflow-x:clip (globals.css, html/body)
+          interaction in this Chromium build — switching this wrapper to
+          overflow-x:hidden does NOT fix it; contain:layout does, by
+          establishing a real independent formatting context rather than
+          relying on overflow alone for isolation. */}
+      <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline contain-layout md:block">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-nova-hairline bg-nova-crypt text-xs uppercase tracking-wider text-nova-smoke">

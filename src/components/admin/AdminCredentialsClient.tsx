@@ -83,8 +83,14 @@ export default function AdminCredentialsClient({
         </label>
       </div>
 
-      {/* Table — md and up */}
-      <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline md:block">
+      {/* Table — md and up. contain-layout: same fix as GamesTable.tsx's
+          identical wrapper, applied here preemptively — this table's
+          columns are narrow enough that it didn't measure as a document-
+          level leak at 768px with today's content, but it has the exact
+          same structure (and some internal overflow-x-auto scroll
+          already, just under whatever threshold triggers the leak), so
+          there's no reason to wait for it to break the same way. */}
+      <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline contain-layout md:block">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-nova-hairline bg-nova-crypt text-xs uppercase tracking-wider text-nova-smoke">

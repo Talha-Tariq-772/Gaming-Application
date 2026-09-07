@@ -311,18 +311,30 @@ export default function StoreSlider({ games }: { games: Game[] }) {
           {playing ? <PauseIcon /> : <PlayIcon />}
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           {slides.map((slide, i) => (
+            // 44x44 tap target (WCAG 2.5.8 / this app's own 44px floor —
+            // the visible dot stays exactly its old h-2.5/w-2.5/w-6 size,
+            // via the inner span; only the invisible hit area grew, via
+            // transparent padding on the button. `group`/`group-hover`
+            // (not a plain `hover:` on the span itself) so hovering
+            // anywhere in the 44px area colors the dot, not just the 10px
+            // visible sliver of it.
             <button
               key={slide.key}
               type="button"
               aria-label={`Go to slide ${i + 1} of ${slides.length}: ${slide.title}`}
               aria-current={i === index}
               onClick={() => goTo(i)}
-              className={`h-2.5 rounded-full transition-[width,background-color] duration-(--duration-fast) ease-standard ${
-                i === index ? "w-6 bg-nova-ember" : "w-2.5 bg-nova-ash/50 hover:bg-nova-ash"
-              }`}
-            />
+              className="group flex h-11 w-11 items-center justify-center"
+            >
+              <span
+                aria-hidden="true"
+                className={`h-2.5 rounded-full transition-[width,background-color] duration-(--duration-fast) ease-standard ${
+                  i === index ? "w-6 bg-nova-ember" : "w-2.5 bg-nova-ash/50 group-hover:bg-nova-ash"
+                }`}
+              />
+            </button>
           ))}
         </div>
       </div>

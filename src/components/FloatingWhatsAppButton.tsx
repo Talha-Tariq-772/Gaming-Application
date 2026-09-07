@@ -8,11 +8,13 @@ import { buildGeneralWhatsAppLink } from "@/src/lib/order";
  * Site-wide floating WhatsApp entry point, mounted once at the root layout.
  * Hidden on /checkout — that flow has its own contextual WhatsApp link with
  * the order's payment reference prefilled (see StepConfirmation.tsx), and
- * showing both would be a confusing duplicate.
+ * showing both would be a confusing duplicate. Hidden on every /admin
+ * route too — this is a customer-support entry point with no purpose in
+ * the staff tool, and it was rendering on top of admin table rows.
  */
 export default function FloatingWhatsAppButton() {
   const pathname = usePathname();
-  if (pathname?.startsWith("/checkout")) return null;
+  if (pathname?.startsWith("/checkout") || pathname?.startsWith("/admin")) return null;
 
   return (
     <a

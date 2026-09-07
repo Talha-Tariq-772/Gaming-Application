@@ -44,8 +44,12 @@ export default function OrdersTable({
 
   return (
     <>
-      {/* Table — md and up */}
-      <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline md:block">
+      {/* Table — md and up. contain-layout: same fix as GamesTable.tsx's
+          identical wrapper, applied here preemptively for the same
+          structural reason (identical overflow-x-auto pattern), even
+          though this table didn't measure as leaking at 768px with
+          today's content. */}
+      <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline contain-layout md:block">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-nova-hairline bg-nova-crypt text-xs uppercase tracking-wider text-nova-smoke">
