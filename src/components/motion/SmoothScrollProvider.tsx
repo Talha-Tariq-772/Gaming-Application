@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
+import { setLenisInstance } from "@/src/lib/lenis-instance";
 import { prefersReducedMotion } from "@/src/lib/motion-guards";
+import { isScrollLocked } from "@/src/lib/use-scroll-lock";
 
 const ACTIVATION_EVENTS = ["pointerdown", "wheel", "touchstart", "keydown"] as const;
 /** Fallback if the user never interacts (e.g. arrives via scrollbar drag
@@ -46,6 +48,17 @@ export default function SmoothScrollProvider({
 
       const lenis = new Lenis({ autoRaf: false });
       lenis.on("scroll", ScrollTrigger.update);
+      setLenisInstance(lenis);
+      // Closes the race where a dialog opens as the page's first
+      // interaction — the same interaction that triggered this activate()
+      // call. useScrollLock's effect already ran by now (it's synchronous
+      // with the click; this dynamic import is not) and could only find
+      // getLenisInstance() returning null, so its own stop() call was a
+      // no-op. Checking here, in the same synchronous stretch of code that
+      // just constructed the instance (no `await` before this line and
+      // the next), means no wheel/touch event can land in between —
+      // provably, not just probably, closes the gap.
+      if (isScrollLocked()) lenis.stop();
 
       function onTick(time: number) {
         lenis.raf(time * 1000);
@@ -54,6 +67,7 @@ export default function SmoothScrollProvider({
       gsap.ticker.lagSmoothing(0);
 
       cleanup = () => {
+        setLenisInstance(null);
         gsap.ticker.remove(onTick);
         lenis.destroy();
       };

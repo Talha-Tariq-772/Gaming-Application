@@ -105,7 +105,7 @@ export default function OrderDetailPanel({
         role="dialog"
         aria-modal="true"
         aria-labelledby="order-detail-heading"
-        className="fixed inset-y-0 right-0 z-40 flex w-full max-w-md flex-col overflow-y-auto border-l border-nova-hairline bg-nova-crypt"
+        className="fixed inset-y-0 right-0 z-40 flex h-dvh w-full max-w-md flex-col overflow-y-auto border-l border-nova-hairline bg-nova-crypt"
       >
         <div className="flex items-start justify-between border-b border-nova-hairline px-5 py-4">
           <div className="flex flex-col gap-2">

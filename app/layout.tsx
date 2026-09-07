@@ -158,10 +158,12 @@ export default function RootLayout({
           {/*
             NOVA_DESIGN_SPEC.md #2 texture layer. z-30 is deliberate, not the
             spec's literal z-index:50 — every modal/drawer/panel in this app
-            (CartDrawer, the admin dialogs) already uses
-            z-40 or z-50, so z-50 here would visually wash the texture over
-            them. z-30 sits above ordinary page content (z-auto) and below
-            every one of those, including the lowest (z-40 slide-over panels).
+            uses z-40 (admin slide-overs), z-50 (admin center dialogs, the
+            sticky header) or z-60 (CartDrawer, Toaster — the tier meant to
+            sit above the header too), so z-50 here would visually wash the
+            texture over most of them. z-30 sits above ordinary page content
+            (z-auto) and below every one of those, including the lowest
+            (z-40 slide-over panels).
             Grain renders first, vignette second, so the vignette's edge
             darkening composites on top of the grain speckle, matching the
             spec's own listed order.

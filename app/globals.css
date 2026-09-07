@@ -592,13 +592,20 @@
 
   html {
     color-scheme: dark;
-    /* Off-canvas panels (cart drawer, mobile filter sheet) sit fully
-       off-screen via translate-x-full/fixed positioning, and some internal
-       components (e.g. dense admin tables) legitimately scroll horizontally
-       within their own bounded container. `hidden` clips those visually but
-       still permits scrollTo()-driven scroll of the root; `clip` blocks that
-       too, so nothing at the document level is ever horizontally scrollable
-       by any means, at any breakpoint. */
+    /* Off-canvas panels (cart drawer, mobile nav) sit fully off-screen via
+       translate-x-full/fixed positioning, and some internal components
+       (e.g. dense admin tables) legitimately scroll horizontally within
+       their own bounded container. `hidden` clips those visually; `clip`
+       is chosen over it purely so nothing here ever grows an unwanted
+       horizontal scrollbar from a wide off-canvas panel, at any
+       breakpoint — NOT because it blocks scrollTo()-driven scroll of the
+       root the way an earlier version of this comment claimed. Verified
+       (src/lib/use-scroll-lock.ts's own comment has the measurements):
+       `overflow: clip` on documentElement does NOT reliably block
+       wheel/keyboard/programmatic scroll in this Chromium version —
+       scrollTo() went through every time it was tested. Dialog/drawer
+       scroll-locking does not rely on this rule; see use-scroll-lock.ts
+       for the mechanism that actually works. */
     overflow-x: clip;
   }
 

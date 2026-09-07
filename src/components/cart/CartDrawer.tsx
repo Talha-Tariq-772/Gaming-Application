@@ -30,7 +30,7 @@ export default function CartDrawer() {
       <div
         onClick={close}
         aria-hidden="true"
-        className={`fixed inset-0 z-50 bg-nova-void/70 transition-opacity duration-(--duration-base) ease-standard ${
+        className={`fixed inset-0 z-60 bg-nova-void/70 transition-opacity duration-(--duration-base) ease-standard ${
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       />
@@ -40,7 +40,16 @@ export default function CartDrawer() {
         aria-modal="true"
         aria-label="Cart"
         inert={!isOpen}
-        className={`fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-nova-hairline bg-nova-void transition-transform duration-(--duration-base) ease-standard sm:max-w-sm ${
+        // Viewport-pinned, not document-pinned: fixed + inset-y-0/right-0
+        // anchors to the viewport regardless of page scroll position.
+        // h-dvh (not h-screen/100vh) is explicit rather than relying on
+        // inset-y-0 alone, so mobile browser chrome showing/hiding never
+        // clips the panel — dvh tracks the actual visible viewport,
+        // 100vh/inset-y-0 can be sized against the larger one. z-60 is
+        // deliberately above the sticky header's z-50 (components/
+        // Header.tsx) — same tier as Toaster, the only other thing meant
+        // to sit on top of literally everything else.
+        className={`fixed inset-y-0 right-0 z-60 flex h-dvh w-full flex-col border-l border-nova-hairline bg-nova-void transition-transform duration-(--duration-base) ease-standard sm:max-w-sm ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

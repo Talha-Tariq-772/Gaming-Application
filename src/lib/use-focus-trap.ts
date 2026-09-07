@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useScrollLock } from "@/src/lib/use-scroll-lock";
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -15,6 +16,12 @@ const FOCUSABLE_SELECTOR =
  * and toggles via `isOpen` (CartDrawer), and one that's conditionally
  * rendered by its parent (admin dialogs) — pass `true` for the latter,
  * since mount/unmount then does the open/close transition itself.
+ *
+ * Also locks background page scroll for exactly as long as `isOpen` is
+ * true (see useScrollLock) — every dialog/drawer/panel in this app
+ * already calls this hook once, unconditionally, so bundling it here
+ * fixes scroll-behind-overlay for all of them at once rather than
+ * requiring a second hook call at every one of those call sites.
  */
 export function useFocusTrap<T extends HTMLElement>(
   isOpen: boolean,
@@ -22,6 +29,7 @@ export function useFocusTrap<T extends HTMLElement>(
 ) {
   const panelRef = useRef<T>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
+  useScrollLock(isOpen);
 
   // The listener below is only (re)attached when `isOpen` flips, not on
   // every render — that's what stops a fresh inline `onClose` (CartDrawer
