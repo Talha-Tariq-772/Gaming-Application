@@ -41,12 +41,15 @@ function HeroCopy(): ReactNode {
       >
         Now live
       </span>
-      <h1 className="w-full text-display-lg font-display font-extrabold text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.8),0_4px_20px_rgba(0,0,0,0.6)]">
+      <h1 className="w-full text-display-lg font-display font-extrabold text-white [text-shadow:0_2px_12px_rgba(8,6,10,0.8)]">
         Play what&rsquo;s
         <br />
         next.
       </h1>
-      <p className="hero-reveal w-full text-lg text-white" style={{ animationDelay: "0.1s" }}>
+      <p
+        className="hero-reveal w-full text-lg text-white [text-shadow:0_2px_12px_rgba(8,6,10,0.8)]"
+        style={{ animationDelay: "0.1s" }}
+      >
         A curated, cinematic storefront for the games worth your time. No
         noise, no clutter — just what&rsquo;s worth playing.
       </p>
@@ -81,19 +84,30 @@ export default function HomeHero() {
           className="object-cover object-center"
         />
 
-        {/* Text scrim: left 40%, fully faded out before mid-frame — the
-            right 60% (well past the requested 55%) stays completely
-            untinted, so the characters are never dimmed. Hardcoded dark
-            in both themes, not a nova-void-tokened wash: nova-void flips
-            to a light cream in light mode, which would turn this into
-            exactly the "white/fog gradient" the store hero's identical
-            scrim was explicitly fixed to avoid. Peak opacity 70%, same
-            cap as the store hero. Desktop/tablet only: below md the copy
-            moves to its own solid-dark band beneath the image instead of
-            overlaying it (see the mobile block further down). */}
+        {/* Text scrim: a genuine graduated darken, not a solid fill — every
+            stop is translucent (max alpha 0.65) so the artwork stays
+            visible underneath at every point, just progressively dimmed.
+            An earlier version used opaque #08060A stops (alpha 1.0) out to
+            45% width, which read as a flat black panel instead of a tint;
+            this fixes that. Legibility now leans on the text-shadow above
+            as much as the scrim (see HeroCopy) rather than the scrim alone.
+            Explicit percentage stops via inline style, same technique as
+            the bottom blend below, since Tailwind's from/via/to only gives
+            one implicit midpoint. Right 35% (65-100%) stays completely
+            untinted. Hardcoded dark in both themes, not a nova-void-tokened
+            wash: nova-void flips to a light cream in light mode, which
+            would turn this into exactly the "white/fog gradient" the store
+            hero's identical scrim was explicitly fixed to avoid.
+            Desktop/tablet only: below md the copy moves to its own
+            solid-dark band beneath the image instead of overlaying it (see
+            the mobile block further down). */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 hidden w-2/5 bg-gradient-to-r from-[#08060a]/70 via-[#08060a]/35 to-transparent md:block"
+          className="pointer-events-none absolute inset-y-0 left-0 hidden w-full md:block"
+          style={{
+            background:
+              "linear-gradient(to right, rgba(8,6,10,0.65) 0%, rgba(8,6,10,0.45) 25%, rgba(8,6,10,0.15) 50%, transparent 65%)",
+          }}
         />
         {/* Bottom blend: dissolves the artwork into the page background
             instead of terminating on a visible line. Hardcoded #08060A,
@@ -101,13 +115,22 @@ export default function HomeHero() {
             solid run at its base, so the seam was visible even at the
             darkest stop. This holds solid to 35%, then eases through a
             mid step before fading out, which is what actually kills the
-            line. Fixed height via clamp (not h-1/4 of the hero box) so it
-            reads the same regardless of the hero's aspect-ratio height. */}
+            line. Height is 27% of the hero box itself (not a vh-based
+            clamp) — a vh value is sized off the viewport's height, which
+            has nothing to do with this box's actual rendered height (that
+            comes from aspect-[12/5] against the box's *width*); the two
+            diverge hard at narrow/tall viewports, where 18vh measured out
+            to ~96% of the hero's own height instead of the ~27% it reads
+            as on desktop. 27% matches that desktop look (measured at
+            1440x900) and, being a plain percentage of this box, holds the
+            same fraction at every width — the internal gradient stops
+            above are already percentages of this element's own box, so
+            they keep the same solid-then-fade proportions automatically
+            as this height changes with the viewport. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[27%]"
           style={{
-            height: "clamp(120px, 18vh, 220px)",
             background:
               "linear-gradient(to top, #08060A 0%, #08060A 35%, rgba(8,6,10,0.7) 60%, transparent 100%)",
           }}
