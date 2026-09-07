@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { formatPrice } from "@/src/lib/format";
+import { formatPriceExact } from "@/src/lib/format";
 import { useFocusTrap } from "@/src/lib/use-focus-trap";
 import type { Order } from "@/src/types/database";
 
@@ -45,7 +45,7 @@ export default function ApproveConfirmDialog({
           received matches exactly:
         </p>
         <p className="mt-3 text-3xl font-bold text-nova-bone">
-          {formatPrice(order.amountExact)}
+          {formatPriceExact(order.amountExact)}
         </p>
         <p className="mt-1 font-mono text-sm text-nova-smoke">
           {order.paymentReference}

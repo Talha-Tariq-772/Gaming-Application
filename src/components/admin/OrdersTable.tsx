@@ -1,7 +1,19 @@
 import StatusBadge from "@/src/components/account/StatusBadge";
 import { getOrderAgeLabel } from "@/src/lib/admin-stats";
-import { formatPrice } from "@/src/lib/format";
+import { formatPriceExact } from "@/src/lib/format";
+import { formatPhoneDisplay, normalisePhone } from "@/src/lib/phone";
 import type { Order, PaymentMethod, Profile } from "@/src/types/database";
+
+/** Reconciles the two phone sources this table draws from — a signed-in
+ * customer's profiles.phone_number (spaced, "+92 325 6525755") and a
+ * guest's orders.guest_phone (tight E.164, "+923256525755") — to the same
+ * displayed format. Falls back to the raw value if it somehow isn't a
+ * normalisable PK mobile number, rather than hiding it. */
+function displayPhone(raw: string | null | undefined): string {
+  if (!raw) return "—";
+  const normalised = normalisePhone(raw);
+  return normalised ? formatPhoneDisplay(normalised) : raw;
+}
 
 export default function OrdersTable({
   orders,
@@ -68,13 +80,13 @@ export default function OrdersTable({
                   {order.paymentReference}
                 </td>
                 <td className="px-4 py-3 text-nova-ash">
-                  {customer?.fullName ?? "—"}
+                  {customer?.fullName ?? (order.guestPhone ? "Guest" : "—")}
                 </td>
                 <td className="px-4 py-3 text-nova-ash">
-                  {customer?.phoneNumber ?? "—"}
+                  {displayPhone(customer?.phoneNumber ?? order.guestPhone)}
                 </td>
                 <td className="px-4 py-3 text-right font-semibold text-nova-bone">
-                  {formatPrice(order.amountExact)}
+                  {formatPriceExact(order.amountExact)}
                 </td>
                 <td className="px-4 py-3 text-nova-ash">
                   {method?.label ?? "—"}
@@ -113,15 +125,15 @@ export default function OrdersTable({
             <div className="flex items-end justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate text-sm text-nova-bone">
-                  {customer?.fullName ?? "—"}
+                  {customer?.fullName ?? (order.guestPhone ? "Guest" : "—")}
                 </p>
                 <p className="truncate text-xs text-nova-smoke">
-                  {customer?.phoneNumber ?? "—"} · {method?.label ?? "—"}
+                  {displayPhone(customer?.phoneNumber ?? order.guestPhone)} · {method?.label ?? "—"}
                 </p>
               </div>
               <div className="shrink-0 text-right">
                 <p className="text-sm font-semibold text-nova-bone">
-                  {formatPrice(order.amountExact)}
+                  {formatPriceExact(order.amountExact)}
                 </p>
                 <p className="text-xs text-nova-smoke">
                   {getOrderAgeLabel(order.createdAt)}

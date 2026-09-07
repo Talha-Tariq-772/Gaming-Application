@@ -4,7 +4,7 @@ import { useState } from "react";
 import StatusBadge from "@/src/components/account/StatusBadge";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { formatDateTime } from "@/src/lib/date";
-import { formatPrice } from "@/src/lib/format";
+import { formatPrice, formatPriceExact } from "@/src/lib/format";
 import { track } from "@/src/lib/analytics";
 import { approveOrder, rejectOrder } from "@/src/lib/actions/admin-orders";
 import { buildWhatsAppLink } from "@/src/lib/order";
@@ -165,7 +165,7 @@ export default function OrderDetailPanel({
               Exact amount to match
             </h3>
             <p className="mt-1 text-2xl font-bold text-nova-bone">
-              {formatPrice(order.amountExact)}
+              {formatPriceExact(order.amountExact)}
             </p>
             <p className="mt-1 text-xs text-nova-ash">
               via {method?.label ?? "—"}
