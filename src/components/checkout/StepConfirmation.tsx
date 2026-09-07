@@ -1,20 +1,26 @@
 import Link from "next/link";
 import MagneticButton from "@/src/components/motion/MagneticButton";
+import { useAuth } from "@/src/contexts/AuthContext";
 import { track } from "@/src/lib/analytics";
 import { buildWhatsAppLink } from "@/src/lib/order";
 import { PAYMENT_VERIFICATION_FAQ_ID } from "@/src/lib/mock-guides";
+import type { CheckoutOrderItem } from "@/src/stores/checkout-store";
 import type { Order, PaymentMethod } from "@/src/types/database";
 
 export default function StepConfirmation({
   order,
+  orderItems,
   paymentMethods,
 }: {
   order: Order;
+  orderItems: CheckoutOrderItem[];
   paymentMethods: PaymentMethod[];
 }) {
+  const { profile } = useAuth();
   const method = paymentMethods.find((m) => m.id === order.paymentMethodId);
   const whatsappLink = buildWhatsAppLink(
     order,
+    orderItems,
     method?.label ?? "your chosen method",
   );
 
@@ -55,6 +61,20 @@ export default function StepConfirmation({
         verify it quickly.
       </p>
 
+      {/* No account exists for a guest — credentials are never revealed
+          on-site for them. Say so plainly and give them the one thing
+          they need to follow up: the reference, already shown above. */}
+      {!profile && (
+        <p className="text-sm text-nova-ash">
+          We&rsquo;ll deliver your credentials on WhatsApp once payment is
+          verified. Quote{" "}
+          <span className="font-mono font-semibold text-nova-bone">
+            {order.paymentReference}
+          </span>{" "}
+          if you follow up.
+        </p>
+      )}
+
       <p className="text-sm text-nova-ash">
         Orders are typically verified within 1–2 hours during business
         hours (9am–9pm PKT). Wondering how that works?{" "}
@@ -67,12 +87,14 @@ export default function StepConfirmation({
         .
       </p>
 
-      <Link
-        href="/account"
-        className="text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
-      >
-        Track your order status →
-      </Link>
+      {profile && (
+        <Link
+          href="/account"
+          className="text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
+        >
+          Track your order status →
+        </Link>
+      )}
     </div>
   );
 }

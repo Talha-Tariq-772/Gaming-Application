@@ -22,6 +22,7 @@ export default function CheckoutFlow({
   const hydrated = useHydrated();
   const step = useCheckoutStore((s) => s.step);
   const order = useCheckoutStore((s) => s.order);
+  const orderItems = useCheckoutStore((s) => s.orderItems);
   const resetCheckout = useCheckoutStore((s) => s.resetCheckout);
   const cartItems = useCartStore((s) => s.items);
   const { total: cartTotal } = useCartSummary();
@@ -136,7 +137,7 @@ export default function CheckoutFlow({
         <StepPaymentInstructions order={order} paymentMethods={paymentMethods} />
       )}
       {step === 3 && order && (
-        <StepConfirmation order={order} paymentMethods={paymentMethods} />
+        <StepConfirmation order={order} orderItems={orderItems} paymentMethods={paymentMethods} />
       )}
     </div>
   );

@@ -11,6 +11,7 @@ export function mapOrderRow(row: any): Order {
   return {
     id: row.id,
     userId: row.user_id,
+    guestPhone: row.guest_phone,
     status: row.status,
     paymentReference: row.payment_reference,
     amountExact: Number(row.amount_exact),

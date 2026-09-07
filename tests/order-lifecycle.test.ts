@@ -436,6 +436,135 @@ describe("createOrder", () => {
   });
 });
 
+describe("createOrder — guest checkout", () => {
+  it("creates an order with no session at all and a unique PSC- reference", async () => {
+    const game = await seedGame(`Guest ${run}`, 1);
+    sessionState.client = null; // no session — if any code path secretly needs one, this throws loudly.
+
+    const result = await createOrder(undefined, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], "03001234567");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    orderIds.push(result.order.id);
+
+    expect(result.order.userId).toBeNull();
+    expect(result.order.guestPhone).toBe("+923001234567");
+    expect(result.order.paymentReference).toMatch(/^PSC-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/);
+  });
+
+  it("rejects an invalid guest phone number before creating anything", async () => {
+    const game = await seedGame(`GuestBadPhone ${run}`, 1);
+    sessionState.client = null;
+
+    const result = await createOrder(undefined, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], "not-a-phone");
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe("INVALID_PHONE");
+
+    const { data: itemsForGame } = await service.from("order_items").select("id").eq("game_id", game.id);
+    expect(itemsForGame ?? []).toHaveLength(0);
+  });
+
+  it("a guest can mark their own order paid with no session (claimPayment)", async () => {
+    const game = await seedGame(`GuestClaim ${run}`, 1);
+    sessionState.client = null;
+
+    const created = await createOrder(undefined, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], "03211234567");
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    orderIds.push(created.order.id);
+
+    const result = await claimPayment(created.order.id);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.order.status).toBe("payment_claimed");
+  });
+
+  it("signed-in checkout still attaches user_id and still enforces requireUser — a mismatched session throws", async () => {
+    const game = await seedGame(`SignedInStillGuarded ${run}`, 1);
+    sessionState.client = clientA;
+
+    const own = await createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}SG`);
+    expect(own.ok).toBe(true);
+    if (!own.ok) return;
+    orderIds.push(own.order.id);
+    expect(own.order.userId).toBe(customerA.id);
+    expect(own.order.guestPhone).toBeNull();
+
+    const game2 = await seedGame(`SignedInSpoof ${run}`, 1);
+    sessionState.client = clientB; // real session is B, but claiming to be A
+    await expect(
+      createOrder(customerA.id, [{ gameId: game2.id, paymentMethodId: paymentMethod.id }], `+9230${run}SP`),
+    ).rejects.toThrow();
+  });
+});
+
+describe("payment reference generation", () => {
+  it("produces PSC- references from the unambiguous alphabet (no 0/O/1/I/L)", async () => {
+    const game = await seedGame(`RefFormat ${run}`, 1);
+    sessionState.client = clientA;
+
+    const result = await createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}RF`);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    orderIds.push(result.order.id);
+    expect(result.order.paymentReference).toMatch(/^PSC-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/);
+  });
+
+  it("two concurrent orders never collide on payment_reference", async () => {
+    const gameA = await seedGame(`RaceRefA ${run}`, 1);
+    const gameB = await seedGame(`RaceRefB ${run}`, 1);
+    sessionState.client = clientA;
+
+    const [r1, r2] = await Promise.all([
+      createOrder(customerA.id, [{ gameId: gameA.id, paymentMethodId: paymentMethod.id }], `+9230${run}R1`),
+      createOrder(customerA.id, [{ gameId: gameB.id, paymentMethodId: paymentMethod.id }], `+9230${run}R2`),
+    ]);
+
+    expect(r1.ok).toBe(true);
+    expect(r2.ok).toBe(true);
+    if (r1.ok) orderIds.push(r1.order.id);
+    if (r2.ok) orderIds.push(r2.order.id);
+    if (r1.ok && r2.ok) {
+      expect(r1.order.paymentReference).not.toBe(r2.order.paymentReference);
+    }
+  });
+
+  it("a closed (approved) order's reference can't be reused — the uniqueness check spans every status, not just open orders", async () => {
+    const game = await seedGame(`RefClosed ${run}`, 1);
+    sessionState.client = clientA;
+
+    const created = await createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}RC`);
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    orderIds.push(created.order.id);
+
+    // Close it out, same as approve_order/reject_order would.
+    await service.from("orders").update({ status: "approved" }).eq("id", created.order.id);
+
+    // A brand-new row reusing that exact reference must fail at the
+    // database level — proves payment_reference's global UNIQUE
+    // constraint isn't scoped to "still open" orders, which is exactly
+    // what generate_unique_payment_reference()'s collision check must
+    // respect (the previous version didn't — see 20260907000001).
+    const { error: dupError } = await service.from("orders").insert({
+      user_id: customerA.id,
+      status: "awaiting_payment",
+      payment_reference: created.order.paymentReference,
+      amount_exact: 500,
+      payment_method_id: paymentMethod.id,
+    });
+    expect(dupError).not.toBeNull();
+
+    // And the real generator, called again with that closed reference
+    // still sitting in the table, keeps working — no error, no
+    // repeated value.
+    const { data: freshRef, error: rpcError } = await service.rpc("generate_unique_payment_reference");
+    expect(rpcError).toBeNull();
+    expect(freshRef).not.toBe(created.order.paymentReference);
+    expect(freshRef).toMatch(/^PSC-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/);
+  });
+});
+
 describe("claimPayment", () => {
   it("marks an awaiting_payment order as payment_claimed for its owner", async () => {
     const game = await seedGame(`Claimable ${run}`, 1);

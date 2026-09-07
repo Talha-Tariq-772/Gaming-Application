@@ -3,6 +3,7 @@
 import { requireAuthenticated, requireUser } from "@/src/lib/auth/session";
 import { mapOrderRow } from "@/src/lib/actions/order-mapping";
 import { getGamesByIds } from "@/src/lib/catalog";
+import { normalisePhone } from "@/src/lib/phone";
 import { createClient as createServiceClient } from "@/src/lib/supabase/server";
 import type { Order } from "@/src/types/database";
 
@@ -15,7 +16,7 @@ export type CreateOrderResult =
   | { ok: true; order: Order }
   | {
       ok: false;
-      error: "OUT_OF_STOCK" | "GAME_NOT_FOUND" | "EMPTY_CART" | "UNKNOWN";
+      error: "OUT_OF_STOCK" | "GAME_NOT_FOUND" | "EMPTY_CART" | "INVALID_PHONE" | "UNKNOWN";
       gameId?: string;
       gameTitle?: string;
       message: string;
@@ -36,14 +37,29 @@ const UUID_RE = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
  * Every item is expected to carry the same paymentMethodId (checkout only
  * ever offers one payment method for the whole cart) — the order's single
  * payment_method_id column is set from the first item.
+ *
+ * userId is optional: omit it for a guest checkout (no session required).
+ * When it IS passed, the caller's real session is still re-verified
+ * against it via requireUser — that protection is unchanged for anyone
+ * who is signed in. A guest order stores its contact number as
+ * orders.guest_phone (normalised E.164 via src/lib/phone.ts) instead of
+ * writing to a profile, since there is no profile to write to.
  */
 export async function createOrder(
-  userId: string,
+  userId: string | undefined,
   items: CreateOrderItem[],
   phoneNumber: string,
 ): Promise<CreateOrderResult> {
-  // Re-verifies against the real session — userId is never trusted blindly.
-  await requireUser(userId);
+  let guestPhone: string | null = null;
+  if (userId) {
+    // Re-verifies against the real session — userId is never trusted blindly.
+    await requireUser(userId);
+  } else {
+    guestPhone = normalisePhone(phoneNumber);
+    if (!guestPhone) {
+      return { ok: false, error: "INVALID_PHONE", message: "Enter a valid phone number." };
+    }
+  }
 
   if (items.length === 0) {
     return { ok: false, error: "EMPTY_CART", message: "Your cart is empty." };
@@ -51,9 +67,10 @@ export async function createOrder(
 
   const supabase = createServiceClient();
   const { data, error } = await supabase.rpc("create_order", {
-    p_user_id: userId,
+    p_user_id: userId ?? null,
     p_items: items.map((item) => ({ game_id: item.gameId, payment_method_id: item.paymentMethodId })),
-    p_phone_number: phoneNumber,
+    p_phone_number: userId ? phoneNumber : null,
+    p_guest_phone: guestPhone,
   });
 
   if (error) {
@@ -99,21 +116,40 @@ export type ClaimPaymentResult =
 
 /**
  * "I have made the payment." Only succeeds if the order is still
- * awaiting_payment, hasn't expired, and actually belongs to the caller's
- * real session — all enforced in the single UPDATE's WHERE clause, so
- * there's no separate read-then-write race window. Unchanged from the
- * single-item version — nothing about multi-item orders affects this.
+ * awaiting_payment and hasn't expired — enforced in the single UPDATE's
+ * WHERE clause, so there's no separate read-then-write race window.
+ *
+ * Ownership check depends on whether the order has a user_id: a
+ * signed-in order still requires the caller's real session to match it
+ * (unchanged from before). A guest order has no session to check against
+ * — the order id itself (a UUID, held locally by the browser that just
+ * created it, never exposed to any other order) is what authorizes this
+ * call, the same way a guest tracks an order on any e-commerce site.
  */
 export async function claimPayment(orderId: string): Promise<ClaimPaymentResult> {
-  const caller = await requireAuthenticated();
-
   const supabase = createServiceClient();
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("orders")
+    .select("user_id")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (fetchError || !existing) {
+    return { ok: false, error: "INVALID_STATE", message: "This order could not be found." };
+  }
+
+  if (existing.user_id) {
+    const caller = await requireAuthenticated();
+    if (caller.id !== existing.user_id) {
+      return { ok: false, error: "INVALID_STATE", message: "This order does not belong to you." };
+    }
+  }
+
   const nowIso = new Date().toISOString();
   const { data, error } = await supabase
     .from("orders")
     .update({ status: "payment_claimed", claimed_at: nowIso, refund_policy_consented_at: nowIso })
     .eq("id", orderId)
-    .eq("user_id", caller.id)
     .eq("status", "awaiting_payment")
     .gt("reserved_until", nowIso)
     .select("*")

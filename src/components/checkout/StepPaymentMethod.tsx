@@ -50,7 +50,6 @@ export default function StepPaymentMethod({
   const canContinue =
     Boolean(paymentMethodId) &&
     phoneValid &&
-    Boolean(profile) &&
     !hasUnavailableItem &&
     isOnline &&
     !isSubmitting;
@@ -59,7 +58,7 @@ export default function StepPaymentMethod({
     // Belt-and-braces against a double-click landing both calls before
     // the disabled state re-renders — the ref is checked synchronously,
     // the state is what actually disables the button visually.
-    if (submittingRef.current || !canContinue || !profile || !phoneResult.success) {
+    if (submittingRef.current || !canContinue || !phoneResult.success) {
       return;
     }
     submittingRef.current = true;
@@ -67,7 +66,9 @@ export default function StepPaymentMethod({
     setSubmitError(null);
 
     setPhoneNumber(phoneResult.data); // store the normalized canonical form
-    const result = await confirmMethodAndPhone(validItems, profile.id);
+    // profile is undefined for a guest — createOrder treats a missing
+    // userId as a guest checkout, no session required.
+    const result = await confirmMethodAndPhone(validItems, profile?.id);
     if (!result.ok) {
       setSubmitError(result.message);
       submittingRef.current = false;

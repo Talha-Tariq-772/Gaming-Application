@@ -197,7 +197,14 @@ export default function OrderDetailPanel({
 
           {customer && method && (
             <a
-              href={buildWhatsAppLink(order, method.label)}
+              href={buildWhatsAppLink(
+                order,
+                items
+                  .map((item) => games.find((g) => g.id === item.gameId)?.title)
+                  .filter((title): title is string => Boolean(title))
+                  .map((title) => ({ title })),
+                method.label,
+              )}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() =>

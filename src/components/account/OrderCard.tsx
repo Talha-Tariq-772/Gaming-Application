@@ -68,7 +68,7 @@ export default function OrderCard({
 
       {ACTIONABLE_STATUSES.has(order.status) && method && (
         <TrackedWhatsAppLink
-          href={buildWhatsAppLink(order, method.label)}
+          href={buildWhatsAppLink(order, titles.map((title) => ({ title })), method.label)}
           context="account"
           orderRef={order.paymentReference}
           className="-mb-2.5 mt-4 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-semibold text-nova-ember-text transition-colors duration-(--duration-fast) ease-standard hover:text-nova-ember-lo"

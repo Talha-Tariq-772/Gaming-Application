@@ -5,7 +5,7 @@ import { getOrdersForAdmin, getProfilesByIds } from "@/src/lib/order-queries";
 export default async function AdminOrdersPage() {
   const { orders, orderItems } = await getOrdersForAdmin();
 
-  const userIds = [...new Set(orders.map((o) => o.userId))];
+  const userIds = [...new Set(orders.map((o) => o.userId).filter((id): id is string => Boolean(id)))];
   const gameIds = [...new Set(orderItems.map((i) => i.gameId))];
   const paymentMethodIds = [...new Set(orders.map((o) => o.paymentMethodId).filter((id): id is string => Boolean(id)))];
 

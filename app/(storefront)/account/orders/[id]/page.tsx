@@ -78,7 +78,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             {method && (
               <TrackedWhatsAppLink
-                href={buildWhatsAppLink(order, method.label)}
+                href={buildWhatsAppLink(
+                  order,
+                  items
+                    .map((item) => games.find((g) => g.id === item.gameId)?.title)
+                    .filter((title): title is string => Boolean(title))
+                    .map((title) => ({ title })),
+                  method.label,
+                )}
                 context="order-detail"
                 orderRef={order.paymentReference}
                 className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-nova-blood underline underline-offset-2 hover:text-nova-blood/80"
@@ -100,7 +107,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-nova-ember bg-nova-crypt px-6 py-4">
           <p className="text-sm text-nova-ash">Waiting on your payment screenshot to verify this order.</p>
           <TrackedWhatsAppLink
-            href={buildWhatsAppLink(order, method.label)}
+            href={buildWhatsAppLink(
+              order,
+              items
+                .map((item) => games.find((g) => g.id === item.gameId)?.title)
+                .filter((title): title is string => Boolean(title))
+                .map((title) => ({ title })),
+              method.label,
+            )}
             context="order-detail"
             orderRef={order.paymentReference}
             className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"

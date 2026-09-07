@@ -9,18 +9,27 @@ export type CheckoutStep = 1 | 2 | 3;
 
 export type CheckoutActionResult = { ok: true } | { ok: false; message: string };
 
+export interface CheckoutOrderItem {
+  title: string;
+}
+
 interface CheckoutState {
   step: CheckoutStep;
   paymentMethodId: string | null;
   phoneNumber: string;
   order: Order | null;
+  /** Snapshot of the cart's item titles, captured at order-creation time
+   * — the cart itself is cleared right after, and the WhatsApp handoff
+   * message (built on step 3) still needs titles to show. */
+  orderItems: CheckoutOrderItem[];
   setPaymentMethodId: (id: string) => void;
   setPhoneNumber: (phone: string) => void;
   /** Creates the real order (createOrder server action) and advances to
    * step 2 on success. Every item is submitted with the same
    * paymentMethodId — checkout only ever offers one payment method for
-   * the whole cart. */
-  confirmMethodAndPhone: (cartItems: CartItem[], userId: string) => Promise<CheckoutActionResult>;
+   * the whole cart. userId is omitted entirely for a guest checkout — no
+   * session is required. */
+  confirmMethodAndPhone: (cartItems: CartItem[], userId?: string) => Promise<CheckoutActionResult>;
   /** Marks the order as claimed (claimPayment server action) and advances to step 3. */
   markPaid: () => Promise<CheckoutActionResult>;
   /** The 45-minute reservation window closed before payment was claimed —
@@ -44,6 +53,7 @@ export const useCheckoutStore = create<CheckoutState>()(
       paymentMethodId: null,
       phoneNumber: "",
       order: null,
+      orderItems: [],
 
       setPaymentMethodId: (id) => set({ paymentMethodId: id }),
       setPhoneNumber: (phone) => set({ phoneNumber: phone }),
@@ -60,7 +70,11 @@ export const useCheckoutStore = create<CheckoutState>()(
           return { ok: false, message: result.message };
         }
 
-        set({ order: result.order, step: 2 });
+        set({
+          order: result.order,
+          orderItems: cartItems.map((item) => ({ title: item.title })),
+          step: 2,
+        });
         return { ok: true };
       },
 
@@ -85,7 +99,7 @@ export const useCheckoutStore = create<CheckoutState>()(
       },
 
       resetCheckout: () =>
-        set({ step: 1, paymentMethodId: null, phoneNumber: "", order: null }),
+        set({ step: 1, paymentMethodId: null, phoneNumber: "", order: null, orderItems: [] }),
     }),
     { name: "gk-checkout", storage: createJSONStorage(() => safeStorage) },
   ),

@@ -11,7 +11,7 @@ export default async function AdminDashboardPage() {
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
 
-  const userIds = [...new Set(queueOrders.map((o) => o.userId))];
+  const userIds = [...new Set(queueOrders.map((o) => o.userId).filter((id): id is string => Boolean(id)))];
   const gameIds = [...new Set(queueOrderItems.map((i) => i.gameId))];
   const paymentMethodIds = [
     ...new Set(queueOrders.map((o) => o.paymentMethodId).filter((id): id is string => Boolean(id))),

@@ -400,6 +400,7 @@ export const MOCK_ORDERS: Order[] = [
   {
     id: "order-1",
     userId: "usr_ayesha01",
+    guestPhone: null,
     status: "awaiting_payment",
     paymentReference: "GK-8F4C",
     // Sum of its items (2499) plus a small unique offset for reconciliation.
@@ -415,6 +416,7 @@ export const MOCK_ORDERS: Order[] = [
   {
     id: "order-2",
     userId: "usr_bilal02",
+    guestPhone: null,
     status: "under_review",
     paymentReference: "GK-3B9E",
     // Sum of its items (4499 + 599 = 5098) plus a small unique offset.
@@ -430,6 +432,7 @@ export const MOCK_ORDERS: Order[] = [
   {
     id: "order-3",
     userId: "usr_hassan03",
+    guestPhone: null,
     status: "approved",
     paymentReference: "GK-A2D5",
     // Sum of its items (1999) plus a small unique offset.
@@ -445,6 +448,7 @@ export const MOCK_ORDERS: Order[] = [
   {
     id: "order-4",
     userId: "usr_ayesha01",
+    guestPhone: null,
     status: "payment_claimed",
     paymentReference: "GK-71FA",
     // Sum of its items (3499) plus a small unique offset.
@@ -460,6 +464,7 @@ export const MOCK_ORDERS: Order[] = [
   {
     id: "order-5",
     userId: "usr_bilal02",
+    guestPhone: null,
     status: "rejected",
     paymentReference: "GK-C3B8",
     // Sum of its items (3999) plus a small unique offset.
@@ -476,6 +481,7 @@ export const MOCK_ORDERS: Order[] = [
   {
     id: "order-6",
     userId: "usr_hassan03",
+    guestPhone: null,
     status: "expired",
     paymentReference: "GK-56E1",
     // Sum of its items (999) plus a small unique offset.
@@ -562,6 +568,7 @@ function buildRecentOrders(): { orders: Order[]; items: OrderItem[] } {
     orders.push({
       id: orderId,
       userId,
+      guestPhone: null,
       status: config.status,
       paymentReference: referenceFromSeed(seed),
       amountExact: game.price + offset,

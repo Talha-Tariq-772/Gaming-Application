@@ -135,7 +135,11 @@ export type OrderStatus =
 
 export interface Order {
   id: string;
-  userId: string;
+  /** Null for a guest order — see guestPhone. */
+  userId: string | null;
+  /** E.164 phone number for a guest order (no account, no session). Null
+   * for a signed-in order, where the phone lives on the profile instead. */
+  guestPhone: string | null;
   status: OrderStatus;
   paymentReference: string;
   amountExact: number;

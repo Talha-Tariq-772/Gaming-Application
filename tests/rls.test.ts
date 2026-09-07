@@ -286,6 +286,37 @@ describe("RLS denials — each of these must genuinely fail at the database leve
     expect(data ?? []).toHaveLength(0);
   });
 
+  it("anon client cannot read a guest order (no user_id at all) either — guest checkout doesn't open a new hole", async () => {
+    const { data: guestOrder, error: guestOrderErr } = await service
+      .from("orders")
+      .insert({
+        user_id: null,
+        guest_phone: "+923001234567",
+        status: "awaiting_payment",
+        payment_reference: `PSC-${run.slice(0, 6).toUpperCase().padEnd(6, "A")}`,
+        amount_exact: 500,
+        payment_method_id: paymentMethod.id,
+      })
+      .select("id")
+      .single();
+    if (guestOrderErr) throw guestOrderErr;
+
+    try {
+      const byId = await anon.from("orders").select("*").eq("id", guestOrder.id);
+      expect(byId.data ?? []).toHaveLength(0);
+
+      const broad = await anon.from("orders").select("*");
+      expect((broad.data ?? []).some((o) => o.id === guestOrder.id)).toBe(false);
+
+      // A signed-in customer session can't see it either — it isn't theirs,
+      // and staff visibility is via role, not by being "logged in".
+      const asCustomer = await clientA.from("orders").select("*").eq("id", guestOrder.id);
+      expect(asCustomer.data ?? []).toHaveLength(0);
+    } finally {
+      await deleteWithRetry(() => service.from("orders").delete().eq("id", guestOrder.id), "guestOrder");
+    }
+  });
+
   it("anon client selecting from game_credentials returns nothing", async () => {
     const { data } = await anon.from("game_credentials").select("*");
     expect(data ?? []).toHaveLength(0);
