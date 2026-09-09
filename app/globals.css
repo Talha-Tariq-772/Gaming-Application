@@ -1040,3 +1040,18 @@
   border: none;
   border-top: 1px solid var(--color-nova-hairline);
 }
+
+/* Hides the native scrollbar on an overflow-x-auto row (FeaturedGamesScroll
+   and any future arrow-driven strip) without disabling scroll itself —
+   wheel/touch/programmatic scrollBy() all keep working, only the visible
+   track goes away since the arrow buttons are the intended affordance.
+   Both properties are required: scrollbar-width is the standard (Firefox +
+   current Chromium/Safari) API, ::-webkit-scrollbar is still needed for
+   older WebKit that doesn't implement it. */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

@@ -1,26 +1,69 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
-import { scrollTriggerAllowed } from "@/src/lib/motion-guards";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useGridCursorFollow } from "@/src/lib/use-grid-cursor-follow";
 
+function ChevronIcon({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+      className={direction === "left" ? "" : "rotate-180"}
+    >
+      <path d="M10 3 5 8l5 5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// Same pill treatment as StoreSlider's prev/next controls
+// (src/components/store/StoreSlider/StoreSlider.tsx's CONTROL_BUTTON_CLASSES)
+// so every arrow-driven carousel in the app reads as one control, not two.
+const ARROW_BUTTON_CLASSES =
+  "absolute top-1/2 -translate-y-1/2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-nova-hairline bg-nova-void/80 text-nova-bone backdrop-blur-sm transition-opacity duration-(--duration-fast) ease-standard hover:border-nova-ember/60 hover:text-nova-ember-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nova-ember";
+
+// Two complete, mutually-exclusive class strings (never both present on
+// the same element) rather than one base string plus a conditionally
+// -added override — mixing an unprefixed `opacity-0` with `md:opacity-0
+// md:group-hover/row:opacity-100` on the same button lets Tailwind's
+// generation order (not the order these classes are written here) decide
+// which wins, which is exactly the kind of hover-vs-disabled flicker this
+// needs to not have.
+const ARROW_HIDDEN_CLASSES = "pointer-events-none opacity-0";
+const ARROW_VISIBLE_CLASSES =
+  "opacity-100 md:opacity-0 md:group-hover/row:opacity-100 md:group-focus-within/row:opacity-100";
+
+// How much of the visible track width one arrow click advances — under
+// 100% so the card sitting at the edge stays partly visible as a "there's
+// more" cue instead of jumping a clean page at a time.
+const SCROLL_FRACTION = 0.9;
+// Treated as "at the edge" within this many px, since scrollWidth/clientWidth
+// can disagree with scrollLeft by a sub-pixel rounding amount that would
+// otherwise leave an arrow permanently enabled one px past the real end.
+const EDGE_EPSILON = 2;
+
 /**
- * The only client boundary in the Featured Games section — everything
- * else (the heading, the grid of GameCards) is server-rendered and passed
- * in as props/children. This component owns nothing but the two refs the
- * scroll-pin effect and the cursor-follow delegation need.
+ * A plain horizontally-scrollable row (native overflow-x + scroll-snap)
+ * with explicit prev/next arrow buttons — what Featured/Best
+ * Sellers/New Arrivals (home/*.tsx) and RelatedGamesRow all render their
+ * card track through.
  *
- * Desktop (scrollTriggerAllowed): pins the section and drives the track's
- * x transform off vertical scroll — the classic pinned-horizontal-scroll
- * pattern, dynamic-imported from use-gsap.ts so ScrollTrigger only loads
- * for visitors who'll actually see it.
- *
- * Mobile / reduced motion: none of the above. The track is a plain
- * horizontally-scrollable flex row (native overflow-x + scroll-snap, no
- * JS, no pin) — this *is* the "mobile gets simple fade-ups only" rule for
- * a section that's fundamentally a scroll-linked effect: there's no
- * lesser scroll-triggered version of a pin, so it just becomes normal
- * content.
+ * This replaces an earlier GSAP ScrollTrigger pinned-horizontal-scroll
+ * version. That approach hijacked page scroll to drive the row's x
+ * transform and needed a hand-rolled height reservation
+ * (see git history) to avoid CLS — twice, across two sessions, the pin
+ * handoff between this section and the next broke: first as dead space
+ * between rows, then as this row visually overlapping the next mid-scroll.
+ * Both were the same root cause (page-scroll hijacking three independent
+ * pinned sections back to back is inherently fragile), so rather than
+ * patch a third symptom, the mechanism itself is gone — no ScrollTrigger,
+ * no pin, no scroll-distance math. Native overflow-x scrolling can't
+ * desync from the page the pin did, because it never touches page scroll
+ * at all.
  */
 export default function FeaturedGamesScroll({
   heading,
@@ -29,97 +72,77 @@ export default function FeaturedGamesScroll({
   heading: ReactNode;
   children: ReactNode;
 }) {
-  const container = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(true);
 
   useGridCursorFollow(track);
 
-  // Reserves the pin's scroll distance as ordinary layout height *before*
-  // GSAP ever runs, using the same distance formula ScrollTrigger's own
-  // pin-spacer will end up needing. Without this, that spacer only appears
-  // once the dynamic import below resolves and ScrollTrigger.create() runs
-  // — every layer between here and the actual page load, this container
-  // sat at its natural (short) height, then jumped by the full pin
-  // distance the moment the pin was created. That jump was the single
-  // largest contributor to this page's CLS, worse than the route-loading
-  // skeleton mismatch it was originally mistaken for. Synchronous
-  // (useLayoutEffect, before paint) and gated the same way the pin itself
-  // is, so mobile/reduced-motion never sets this and never had the problem
-  // to begin with.
-  useLayoutEffect(() => {
-    if (!scrollTriggerAllowed()) return;
-    const trackEl = track.current;
-    const containerEl = container.current;
-    if (!trackEl || !containerEl) return;
-
-    const distance = trackEl.scrollWidth - containerEl.clientWidth;
-    if (distance <= 0) return;
-
-    containerEl.style.minHeight = `${containerEl.offsetHeight + distance}px`;
-  }, []);
-
   useEffect(() => {
-    if (!scrollTriggerAllowed()) return;
+    const el = track.current;
+    if (!el) return;
 
-    const trackEl = track.current;
-    const containerEl = container.current;
-    if (!trackEl || !containerEl) return;
+    function updateEdges() {
+      const trackEl = track.current;
+      if (!trackEl) return;
+      setAtStart(trackEl.scrollLeft <= EDGE_EPSILON);
+      setAtEnd(trackEl.scrollLeft >= trackEl.scrollWidth - trackEl.clientWidth - EDGE_EPSILON);
+    }
 
-    let cancelled = false;
-    let cleanup: (() => void) | undefined;
+    updateEdges();
+    el.addEventListener("scroll", updateEdges, { passive: true });
 
-    import("@/src/lib/use-gsap").then(({ gsap, ScrollTrigger }) => {
-      if (cancelled) return;
-
-      // The layout effect above already inflated containerEl's own height
-      // by `distance` (inline minHeight) to reserve scroll room before
-      // GSAP was ready. ScrollTrigger's `pin: true` below builds its OWN
-      // pin-spacer sized off containerEl's height AT THIS MOMENT, plus
-      // another `distance` for the pin's scroll range — left in place,
-      // the two stack into naturalHeight + distance*2, which measured out
-      // to almost a full extra viewport of empty space after this
-      // section. Clearing it here, synchronously before ScrollTrigger
-      // measures anything and before the next paint, hands sizing off to
-      // the pin-spacer with nothing left to double-count.
-      containerEl.style.minHeight = "";
-
-      const distance = trackEl.scrollWidth - containerEl.clientWidth;
-      if (distance <= 0) return;
-
-      const tween = gsap.to(trackEl, {
-        x: -distance,
-        ease: "none",
-        scrollTrigger: {
-          trigger: containerEl,
-          start: "top top",
-          end: () => `+=${distance}`,
-          scrub: 1,
-          pin: true,
-          invalidateOnRefresh: true,
-        },
-      });
-
-      cleanup = () => {
-        tween.scrollTrigger?.kill();
-        tween.kill();
-        ScrollTrigger.refresh();
-      };
-    });
+    // Card count/track width can change after mount (images loading in,
+    // responsive width shifts) — a ResizeObserver catches those without
+    // needing children as an effect dependency.
+    const resizeObserver = new ResizeObserver(updateEdges);
+    resizeObserver.observe(el);
 
     return () => {
-      cancelled = true;
-      cleanup?.();
+      el.removeEventListener("scroll", updateEdges);
+      resizeObserver.disconnect();
     };
   }, []);
 
+  function scrollByDirection(direction: "left" | "right") {
+    const el = track.current;
+    if (!el) return;
+    const amount = el.clientWidth * SCROLL_FRACTION * (direction === "left" ? -1 : 1);
+    el.scrollBy({ left: amount, behavior: "smooth" });
+  }
+
   return (
-    <div ref={container} className="mx-auto max-w-page px-4 py-24 md:px-8">
+    <div className="mx-auto max-w-page px-4 py-16 md:px-8">
       {heading}
-      <div
-        ref={track}
-        className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 md:snap-none md:overflow-visible md:pb-0"
-      >
-        {children}
+      {/* group/row: arrows fade in on hover/focus at md+ only (mouse-driven
+          desktop); below md they're always visible, since touch has no
+          hover state and swipe alone doesn't hint that arrows exist. */}
+      <div className="group/row relative">
+        <div
+          ref={track}
+          className="scrollbar-none flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-4"
+        >
+          {children}
+        </div>
+
+        <button
+          type="button"
+          aria-label="Scroll left"
+          onClick={() => scrollByDirection("left")}
+          disabled={atStart}
+          className={`left-1 ${ARROW_BUTTON_CLASSES} ${atStart ? ARROW_HIDDEN_CLASSES : ARROW_VISIBLE_CLASSES}`}
+        >
+          <ChevronIcon direction="left" />
+        </button>
+        <button
+          type="button"
+          aria-label="Scroll right"
+          onClick={() => scrollByDirection("right")}
+          disabled={atEnd}
+          className={`right-1 ${ARROW_BUTTON_CLASSES} ${atEnd ? ARROW_HIDDEN_CLASSES : ARROW_VISIBLE_CLASSES}`}
+        >
+          <ChevronIcon direction="right" />
+        </button>
       </div>
     </div>
   );
