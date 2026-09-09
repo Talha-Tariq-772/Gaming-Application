@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Button from "@/components/Button";
+import GooglePhoneAuthPrompt from "@/src/components/account/GooglePhoneAuthPrompt";
 import OrderCard from "@/src/components/account/OrderCard";
 import { getGamesByIds, getPaymentMethodsByIds } from "@/src/lib/catalog";
 import { getGiftCardProductsForCodeIds } from "@/src/lib/gift-card-catalog";
@@ -40,6 +41,8 @@ export default async function AccountPage() {
         <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">My Orders</h1>
         {profile?.full_name && <p className="mt-2 text-sm text-nova-ash">{profile.full_name}</p>}
       </div>
+
+      <GooglePhoneAuthPrompt />
 
       {myOrders.length === 0 ? (
         <div className="flex flex-col items-center gap-4 rounded-lg border border-nova-hairline bg-nova-crypt px-6 py-24 text-center">

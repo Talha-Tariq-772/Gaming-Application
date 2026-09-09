@@ -1,11 +1,16 @@
 /**
  * The canonical phone identity used for account matching (fulfilment-agent
- * WhatsApp lookups against orders). Distinct from profiles.phone_number
- * (spaced display format, written by the existing /complete-profile flow) —
- * this is the tight E.164 form used by phone+password auth and stored in
- * profiles.phone. Mixed formats here break the agent's lookup, which is the
- * entire point of this module: normalise on the way in, format only for
- * display on the way out.
+ * WhatsApp lookups against orders, and — see phoneToAuthEmail below — the
+ * phone+password auth mapping). Distinct from profiles.phone_number (spaced
+ * display format "+92 300 1234567", written by validation.ts's
+ * toCanonicalPkPhone via the existing /complete-profile flow and phone+
+ * password signup alike) — this is the tight E.164 form "+923001234567".
+ * The two are deliberately not consolidated: every existing reader of
+ * profiles.phone_number expects the spaced form, and order-search.ts
+ * already normalises both sides through this module before comparing, so
+ * the mismatch is harmless there. Mixed formats WOULD break a lookup that
+ * compares raw strings without normalising first — normalise on the way
+ * in, format only for display on the way out.
  */
 
 // Every Pakistani cellular operator (Jazz, Telenor, Zong, Ufone, SCOM) uses a
@@ -36,4 +41,39 @@ export function normalisePhone(input: string): string | null {
 export function formatPhoneDisplay(e164: string): string {
   const local = e164.slice(3); // strip "+92"
   return `0${local.slice(0, 3)} ${local.slice(3, 6)} ${local.slice(6)}`;
+}
+
+/**
+ * Supabase has no phone+password provider without SMS verification (cost),
+ * so phone+password auth (src/lib/actions/phone-auth.ts) maps the phone to
+ * a synthetic, never-shown internal email and signs up/in against THAT
+ * with Supabase's ordinary email+password grant — auth.users.email holds
+ * this string, never the user's real email. The UI never displays it; the
+ * user only ever sees their phone number.
+ *
+ * Routed through normalisePhone (not validation.ts's toCanonicalPkPhone)
+ * specifically because the mapping must be byte-identical for the same
+ * number on every call regardless of how the user typed it — two
+ * differently-formatted inputs for the same number must resolve to the
+ * exact same auth.users row, or the same person could end up with two
+ * accounts. Exactly one function may ever produce this address; do not
+ * duplicate this mapping elsewhere.
+ *
+ * If you're reading this row in `auth.users` six months from now: yes,
+ * "923001234567@phone.pscbundle.local" is a real, working login identity
+ * for a real customer, not test/seed data or a mistake — see this
+ * function's callers in src/lib/actions/phone-auth.ts.
+ */
+export function phoneToAuthEmail(raw: string): string | null {
+  const normalised = normalisePhone(raw);
+  if (!normalised) return null;
+  return `${normalised.slice(1)}@phone.pscbundle.local`; // slice(1) strips the leading "+"
+}
+
+/** True for a phoneToAuthEmail() output — used everywhere a UI might
+ * otherwise display auth.users.email/profiles.email verbatim (Header,
+ * /admin/users) and needs to skip it instead of leaking the synthetic
+ * address to a human. */
+export function isSyntheticAuthEmail(email: string | null | undefined): boolean {
+  return Boolean(email?.endsWith("@phone.pscbundle.local"));
 }

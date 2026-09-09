@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { bufferToBytea, encrypt } from "@/src/lib/crypto";
 import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
+import { randomTestPhone } from "./helpers/phone";
 import { collectText, findAllElementsOfType } from "./helpers/react-tree";
 
 /**
@@ -95,7 +96,7 @@ beforeAll(async () => {
   });
   if (errA) throw errA;
   customerA = { id: createdA.user.id, email: createdA.user.email! };
-  const { error: updA } = await service.from("profiles").update({ phone_number: "+92 300 1112222" }).eq("id", customerA.id);
+  const { error: updA } = await service.from("profiles").update({ phone_number: randomTestPhone() }).eq("id", customerA.id);
   if (updA) throw updA;
 
   const { data: createdB, error: errB } = await service.auth.admin.createUser({
@@ -105,7 +106,7 @@ beforeAll(async () => {
   });
   if (errB) throw errB;
   customerB = { id: createdB.user.id, email: createdB.user.email! };
-  const { error: updB } = await service.from("profiles").update({ phone_number: "+92 300 3334444" }).eq("id", customerB.id);
+  const { error: updB } = await service.from("profiles").update({ phone_number: randomTestPhone() }).eq("id", customerB.id);
   if (updB) throw updB;
 
   const { data: createdEmpty, error: errEmpty } = await service.auth.admin.createUser({
@@ -117,7 +118,7 @@ beforeAll(async () => {
   customerEmpty = { id: createdEmpty.user.id, email: createdEmpty.user.email! };
   const { error: updEmpty } = await service
     .from("profiles")
-    .update({ phone_number: "+92 300 7778888" })
+    .update({ phone_number: randomTestPhone() })
     .eq("id", customerEmpty.id);
   if (updEmpty) throw updEmpty;
 
@@ -130,7 +131,7 @@ beforeAll(async () => {
   adminUser = { id: createdAdmin.user.id, email: createdAdmin.user.email! };
   const { data: updatedAdmin, error: updAdmin } = await service
     .from("profiles")
-    .update({ phone_number: "+92 300 5556666", role: "admin" })
+    .update({ phone_number: randomTestPhone(), role: "admin" })
     .eq("id", adminUser.id)
     .select("role")
     .single();

@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { resolvePostLoginRedirect, type PostLoginProfile } from "@/src/lib/auth/post-login-redirect";
 import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
+import { randomTestPhone } from "./helpers/phone";
 
 const ORIGIN = "https://example.com";
 
@@ -73,7 +74,7 @@ describe("resolvePostLoginRedirect — fed real profile rows from the database",
     });
     if (errAdmin) throw errAdmin;
     adminUser = { id: createdAdmin.user.id, email: createdAdmin.user.email! };
-    await service.from("profiles").update({ phone_number: "+92 300 1112222", role: "admin" }).eq("id", adminUser.id);
+    await service.from("profiles").update({ phone_number: randomTestPhone(), role: "admin" }).eq("id", adminUser.id);
 
     const { data: createdCustomer, error: errCustomer } = await service.auth.admin.createUser({
       email: `postlogin-customer-${run}@example.com`,
@@ -82,7 +83,7 @@ describe("resolvePostLoginRedirect — fed real profile rows from the database",
     });
     if (errCustomer) throw errCustomer;
     customerUser = { id: createdCustomer.user.id, email: createdCustomer.user.email! };
-    await service.from("profiles").update({ phone_number: "+92 300 3334444" }).eq("id", customerUser.id);
+    await service.from("profiles").update({ phone_number: randomTestPhone() }).eq("id", customerUser.id);
   });
 
   afterAll(async () => {

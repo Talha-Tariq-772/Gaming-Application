@@ -1,6 +1,19 @@
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { randomTestPhone } from "./helpers/phone";
+
+/** completeProfile persists validation.ts's toCanonicalPkPhone() output
+ * ("+92 XXX XXXXXXX"), not phone.ts's normalisePhone() ("+923XXXXXXXXX")
+ * — same shape randomTestPhone() already returns, so it doubles as the
+ * expected post-normalization value. Derives a raw "0"-prefixed input
+ * from it (matching this file's original "0300 1234567" style) that
+ * canonicalizes back to the exact same string. */
+function randomTestPhonePair(): { raw: string; canonical: string } {
+  const canonical = randomTestPhone();
+  const raw = `0${canonical.slice(4).replace(" ", "")}`;
+  return { raw, canonical };
+}
 
 /**
  * Covers what can actually be verified without a real browser OAuth
@@ -53,6 +66,9 @@ let userA: { id: string; email: string };
 let userB: { id: string; email: string };
 let clientA: SupabaseClient;
 let clientB: SupabaseClient;
+/** Set once completeProfile actually persists a value for userA — later
+ * tests assert against this instead of a hardcoded literal. */
+let userAPhone: string;
 
 beforeAll(async () => {
   const emailA = `auth-profile-a-${run}@example.com`;
@@ -109,13 +125,15 @@ describe("completeProfile server action", () => {
 
   it("persists a valid phone number and normalizes it, simulating first-time profile completion", async () => {
     sessionState.client = clientA;
+    const { raw, canonical } = randomTestPhonePair();
+    userAPhone = canonical;
     // completeProfile calls redirect() on success, which throws outside a
     // real Next.js request context — reaching a normal return here would
     // mean it *failed* validation, so a throw is the success path.
-    await expect(completeProfile("0300 1234567", "/account")).rejects.toThrow();
+    await expect(completeProfile(raw, "/account")).rejects.toThrow();
 
     const { data: recheck } = await service.from("profiles").select("phone_number").eq("id", userA.id).single();
-    expect(recheck?.phone_number).toBe("+92 300 1234567");
+    expect(recheck?.phone_number).toBe(canonical);
   });
 
   it("a second session for the same now-complete user sees phone_number already set (skip-straight-through)", async () => {
@@ -126,7 +144,7 @@ describe("completeProfile server action", () => {
       .eq("id", userA.id)
       .single();
     expect(error).toBeNull();
-    expect(profile?.phone_number).toBe("+92 300 1234567");
+    expect(profile?.phone_number).toBe(userAPhone);
   });
 
   it("throws when the caller's session doesn't match — cannot complete someone else's profile", async () => {
@@ -134,10 +152,10 @@ describe("completeProfile server action", () => {
     // completeProfile always operates on the caller's own session id via
     // requireAuthenticated(), so this call updates B's own row, not A's —
     // asserting A's row is untouched is the meaningful check here.
-    await expect(completeProfile("0301 7654321", "/account")).rejects.toThrow();
+    await expect(completeProfile(randomTestPhonePair().raw, "/account")).rejects.toThrow();
 
     const { data: recheckA } = await service.from("profiles").select("phone_number").eq("id", userA.id).single();
-    expect(recheckA?.phone_number).toBe("+92 300 1234567"); // unchanged by B's call
+    expect(recheckA?.phone_number).toBe(userAPhone); // unchanged by B's call
   });
 });
 

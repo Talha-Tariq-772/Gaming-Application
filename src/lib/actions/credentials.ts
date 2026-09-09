@@ -1,20 +1,13 @@
 "use server";
 
-import { headers } from "next/headers";
 import { requireUser } from "@/src/lib/auth/session";
 import { byteaToBuffer, decrypt } from "@/src/lib/crypto";
+import { requestIp } from "@/src/lib/request-ip";
 import { createClient as createServiceClient } from "@/src/lib/supabase/server";
 
 export type RevealCredentialResult =
   | { ok: true; login: string; password: string; revealedAt: string }
   | { ok: false; error: "NOT_FOUND" | "UNKNOWN"; message: string };
-
-async function requestIp(): Promise<string> {
-  const headerList = await headers();
-  const forwardedFor = headerList.get("x-forwarded-for");
-  if (forwardedFor) return forwardedFor.split(",")[0].trim();
-  return headerList.get("x-real-ip") ?? "unknown";
-}
 
 /**
  * The ONLY code path in the app that ever decrypts a credential. Do not

@@ -5,6 +5,7 @@ import HeaderAuthMenu from "@/src/components/HeaderAuthMenu";
 import HeaderNav from "@/src/components/HeaderNav";
 import MobileNav, { type MobileAuthState } from "@/src/components/MobileNav";
 import ThemeToggle from "@/src/components/ThemeToggle";
+import { isSyntheticAuthEmail } from "@/src/lib/phone";
 import { createClient } from "@/src/lib/supabase/server-session";
 import Button from "./Button";
 
@@ -52,12 +53,20 @@ export default async function Header() {
     } else {
       // Read straight from the Google session's own metadata rather than
       // our profiles table — profiles.full_name is only ever set once, at
-      // signup, and never kept in sync afterward.
+      // signup, and never kept in sync afterward. phone_number comes
+      // before user.email in this fallback chain, and user.email is
+      // skipped entirely for a phone+password account (its auth.users
+      // email is the synthetic "@phone.pscbundle.local" address — see
+      // src/lib/phone.ts's phoneToAuthEmail — which must never reach the
+      // UI) — profiles.phone_number (already fetched above) is what's
+      // shown instead.
       const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+      const realEmail = isSyntheticAuthEmail(user.email) ? undefined : user.email;
       const name =
         (meta.full_name as string | undefined) ||
         (meta.name as string | undefined) ||
-        user.email ||
+        realEmail ||
+        profile.phone_number ||
         "Account";
       const avatarUrl =
         (meta.avatar_url as string | undefined) || (meta.picture as string | undefined) || null;

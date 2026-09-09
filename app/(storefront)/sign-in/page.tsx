@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import SignInForm from "./SignInForm";
 
@@ -16,6 +17,17 @@ export default function SignInPage() {
       <Suspense fallback={null}>
         <SignInForm />
       </Suspense>
+      <p className="text-sm text-nova-ash">
+        Prefer a phone number and password?{" "}
+        <Link href="/login" className="font-semibold text-nova-ember-text hover:text-nova-ember-lo">
+          Log in
+        </Link>{" "}
+        or{" "}
+        <Link href="/signup" className="font-semibold text-nova-ember-text hover:text-nova-ember-lo">
+          create an account
+        </Link>
+        .
+      </p>
     </div>
   );
 }

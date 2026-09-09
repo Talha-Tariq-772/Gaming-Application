@@ -9,6 +9,7 @@
  */
 
 import { z } from "zod";
+import { isCommonPassword } from "@/src/lib/common-passwords";
 import {
   GAME_GENRES,
   GAME_PLATFORMS,
@@ -97,6 +98,43 @@ export const cartItemSchema = z.discriminatedUnion("kind", [
 ]);
 
 export type CartItemInput = z.infer<typeof cartItemSchema>;
+
+/* ---------------------------------------------------------------------- */
+/* Phone+password auth (signup/login)                                      */
+/* ---------------------------------------------------------------------- */
+
+/**
+ * Length only, no composition rules (no forced upper/lower/digit/symbol
+ * mix) — per spec. The denylist check catches the passwords an attacker
+ * tries first against every account, which composition rules don't.
+ */
+export const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .refine((v) => !isCommonPassword(v), {
+    message: "That password is too common. Choose something less guessable.",
+  });
+
+/** "" is valid (recovery email is optional) — parses to null so callers
+ * never have to special-case an empty string themselves. */
+export const recoveryEmailSchema = z
+  .string()
+  .trim()
+  .transform((v) => (v === "" ? null : v))
+  .refine((v) => v === null || z.string().email().safeParse(v).success, {
+    message: "Enter a valid email, or leave it blank.",
+  });
+
+export const signUpFormSchema = z.object({
+  phoneNumber: phoneSchema,
+  password: passwordSchema,
+  recoveryEmail: recoveryEmailSchema,
+});
+
+export const loginFormSchema = z.object({
+  phoneNumber: phoneSchema,
+  password: z.string().min(1, "Enter your password"),
+});
 
 /* ---------------------------------------------------------------------- */
 /* Order                                                                    */

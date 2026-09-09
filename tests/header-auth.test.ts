@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
+import { randomTestPhone } from "./helpers/phone";
 import { collectText, findElementOfType } from "./helpers/react-tree";
 
 /**
@@ -71,7 +72,7 @@ beforeAll(async () => {
   });
   if (errComplete) throw errComplete;
   completeUser = { id: createdComplete.user.id, email: createdComplete.user.email! };
-  await service.from("profiles").update({ phone_number: "+92 300 1112222" }).eq("id", completeUser.id);
+  await service.from("profiles").update({ phone_number: randomTestPhone() }).eq("id", completeUser.id);
 
   const { data: createdAdmin, error: errAdmin } = await service.auth.admin.createUser({
     email: `header-admin-${run}@example.com`,
@@ -83,7 +84,7 @@ beforeAll(async () => {
   adminUser = { id: createdAdmin.user.id, email: createdAdmin.user.email! };
   await service
     .from("profiles")
-    .update({ phone_number: "+92 300 3334444", role: "admin" })
+    .update({ phone_number: randomTestPhone(), role: "admin" })
     .eq("id", adminUser.id);
 
   const { data: createdAgent, error: errAgent } = await service.auth.admin.createUser({
@@ -96,7 +97,7 @@ beforeAll(async () => {
   agentUser = { id: createdAgent.user.id, email: createdAgent.user.email! };
   await service
     .from("profiles")
-    .update({ phone_number: "+92 300 5556666", role: "agent" })
+    .update({ phone_number: randomTestPhone(), role: "agent" })
     .eq("id", agentUser.id);
 
   clientIncomplete = await signedInClient(incompleteUser.email, password);
