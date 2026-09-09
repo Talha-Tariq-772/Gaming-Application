@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "@/src/lib/actions/auth";
+import { signOutAndClearCart } from "@/src/lib/actions/sign-out-client";
 import ThemeToggle from "@/src/components/ThemeToggle";
 
 const NAV_ITEMS = [
@@ -58,7 +58,7 @@ export default function AdminNav() {
           </Link>
           <button
             type="button"
-            onClick={() => signOut()}
+            onClick={() => signOutAndClearCart()}
             className="min-h-11 w-full rounded-md px-3 py-2 text-left text-xs font-medium text-nova-smoke hover:bg-nova-slab hover:text-nova-ash"
           >
             Sign out

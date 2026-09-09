@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Button from "@/components/Button";
 import { NAV_LINKS, isActive } from "@/src/components/HeaderNav";
-import { signOut } from "@/src/lib/actions/auth";
+import { signOutAndClearCart } from "@/src/lib/actions/sign-out-client";
 import { prefersReducedMotion } from "@/src/lib/motion-guards";
 import { DEFAULT_STAGGER } from "@/src/lib/motion";
 import { useFocusTrap } from "@/src/lib/use-focus-trap";
@@ -207,7 +207,7 @@ function MobileAuthSection({
         type="button"
         onClick={() => {
           onNavigate();
-          signOut();
+          signOutAndClearCart();
         }}
         className="flex min-h-11 items-center text-left text-sm font-medium text-nova-ash hover:text-nova-bone"
       >

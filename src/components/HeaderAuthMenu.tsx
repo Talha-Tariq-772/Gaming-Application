@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { signOut } from "@/src/lib/actions/auth";
+import { signOutAndClearCart } from "@/src/lib/actions/sign-out-client";
 
 export default function HeaderAuthMenu({
   name,
@@ -92,7 +92,7 @@ export default function HeaderAuthMenu({
           <button
             type="button"
             role="menuitem"
-            onClick={() => signOut()}
+            onClick={() => signOutAndClearCart()}
             className="flex min-h-11 w-full items-center px-4 text-left text-sm text-nova-ash hover:bg-nova-slab hover:text-nova-bone"
           >
             Sign Out
