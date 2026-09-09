@@ -36,6 +36,7 @@ export default async function LibraryPage() {
   for (const order of sortedApprovedOrders) {
     for (const item of orderItems) {
       if (item.orderId !== order.id) continue;
+      if (!item.gameId) continue; // gift-card item — no library entry, nothing to reveal
       if (!orderIdByGameId.has(item.gameId)) orderIdByGameId.set(item.gameId, order.id);
     }
   }

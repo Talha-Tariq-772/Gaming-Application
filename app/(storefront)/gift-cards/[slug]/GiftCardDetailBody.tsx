@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
-import Button from "@/components/Button";
 import CardImage from "@/components/ui/CardImage";
-import HeaderImage from "@/components/ui/HeaderImage";
 import { getGiftCardImage } from "@/lib/product-image";
 import { chamferClipPath } from "@/src/components/ui/nova/Chamfer";
 import Eyebrow from "@/src/components/ui/nova/Eyebrow";
 import Tag from "@/src/components/games/Tag";
+import GiftCardAddToCartButton from "@/src/components/gift-cards/GiftCardAddToCartButton";
+import GiftCardsHero from "@/src/components/gift-cards/GiftCardsHero";
 import { formatPrice } from "@/src/lib/format";
 import { getGiftCardProductBySlug } from "@/src/lib/gift-card-catalog";
 import { SITE_URL } from "@/src/lib/site-config";
@@ -16,9 +16,7 @@ import { GIFT_CARD_PLATFORM_LABELS } from "@/src/types/database";
  * pattern as app/(storefront)/games/[slug]/GameDetailBody.tsx.
  *
  * No VariantPicker/TrailerEmbed/setup-guide/RelatedGamesRow: those are
- * games-specific (variants, trailers, per-game setup guides). Add-to-cart
- * is a disabled placeholder this session — cart/checkout wiring for gift
- * cards is deliberately out of scope until the order-model changes land.
+ * games-specific (variants, trailers, per-game setup guides).
  */
 export default async function GiftCardDetailBody({
   params,
@@ -61,9 +59,6 @@ export default async function GiftCardDetailBody({
     coverPath: null,
     coverImageUrl: getGiftCardImage(product),
   };
-  const headerImageProduct: { slug: string; wallpaperPath: null; headerImageUrl?: string } = product.headerImageUrl
-    ? { slug: product.slug, wallpaperPath: null, headerImageUrl: product.headerImageUrl }
-    : { slug: product.slug, wallpaperPath: null };
 
   return (
     <div>
@@ -73,7 +68,12 @@ export default async function GiftCardDetailBody({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
       />
 
-      <HeaderImage game={headerImageProduct} className="bg-nova-crypt" />
+      {/* Same full-bleed banner as /gift-cards (GiftCardsPageBody) — one
+          product family, one header image, not a per-product wallpaper.
+          copy={null} drops GiftCardsHero's own "Gift Cards" title/blurb
+          since the hero-row right below already carries this product's
+          real title. */}
+      <GiftCardsHero copy={null} />
 
       <div className="mx-auto max-w-page px-4 md:px-8">
         <div
@@ -105,12 +105,7 @@ export default async function GiftCardDetailBody({
             className="order-1 flex flex-col gap-4 lg:order-2 lg:sticky lg:top-24 lg:self-start"
           >
             <span className="text-3xl font-bold text-nova-bone">{formatPrice(product.pricePkr)}</span>
-            {/* Disabled placeholder — checkout/cart wiring for gift cards
-                lands in a later session (order_items/create_order changes),
-                not this one. */}
-            <Button as="button" type="button" disabled className="w-full">
-              Add to Cart — Coming Soon
-            </Button>
+            <GiftCardAddToCartButton product={product} disabled={!product.isActive} className="w-full" />
             <ul className="flex flex-col gap-1.5 border-t border-nova-hairline pt-4 text-xs text-nova-smoke">
               <li>Verified delivery — every order checked before it ships</li>
               <li>WhatsApp support, 9am–9pm PKT</li>

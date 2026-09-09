@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Button from "@/components/Button";
 import OrderCard from "@/src/components/account/OrderCard";
 import { getGamesByIds, getPaymentMethodsByIds } from "@/src/lib/catalog";
+import { getGiftCardProductsForCodeIds } from "@/src/lib/gift-card-catalog";
 import { getOrdersForUser } from "@/src/lib/order-queries";
 import { createClient } from "@/src/lib/supabase/server-session";
 
@@ -16,12 +17,17 @@ export default async function AccountPage() {
   const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", user.id).single();
   const { orders, orderItems } = await getOrdersForUser(user.id);
 
-  const gameIds = [...new Set(orderItems.map((i) => i.gameId))];
+  const gameIds = [...new Set(orderItems.map((i) => i.gameId).filter((id): id is string => Boolean(id)))];
+  const giftCardCodeIds = [
+    ...new Set(orderItems.map((i) => i.giftCardCodeId).filter((id): id is string => Boolean(id))),
+  ];
   const paymentMethodIds = [...new Set(orders.map((o) => o.paymentMethodId).filter((id): id is string => Boolean(id)))];
-  const [games, paymentMethods] = await Promise.all([
+  const [games, giftCardProductsByCodeId, paymentMethods] = await Promise.all([
     getGamesByIds(gameIds),
+    getGiftCardProductsForCodeIds(giftCardCodeIds),
     getPaymentMethodsByIds(paymentMethodIds),
   ]);
+  const giftCardProductsByCodeIdObj = Object.fromEntries(giftCardProductsByCodeId);
 
   const myOrders = [...orders].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -53,6 +59,7 @@ export default async function AccountPage() {
               order={order}
               items={orderItems.filter((item) => item.orderId === order.id)}
               games={games}
+              giftCardProductsByCodeId={giftCardProductsByCodeIdObj}
               paymentMethods={paymentMethods}
             />
           ))}

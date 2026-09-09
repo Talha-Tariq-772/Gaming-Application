@@ -21,6 +21,7 @@ export function mapOrderRow(row: any): Order {
     rejectionReason: row.rejection_reason,
     reservedUntil: new Date(row.reserved_until).toISOString(),
     refundPolicyConsentedAt: isoOrNull(row.refund_policy_consented_at),
+    regionAckConfirmedAt: isoOrNull(row.region_ack_confirmed_at),
     createdAt: new Date(row.created_at).toISOString(),
   };
 }

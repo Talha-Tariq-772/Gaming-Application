@@ -12,6 +12,8 @@ import { z } from "zod";
 import {
   GAME_GENRES,
   GAME_PLATFORMS,
+  GIFT_CARD_PLATFORMS,
+  GIFT_CARD_REGIONS,
 } from "@/src/types/database";
 import type { OrderStatus } from "@/src/types/database";
 
@@ -67,13 +69,32 @@ export function isValidPkPhone(raw: string): boolean {
 /* Cart item                                                                */
 /* ---------------------------------------------------------------------- */
 
-export const cartItemSchema = z.object({
+const credentialCartItemSchema = z.object({
+  kind: z.literal("credential"),
   gameId: z.string().min(1),
   slug: z.string().min(1),
   title: z.string().min(1),
   price: z.number().positive(),
   coverImageUrl: z.string().min(1),
 });
+
+const giftCardCartItemSchema = z.object({
+  kind: z.literal("gift_card"),
+  productId: z.string().min(1),
+  slug: z.string().min(1),
+  title: z.string().min(1),
+  price: z.number().positive(),
+  coverImageUrl: z.string().min(1),
+  platform: z.enum(GIFT_CARD_PLATFORMS),
+  region: z.enum(GIFT_CARD_REGIONS),
+  denominationValue: z.number().nullable(),
+  denominationCurrency: z.string().nullable(),
+});
+
+export const cartItemSchema = z.discriminatedUnion("kind", [
+  credentialCartItemSchema,
+  giftCardCartItemSchema,
+]);
 
 export type CartItemInput = z.infer<typeof cartItemSchema>;
 

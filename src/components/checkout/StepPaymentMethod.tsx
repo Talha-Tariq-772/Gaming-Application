@@ -11,7 +11,7 @@ import { phoneSchema } from "@/src/lib/validation";
 import { useCartStore } from "@/src/stores/cart-store";
 import { useCartUIStore } from "@/src/stores/cart-ui-store";
 import { useCheckoutStore } from "@/src/stores/checkout-store";
-import type { PaymentMethod } from "@/src/types/database";
+import { GIFT_CARD_PLATFORM_LABELS, type PaymentMethod } from "@/src/types/database";
 import PaymentMethodCard from "./PaymentMethodCard";
 
 export default function StepPaymentMethod({
@@ -25,6 +25,8 @@ export default function StepPaymentMethod({
   const setPaymentMethodId = useCheckoutStore((s) => s.setPaymentMethodId);
   const phoneNumber = useCheckoutStore((s) => s.phoneNumber);
   const setPhoneNumber = useCheckoutStore((s) => s.setPhoneNumber);
+  const regionAck = useCheckoutStore((s) => s.regionAck);
+  const setRegionAck = useCheckoutStore((s) => s.setRegionAck);
   const confirmMethodAndPhone = useCheckoutStore(
     (s) => s.confirmMethodAndPhone,
   );
@@ -41,6 +43,9 @@ export default function StepPaymentMethod({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const submittingRef = useRef(false);
 
+  const giftCardItems = validItems.filter((item) => item.kind === "gift_card");
+  const hasGiftCard = giftCardItems.length > 0;
+
   const phoneResult = phoneSchema.safeParse(phoneNumber);
   const phoneValid = phoneResult.success;
   const phoneError = phoneResult.success
@@ -51,6 +56,7 @@ export default function StepPaymentMethod({
     Boolean(paymentMethodId) &&
     phoneValid &&
     !hasUnavailableItem &&
+    (!hasGiftCard || regionAck) &&
     isOnline &&
     !isSubmitting;
 
@@ -129,6 +135,27 @@ export default function StepPaymentMethod({
           </p>
         )}
       </div>
+
+      {hasGiftCard && (
+        <label className="flex max-w-sm items-start gap-3 text-sm text-nova-ash">
+          <input
+            type="checkbox"
+            checked={regionAck}
+            onChange={(e) => setRegionAck(e.target.checked)}
+            required
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-nova-hairline bg-nova-crypt accent-nova-ember"
+          />
+          <span>
+            I&rsquo;ve checked the platform and region for every gift card in
+            my cart — codes are region-locked and can&rsquo;t be exchanged
+            once delivered:{" "}
+            {giftCardItems
+              .map((item) => `${item.title} (${GIFT_CARD_PLATFORM_LABELS[item.platform]}, ${item.region})`)
+              .join("; ")}
+            .
+          </span>
+        </label>
+      )}
 
       {hasUnavailableItem && (
         <div className="max-w-sm rounded-md border border-nova-blood/30 bg-nova-blood/15 px-4 py-3 text-sm text-nova-bone">

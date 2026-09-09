@@ -8,7 +8,7 @@ import { useFocusTrap } from "@/src/lib/use-focus-trap";
 import { track } from "@/src/lib/analytics";
 import { formatPrice } from "@/src/lib/format";
 import { useCartSummary } from "@/src/lib/use-cart";
-import { useCartStore } from "@/src/stores/cart-store";
+import { cartItemId, useCartStore } from "@/src/stores/cart-store";
 import { useCartUIStore } from "@/src/stores/cart-ui-store";
 
 export default function CartDrawer() {
@@ -21,7 +21,7 @@ export default function CartDrawer() {
   const panelRef = useFocusTrap<HTMLDivElement>(isOpen, close);
 
   // Guard against the SSR/persisted-state hydration mismatch (see useHydrated).
-  const unavailableIds = new Set(unavailableItems.map((i) => i.gameId));
+  const unavailableIds = new Set(unavailableItems.map((i) => cartItemId(i)));
   const displayItems = hydrated ? [...validItems, ...unavailableItems] : [];
   const displayTotal = hydrated ? total : 0;
 
@@ -76,10 +76,12 @@ export default function CartDrawer() {
           <>
             <ul className="flex-1 overflow-y-auto px-6 py-4">
               {displayItems.map((item) => {
-                const unavailable = unavailableIds.has(item.gameId);
+                const id = cartItemId(item);
+                const unavailable = unavailableIds.has(id);
+                const href = item.kind === "gift_card" ? `/gift-cards/${item.slug}` : `/games/${item.slug}`;
                 return (
                   <li
-                    key={item.gameId}
+                    key={id}
                     className="flex gap-3 border-b border-nova-hairline py-4 first:pt-0 last:border-b-0"
                   >
                     <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-md border border-nova-hairline bg-nova-crypt">
@@ -94,7 +96,7 @@ export default function CartDrawer() {
                     <div className="flex min-w-0 flex-1 flex-col justify-between">
                       <div>
                         <Link
-                          href={`/games/${item.slug}`}
+                          href={href}
                           onClick={close}
                           className="wrap-break-word text-sm font-semibold text-nova-bone hover:text-nova-ember-text"
                         >
@@ -112,8 +114,8 @@ export default function CartDrawer() {
                       <button
                         type="button"
                         onClick={() => {
-                          removeItem(item.gameId);
-                          track("remove_from_cart", { gameId: item.gameId });
+                          removeItem(id);
+                          track("remove_from_cart", { gameId: id });
                         }}
                         className="-my-2.5 -ml-1 w-fit px-1 py-2.5 text-xs font-medium uppercase tracking-wider text-nova-smoke hover:text-nova-ember-text"
                       >

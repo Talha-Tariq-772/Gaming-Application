@@ -2,7 +2,8 @@ import Link from "next/link";
 import { formatDate } from "@/src/lib/date";
 import { formatPrice } from "@/src/lib/format";
 import { buildWhatsAppLink } from "@/src/lib/order";
-import type { Game, Order, OrderItem, PaymentMethod } from "@/src/types/database";
+import { toWhatsAppOrderItems } from "@/src/lib/order-item-display";
+import type { Game, GiftCardProduct, Order, OrderItem, PaymentMethod } from "@/src/types/database";
 import StatusBadge from "./StatusBadge";
 import TrackedWhatsAppLink from "./TrackedWhatsAppLink";
 
@@ -20,16 +21,17 @@ export default function OrderCard({
   order,
   items,
   games,
+  giftCardProductsByCodeId,
   paymentMethods,
 }: {
   order: Order;
   items: OrderItem[];
   games: Game[];
+  giftCardProductsByCodeId: Record<string, GiftCardProduct>;
   paymentMethods: PaymentMethod[];
 }) {
-  const titles = items
-    .map((item) => games.find((g) => g.id === item.gameId)?.title)
-    .filter((title): title is string => Boolean(title));
+  const whatsAppItems = toWhatsAppOrderItems(items, games, giftCardProductsByCodeId);
+  const titles = whatsAppItems.map((item) => item.title);
 
   const method = paymentMethods.find((m) => m.id === order.paymentMethodId);
 
@@ -68,7 +70,7 @@ export default function OrderCard({
 
       {ACTIONABLE_STATUSES.has(order.status) && method && (
         <TrackedWhatsAppLink
-          href={buildWhatsAppLink(order, titles.map((title) => ({ title })), method.label)}
+          href={buildWhatsAppLink(order, whatsAppItems, method.label)}
           context="account"
           orderRef={order.paymentReference}
           className="-mb-2.5 mt-4 flex min-h-11 w-fit items-center gap-2 py-2.5 text-sm font-semibold text-nova-ember-text transition-colors duration-(--duration-fast) ease-standard hover:text-nova-ember-lo"

@@ -7,10 +7,13 @@ import OrderTimeline from "@/src/components/account/OrderTimeline";
 import StatusBadge from "@/src/components/account/StatusBadge";
 import TrackedWhatsAppLink from "@/src/components/account/TrackedWhatsAppLink";
 import ViewOrderTracker from "@/src/components/account/ViewOrderTracker";
+import { getGiftCardImage } from "@/lib/product-image";
 import { formatDate } from "@/src/lib/date";
 import { formatPrice } from "@/src/lib/format";
 import { buildWhatsAppLink } from "@/src/lib/order";
 import { getGamesByIds, getPaymentMethodsByIds } from "@/src/lib/catalog";
+import { getGiftCardProductsForCodeIds } from "@/src/lib/gift-card-catalog";
+import { toWhatsAppOrderItems } from "@/src/lib/order-item-display";
 import { getOrdersForUser } from "@/src/lib/order-queries";
 import { createClient } from "@/src/lib/supabase/server-session";
 
@@ -42,12 +45,16 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   }
 
   const items = orderItems.filter((item) => item.orderId === order.id);
-  const gameIds = [...new Set(items.map((i) => i.gameId))];
-  const [games, paymentMethods] = await Promise.all([
+  const gameIds = [...new Set(items.map((i) => i.gameId).filter((id): id is string => Boolean(id)))];
+  const giftCardCodeIds = [...new Set(items.map((i) => i.giftCardCodeId).filter((id): id is string => Boolean(id)))];
+  const [games, giftCardProductsByCodeIdMap, paymentMethods] = await Promise.all([
     getGamesByIds(gameIds),
+    getGiftCardProductsForCodeIds(giftCardCodeIds),
     order.paymentMethodId ? getPaymentMethodsByIds([order.paymentMethodId]) : Promise.resolve([]),
   ]);
+  const giftCardProductsByCodeId = Object.fromEntries(giftCardProductsByCodeIdMap);
   const method = paymentMethods[0];
+  const whatsAppItems = toWhatsAppOrderItems(items, games, giftCardProductsByCodeId);
 
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
@@ -78,14 +85,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             {method && (
               <TrackedWhatsAppLink
-                href={buildWhatsAppLink(
-                  order,
-                  items
-                    .map((item) => games.find((g) => g.id === item.gameId)?.title)
-                    .filter((title): title is string => Boolean(title))
-                    .map((title) => ({ title })),
-                  method.label,
-                )}
+                href={buildWhatsAppLink(order, whatsAppItems, method.label)}
                 context="order-detail"
                 orderRef={order.paymentReference}
                 className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-nova-blood underline underline-offset-2 hover:text-nova-blood/80"
@@ -107,14 +107,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-nova-ember bg-nova-crypt px-6 py-4">
           <p className="text-sm text-nova-ash">Waiting on your payment screenshot to verify this order.</p>
           <TrackedWhatsAppLink
-            href={buildWhatsAppLink(
-              order,
-              items
-                .map((item) => games.find((g) => g.id === item.gameId)?.title)
-                .filter((title): title is string => Boolean(title))
-                .map((title) => ({ title })),
-              method.label,
-            )}
+            href={buildWhatsAppLink(order, whatsAppItems, method.label)}
             context="order-detail"
             orderRef={order.paymentReference}
             className="-my-2.5 flex min-h-11 items-center py-2.5 text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
@@ -130,6 +123,32 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-nova-smoke">Items</h2>
             <div className="flex flex-col gap-4">
               {items.map((item) => {
+                if (item.productType === "gift_card") {
+                  const product = item.giftCardCodeId ? giftCardProductsByCodeId[item.giftCardCodeId] : undefined;
+                  if (!product) return null;
+                  return (
+                    <div key={item.id} className="flex items-center gap-4 rounded-lg border border-nova-hairline bg-nova-crypt p-4">
+                      <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-md border border-nova-hairline bg-nova-slab">
+                        <Image
+                          src={getGiftCardImage(product)}
+                          alt={product.title}
+                          fill
+                          sizes="64px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="flex flex-1 items-center justify-between gap-4">
+                        <Link
+                          href={`/gift-cards/${product.slug}`}
+                          className="flex min-h-11 items-center text-sm font-semibold text-nova-bone hover:text-nova-ember-text"
+                        >
+                          {product.title}
+                        </Link>
+                        <span className="text-sm text-nova-ash">{formatPrice(item.price)}</span>
+                      </div>
+                    </div>
+                  );
+                }
                 const game = games.find((g) => g.id === item.gameId);
                 if (!game) return null;
                 return (

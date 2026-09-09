@@ -48,7 +48,11 @@ export default function CardImage({
 
   return (
     <div
-      className={`relative aspect-3/4 w-full overflow-hidden ${className ?? ""}`}
+      // cardimage-w-full (app/globals.css), not Tailwind's w-full: see that
+      // rule's comment — a caller's own width override (e.g. w-28 sm:w-36
+      // md:w-44) must always win, and layering the default in `base`
+      // guarantees that regardless of Tailwind's generation order.
+      className={`relative aspect-3/4 cardimage-w-full overflow-hidden ${className ?? ""}`}
       style={style}
       {...rest}
     >

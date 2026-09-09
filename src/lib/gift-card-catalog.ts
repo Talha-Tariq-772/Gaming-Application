@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 import { safeAsync } from "@/src/lib/safe-async";
 import { createClient } from "@/src/lib/supabase/public";
+import { createClient as createServiceClient } from "@/src/lib/supabase/server";
 import type { GiftCardFilters, GiftCardProduct } from "@/src/types/database";
 
 /**
@@ -75,6 +76,56 @@ export async function getGiftCardProducts(filters: GiftCardFilters = {}): Promis
     const { data, error } = await query;
     if (error) throw error;
     return (data ?? []).map(mapGiftCardProductRow);
+  });
+}
+
+/**
+ * Service-role, by-id, regardless of is_active — mirrors catalog.ts's
+ * getGamesByIds exactly (same reasoning: order/cart validation and
+ * checkout error messages need a product's own title/data even after it's
+ * been deactivated, and the anon-key gift_card_products_select policy
+ * would otherwise hide it).
+ */
+export async function getGiftCardProductsByIds(ids: string[]): Promise<GiftCardProduct[]> {
+  if (ids.length === 0) return [];
+  return safeAsync("gift card products by id", async () => {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase.from("gift_card_products").select("*").in("id", ids);
+    if (error) throw error;
+    return (data ?? []).map(mapGiftCardProductRow);
+  });
+}
+
+/**
+ * Resolves order_items.gift_card_code_id -> its gift-card product, for
+ * order-history/admin display. gift_card_codes has zero client-readable
+ * RLS policies (service role only, see 20260901000002_gift_cards.sql), so
+ * this two-step lookup can only ever run server-side.
+ */
+export async function getGiftCardProductsForCodeIds(
+  codeIds: string[],
+): Promise<Map<string, GiftCardProduct>> {
+  const result = new Map<string, GiftCardProduct>();
+  if (codeIds.length === 0) return result;
+
+  return safeAsync("gift card products for order items", async () => {
+    const supabase = createServiceClient();
+    const { data: codes, error: codesError } = await supabase
+      .from("gift_card_codes")
+      .select("id, product_id")
+      .in("id", codeIds);
+    if (codesError) throw codesError;
+    if (!codes || codes.length === 0) return result;
+
+    const productIds = [...new Set(codes.map((c) => c.product_id as string))];
+    const products = await getGiftCardProductsByIds(productIds);
+    const productById = new Map(products.map((p) => [p.id, p]));
+
+    for (const code of codes) {
+      const product = productById.get(code.product_id as string);
+      if (product) result.set(code.id as string, product);
+    }
+    return result;
   });
 }
 

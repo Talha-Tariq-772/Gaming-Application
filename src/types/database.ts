@@ -156,13 +156,24 @@ export interface Order {
    * non-refundable once revealed" checkbox on the payment-instructions
    * step, just before markPaid — dispute evidence for the refund policy. */
   refundPolicyConsentedAt: string | null;
+  /** Set in the same final update that stamps amount_exact, only when the
+   * cart held at least one gift card — dispute evidence that the buyer
+   * saw and accepted each gift card's platform/region before ordering.
+   * Null for a games-only order. */
+  regionAckConfirmedAt: string | null;
   createdAt: string;
 }
+
+export type OrderItemProductType = "game" | "gift_card";
 
 export interface OrderItem {
   id: string;
   orderId: string;
-  gameId: string;
+  /** Null for a gift-card item — see productType. */
+  gameId: string | null;
+  /** Null for a game item — see productType. */
+  giftCardCodeId: string | null;
+  productType: OrderItemProductType;
   /** Price snapshot at purchase time, independent of the game's current price. */
   price: number;
 }

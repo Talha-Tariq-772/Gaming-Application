@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { claimPayment, createOrder } from "@/src/lib/actions/checkout";
+import { formatGiftCardVariant } from "@/src/lib/order";
 import { safeStorage } from "@/src/lib/safe-storage";
 import type { CartItem } from "@/src/stores/cart-store";
 import type { Order } from "@/src/types/database";
@@ -11,12 +12,20 @@ export type CheckoutActionResult = { ok: true } | { ok: false; message: string }
 
 export interface CheckoutOrderItem {
   title: string;
+  /** "PlayStation Network, US, 10 USD" — set only for a gift-card item, see
+   * formatGiftCardVariant. */
+  variant?: string;
 }
 
 interface CheckoutState {
   step: CheckoutStep;
   paymentMethodId: string | null;
   phoneNumber: string;
+  /** Required (and only rendered) when the cart holds at least one
+   * gift-card item — mirrors the payment-instructions step's refund-policy
+   * checkbox: a plain local boolean gating Continue, reset by
+   * resetCheckout. */
+  regionAck: boolean;
   order: Order | null;
   /** Snapshot of the cart's item titles, captured at order-creation time
    * — the cart itself is cleared right after, and the WhatsApp handoff
@@ -24,6 +33,7 @@ interface CheckoutState {
   orderItems: CheckoutOrderItem[];
   setPaymentMethodId: (id: string) => void;
   setPhoneNumber: (phone: string) => void;
+  setRegionAck: (ack: boolean) => void;
   /** Creates the real order (createOrder server action) and advances to
    * step 2 on success. Every item is submitted with the same
    * paymentMethodId — checkout only ever offers one payment method for
@@ -52,27 +62,37 @@ export const useCheckoutStore = create<CheckoutState>()(
       step: 1,
       paymentMethodId: null,
       phoneNumber: "",
+      regionAck: false,
       order: null,
       orderItems: [],
 
       setPaymentMethodId: (id) => set({ paymentMethodId: id }),
       setPhoneNumber: (phone) => set({ phoneNumber: phone }),
+      setRegionAck: (ack) => set({ regionAck: ack }),
 
       confirmMethodAndPhone: async (cartItems, userId) => {
-        const { paymentMethodId, phoneNumber } = get();
+        const { paymentMethodId, phoneNumber, regionAck } = get();
         if (!paymentMethodId || cartItems.length === 0) {
           return { ok: false, message: "Select a payment method and add items to your cart." };
         }
 
-        const items = cartItems.map((item) => ({ gameId: item.gameId, paymentMethodId }));
-        const result = await createOrder(userId, items, phoneNumber);
+        const items = cartItems.map((item) =>
+          item.kind === "gift_card"
+            ? { kind: "gift_card" as const, productId: item.productId, paymentMethodId }
+            : { kind: "credential" as const, gameId: item.gameId, paymentMethodId },
+        );
+        const result = await createOrder(userId, items, phoneNumber, regionAck);
         if (!result.ok) {
           return { ok: false, message: result.message };
         }
 
         set({
           order: result.order,
-          orderItems: cartItems.map((item) => ({ title: item.title })),
+          orderItems: cartItems.map((item) =>
+            item.kind === "gift_card"
+              ? { title: item.title, variant: formatGiftCardVariant(item) }
+              : { title: item.title },
+          ),
           step: 2,
         });
         return { ok: true };
@@ -99,7 +119,7 @@ export const useCheckoutStore = create<CheckoutState>()(
       },
 
       resetCheckout: () =>
-        set({ step: 1, paymentMethodId: null, phoneNumber: "", order: null, orderItems: [] }),
+        set({ step: 1, paymentMethodId: null, phoneNumber: "", regionAck: false, order: null, orderItems: [] }),
     }),
     { name: "gk-checkout", storage: createJSONStorage(() => safeStorage) },
   ),

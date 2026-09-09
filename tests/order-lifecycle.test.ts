@@ -285,7 +285,7 @@ describe("createOrder", () => {
     const game = await seedGame(`Available ${run}`, 1);
     sessionState.client = clientA;
 
-    const result = await createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A1`);
+    const result = await createOrder(customerA.id, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A1`);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     orderIds.push(result.order.id);
@@ -312,7 +312,7 @@ describe("createOrder", () => {
     const game = await seedGame(`Empty ${run}`, 0);
     sessionState.client = clientA;
 
-    const result = await createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A2`);
+    const result = await createOrder(customerA.id, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A2`);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toBe("OUT_OF_STOCK");
@@ -328,7 +328,7 @@ describe("createOrder", () => {
   it("throws when the caller's session doesn't match the given userId", async () => {
     const game = await seedGame(`Spoof ${run}`, 1);
     sessionState.client = clientB; // real session is B, but claiming to be A
-    await expect(createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A3`)).rejects.toThrow();
+    await expect(createOrder(customerA.id, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A3`)).rejects.toThrow();
   });
 
   it("under concurrent calls for the same low-stock game, exactly one succeeds and the other is OUT_OF_STOCK", async () => {
@@ -336,8 +336,8 @@ describe("createOrder", () => {
     sessionState.client = clientA;
 
     const [r1, r2] = await Promise.all([
-      createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A4`),
-      createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A4`),
+      createOrder(customerA.id, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A4`),
+      createOrder(customerA.id, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A4`),
     ]);
 
     for (const r of [r1, r2]) {
@@ -360,9 +360,9 @@ describe("createOrder", () => {
     const result = await createOrder(
       customerA.id,
       [
-        { gameId: gameA.id, paymentMethodId: paymentMethod.id },
-        { gameId: gameB.id, paymentMethodId: paymentMethod.id },
-        { gameId: gameC.id, paymentMethodId: paymentMethod.id },
+        { kind: "credential", gameId: gameA.id, paymentMethodId: paymentMethod.id },
+        { kind: "credential", gameId: gameB.id, paymentMethodId: paymentMethod.id },
+        { kind: "credential", gameId: gameC.id, paymentMethodId: paymentMethod.id },
       ],
       `+9230${run}A7`,
     );
@@ -403,9 +403,9 @@ describe("createOrder", () => {
     const result = await createOrder(
       customerA.id,
       [
-        { gameId: gameA.id, paymentMethodId: paymentMethod.id },
-        { gameId: gameB.id, paymentMethodId: paymentMethod.id },
-        { gameId: gameC.id, paymentMethodId: paymentMethod.id },
+        { kind: "credential", gameId: gameA.id, paymentMethodId: paymentMethod.id },
+        { kind: "credential", gameId: gameB.id, paymentMethodId: paymentMethod.id },
+        { kind: "credential", gameId: gameC.id, paymentMethodId: paymentMethod.id },
       ],
       `+9230${run}A8`,
     );
@@ -441,7 +441,7 @@ describe("createOrder — guest checkout", () => {
     const game = await seedGame(`Guest ${run}`, 1);
     sessionState.client = null; // no session — if any code path secretly needs one, this throws loudly.
 
-    const result = await createOrder(undefined, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], "03001234567");
+    const result = await createOrder(undefined, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], "03001234567");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     orderIds.push(result.order.id);
@@ -455,7 +455,7 @@ describe("createOrder — guest checkout", () => {
     const game = await seedGame(`GuestBadPhone ${run}`, 1);
     sessionState.client = null;
 
-    const result = await createOrder(undefined, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], "not-a-phone");
+    const result = await createOrder(undefined, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], "not-a-phone");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toBe("INVALID_PHONE");
@@ -468,7 +468,7 @@ describe("createOrder — guest checkout", () => {
     const game = await seedGame(`GuestClaim ${run}`, 1);
     sessionState.client = null;
 
-    const created = await createOrder(undefined, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], "03211234567");
+    const created = await createOrder(undefined, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], "03211234567");
     expect(created.ok).toBe(true);
     if (!created.ok) return;
     orderIds.push(created.order.id);
@@ -483,7 +483,7 @@ describe("createOrder — guest checkout", () => {
     const game = await seedGame(`SignedInStillGuarded ${run}`, 1);
     sessionState.client = clientA;
 
-    const own = await createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}SG`);
+    const own = await createOrder(customerA.id, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}SG`);
     expect(own.ok).toBe(true);
     if (!own.ok) return;
     orderIds.push(own.order.id);
@@ -493,7 +493,7 @@ describe("createOrder — guest checkout", () => {
     const game2 = await seedGame(`SignedInSpoof ${run}`, 1);
     sessionState.client = clientB; // real session is B, but claiming to be A
     await expect(
-      createOrder(customerA.id, [{ gameId: game2.id, paymentMethodId: paymentMethod.id }], `+9230${run}SP`),
+      createOrder(customerA.id, [{ kind: "credential", gameId: game2.id, paymentMethodId: paymentMethod.id }], `+9230${run}SP`),
     ).rejects.toThrow();
   });
 });
@@ -503,7 +503,7 @@ describe("payment reference generation", () => {
     const game = await seedGame(`RefFormat ${run}`, 1);
     sessionState.client = clientA;
 
-    const result = await createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}RF`);
+    const result = await createOrder(customerA.id, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}RF`);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     orderIds.push(result.order.id);
@@ -516,8 +516,8 @@ describe("payment reference generation", () => {
     sessionState.client = clientA;
 
     const [r1, r2] = await Promise.all([
-      createOrder(customerA.id, [{ gameId: gameA.id, paymentMethodId: paymentMethod.id }], `+9230${run}R1`),
-      createOrder(customerA.id, [{ gameId: gameB.id, paymentMethodId: paymentMethod.id }], `+9230${run}R2`),
+      createOrder(customerA.id, [{ kind: "credential", gameId: gameA.id, paymentMethodId: paymentMethod.id }], `+9230${run}R1`),
+      createOrder(customerA.id, [{ kind: "credential", gameId: gameB.id, paymentMethodId: paymentMethod.id }], `+9230${run}R2`),
     ]);
 
     expect(r1.ok).toBe(true);
@@ -533,7 +533,7 @@ describe("payment reference generation", () => {
     const game = await seedGame(`RefClosed ${run}`, 1);
     sessionState.client = clientA;
 
-    const created = await createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}RC`);
+    const created = await createOrder(customerA.id, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}RC`);
     expect(created.ok).toBe(true);
     if (!created.ok) return;
     orderIds.push(created.order.id);
@@ -569,7 +569,7 @@ describe("claimPayment", () => {
   it("marks an awaiting_payment order as payment_claimed for its owner", async () => {
     const game = await seedGame(`Claimable ${run}`, 1);
     sessionState.client = clientA;
-    const created = await createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A5`);
+    const created = await createOrder(customerA.id, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A5`);
     expect(created.ok).toBe(true);
     if (!created.ok) return;
     orderIds.push(created.order.id);
@@ -585,7 +585,7 @@ describe("claimPayment", () => {
   it("fails to claim someone else's order", async () => {
     const game = await seedGame(`Claim Other ${run}`, 1);
     sessionState.client = clientA;
-    const created = await createOrder(customerA.id, [{ gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A6`);
+    const created = await createOrder(customerA.id, [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }], `+9230${run}A6`);
     expect(created.ok).toBe(true);
     if (!created.ok) return;
     orderIds.push(created.order.id);
@@ -741,7 +741,7 @@ describe("end to end: storefront order -> admin queue -> approve -> customer see
     sessionState.client = clientA;
     const created = await createOrder(
       customerA.id,
-      [{ gameId: game.id, paymentMethodId: paymentMethod.id }],
+      [{ kind: "credential", gameId: game.id, paymentMethodId: paymentMethod.id }],
       `+9230${run}E1`,
     );
     expect(created.ok).toBe(true);

@@ -3,20 +3,26 @@
 import { requireAuthenticated, requireUser } from "@/src/lib/auth/session";
 import { mapOrderRow } from "@/src/lib/actions/order-mapping";
 import { getGamesByIds } from "@/src/lib/catalog";
+import { getGiftCardProductsByIds } from "@/src/lib/gift-card-catalog";
 import { normalisePhone } from "@/src/lib/phone";
 import { createClient as createServiceClient } from "@/src/lib/supabase/server";
 import type { Order } from "@/src/types/database";
 
-export interface CreateOrderItem {
-  gameId: string;
-  paymentMethodId: string;
-}
+export type CreateOrderItem =
+  | { kind: "credential"; gameId: string; paymentMethodId: string }
+  | { kind: "gift_card"; productId: string; paymentMethodId: string };
 
 export type CreateOrderResult =
   | { ok: true; order: Order }
   | {
       ok: false;
-      error: "OUT_OF_STOCK" | "GAME_NOT_FOUND" | "EMPTY_CART" | "INVALID_PHONE" | "UNKNOWN";
+      error:
+        | "OUT_OF_STOCK"
+        | "GAME_NOT_FOUND"
+        | "EMPTY_CART"
+        | "INVALID_PHONE"
+        | "REGION_NOT_ACKNOWLEDGED"
+        | "UNKNOWN";
       gameId?: string;
       gameTitle?: string;
       message: string;
@@ -49,6 +55,7 @@ export async function createOrder(
   userId: string | undefined,
   items: CreateOrderItem[],
   phoneNumber: string,
+  regionAck = false,
 ): Promise<CreateOrderResult> {
   let guestPhone: string | null = null;
   if (userId) {
@@ -65,12 +72,28 @@ export async function createOrder(
     return { ok: false, error: "EMPTY_CART", message: "Your cart is empty." };
   }
 
+  // A not-found/out-of-stock id could belong to either branch — looked up
+  // in both below rather than threaded through the RPC's error text, since
+  // create_order raises the same OUT_OF_STOCK/GAME_NOT_FOUND codes for
+  // gift-card items too (see 20260908000001_gift_card_checkout.sql).
+  async function findItemTitle(id: string): Promise<string | undefined> {
+    const [game] = await getGamesByIds([id]);
+    if (game) return game.title;
+    const [product] = await getGiftCardProductsByIds([id]);
+    return product?.title;
+  }
+
   const supabase = createServiceClient();
   const { data, error } = await supabase.rpc("create_order", {
     p_user_id: userId ?? null,
-    p_items: items.map((item) => ({ game_id: item.gameId, payment_method_id: item.paymentMethodId })),
+    p_items: items.map((item) =>
+      item.kind === "gift_card"
+        ? { product_type: "gift_card", product_id: item.productId, payment_method_id: item.paymentMethodId }
+        : { product_type: "game", game_id: item.gameId, payment_method_id: item.paymentMethodId },
+    ),
     p_phone_number: userId ? phoneNumber : null,
     p_guest_phone: guestPhone,
+    p_region_ack: regionAck,
   });
 
   if (error) {
@@ -78,14 +101,14 @@ export async function createOrder(
 
     const outOfStock = message.match(new RegExp(`OUT_OF_STOCK:(${UUID_RE})`, "i"));
     if (outOfStock) {
-      const gameId = outOfStock[1];
-      const [game] = await getGamesByIds([gameId]);
+      const itemId = outOfStock[1];
+      const title = await findItemTitle(itemId);
       return {
         ok: false,
         error: "OUT_OF_STOCK",
-        gameId,
-        gameTitle: game?.title,
-        message: game ? `${game.title} just went out of stock.` : "One of the games in your cart just went out of stock.",
+        gameId: itemId,
+        gameTitle: title,
+        message: title ? `${title} just went out of stock.` : "One of the items in your cart just went out of stock.",
       };
     }
 
@@ -95,7 +118,15 @@ export async function createOrder(
         ok: false,
         error: "GAME_NOT_FOUND",
         gameId: notFound[1],
-        message: "One of the games in your cart is no longer available.",
+        message: "One of the items in your cart is no longer available.",
+      };
+    }
+
+    if (message.includes("REGION_NOT_ACKNOWLEDGED")) {
+      return {
+        ok: false,
+        error: "REGION_NOT_ACKNOWLEDGED",
+        message: "Confirm you've checked the platform and region for every gift card in your cart.",
       };
     }
 

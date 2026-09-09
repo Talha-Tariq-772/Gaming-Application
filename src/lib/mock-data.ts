@@ -385,13 +385,13 @@ export const MOCK_PROFILES: Profile[] = [
 /* ---------------------------------------------------------------------- */
 
 export const MOCK_ORDER_ITEMS: OrderItem[] = [
-  { id: "item-1", orderId: "order-1", gameId: "game-1", price: 2499 },
-  { id: "item-2", orderId: "order-2", gameId: "game-3", price: 4499 },
-  { id: "item-3", orderId: "order-2", gameId: "game-8", price: 599 },
-  { id: "item-4", orderId: "order-3", gameId: "game-4", price: 1999 },
-  { id: "item-5", orderId: "order-4", gameId: "game-2", price: 3499 },
-  { id: "item-6", orderId: "order-5", gameId: "game-6", price: 3999 },
-  { id: "item-7", orderId: "order-6", gameId: "game-7", price: 999 },
+  { id: "item-1", orderId: "order-1", gameId: "game-1", giftCardCodeId: null, productType: "game", price: 2499 },
+  { id: "item-2", orderId: "order-2", gameId: "game-3", giftCardCodeId: null, productType: "game", price: 4499 },
+  { id: "item-3", orderId: "order-2", gameId: "game-8", giftCardCodeId: null, productType: "game", price: 599 },
+  { id: "item-4", orderId: "order-3", gameId: "game-4", giftCardCodeId: null, productType: "game", price: 1999 },
+  { id: "item-5", orderId: "order-4", gameId: "game-2", giftCardCodeId: null, productType: "game", price: 3499 },
+  { id: "item-6", orderId: "order-5", gameId: "game-6", giftCardCodeId: null, productType: "game", price: 3999 },
+  { id: "item-7", orderId: "order-6", gameId: "game-7", giftCardCodeId: null, productType: "game", price: 999 },
 ];
 
 // One seeded order per status, so every StatusBadge variant has a real
@@ -411,6 +411,7 @@ export const MOCK_ORDERS: Order[] = [
     rejectionReason: null,
     reservedUntil: "2026-04-10T09:45:00.000Z",
     refundPolicyConsentedAt: null,
+    regionAckConfirmedAt: null,
     createdAt: "2026-04-10T09:15:00.000Z",
   },
   {
@@ -427,6 +428,7 @@ export const MOCK_ORDERS: Order[] = [
     rejectionReason: null,
     reservedUntil: "2026-04-09T12:15:00.000Z",
     refundPolicyConsentedAt: "2026-04-09T12:40:00.000Z",
+    regionAckConfirmedAt: null,
     createdAt: "2026-04-09T11:45:00.000Z",
   },
   {
@@ -443,6 +445,7 @@ export const MOCK_ORDERS: Order[] = [
     rejectionReason: null,
     reservedUntil: "2026-04-07T17:50:00.000Z",
     refundPolicyConsentedAt: "2026-04-07T18:05:00.000Z",
+    regionAckConfirmedAt: null,
     createdAt: "2026-04-07T17:20:00.000Z",
   },
   {
@@ -459,6 +462,7 @@ export const MOCK_ORDERS: Order[] = [
     rejectionReason: null,
     reservedUntil: "2026-04-11T09:50:00.000Z",
     refundPolicyConsentedAt: "2026-04-11T10:05:00.000Z",
+    regionAckConfirmedAt: null,
     createdAt: "2026-04-11T09:20:00.000Z",
   },
   {
@@ -476,6 +480,7 @@ export const MOCK_ORDERS: Order[] = [
       "The transferred amount didn't match the exact reconciliation amount — please retry with the amount shown at checkout.",
     reservedUntil: "2026-04-05T14:55:00.000Z",
     refundPolicyConsentedAt: "2026-04-05T15:10:00.000Z",
+    regionAckConfirmedAt: null,
     createdAt: "2026-04-05T14:25:00.000Z",
   },
   {
@@ -492,6 +497,7 @@ export const MOCK_ORDERS: Order[] = [
     rejectionReason: null,
     reservedUntil: "2026-04-03T09:30:00.000Z",
     refundPolicyConsentedAt: null,
+    regionAckConfirmedAt: null,
     createdAt: "2026-04-03T08:45:00.000Z",
   },
 ];
@@ -580,6 +586,7 @@ function buildRecentOrders(): { orders: Order[]; items: OrderItem[] } {
       // Real flow records this the moment claimedAt is set (the consent
       // checkbox gates the same button that triggers markPaid).
       refundPolicyConsentedAt: config.claimedAt,
+      regionAckConfirmedAt: null,
       createdAt: config.createdAt,
     });
 
@@ -587,6 +594,8 @@ function buildRecentOrders(): { orders: Order[]; items: OrderItem[] } {
       id: `recent-item-${config.idSuffix}`,
       orderId,
       gameId: game.id,
+      giftCardCodeId: null,
+      productType: "game",
       price: game.price,
     });
   }

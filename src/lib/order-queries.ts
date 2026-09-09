@@ -12,6 +12,8 @@ function mapOrderItemRow(row: any): OrderItem {
     id: row.id,
     orderId: row.order_id,
     gameId: row.game_id,
+    giftCardCodeId: row.gift_card_code_id,
+    productType: row.product_type,
     price: Number(row.price),
   };
 }

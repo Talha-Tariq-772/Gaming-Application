@@ -13,6 +13,14 @@ import type { ReactNode } from "react";
  * page.tsx and GameDetailBody's HeaderImage use. No border/chamfer framing
  * (an earlier version had one) since a full-bleed section has no side
  * margins for a "frame" to sit inside, and HomeHero itself has none.
+ *
+ * `copy` lets a caller override or drop the overlay text while keeping the
+ * exact same image/scrim/fade/sizing treatment — GiftCardDetailBody
+ * (app/(storefront)/gift-cards/[slug]/GiftCardDetailBody.tsx) passes
+ * `copy={null}` since its own overlapping title row below the banner
+ * already carries the heading; stacking "Gift Cards" above the real
+ * product title would be redundant. Omitting the prop entirely
+ * (GiftCardsPageBody's call site) keeps the original default copy.
  */
 function HeroCopy(): ReactNode {
   return (
@@ -31,7 +39,9 @@ function HeroCopy(): ReactNode {
   );
 }
 
-export default function GiftCardsHero() {
+export default function GiftCardsHero({ copy }: { copy?: ReactNode }) {
+  const content = copy === undefined ? <HeroCopy /> : copy;
+
   return (
     <section className="w-full overflow-hidden bg-nova-void">
       <div className="relative aspect-[12/5] w-full">
@@ -79,20 +89,21 @@ export default function GiftCardsHero() {
 
         {/* Overlay copy — md+ only, aligned to the site's normal content
             column (max-w-page) even though the image itself bleeds full
-            width, same as HomeHero. */}
-        <div className="absolute inset-0 z-10 mx-auto hidden w-full max-w-page items-center px-4 md:flex md:px-8">
-          <div className="flex w-full max-w-xl flex-col items-start gap-7 md:gap-9">
-            <HeroCopy />
+            width, same as HomeHero. Omitted entirely when a caller passes
+            copy={null} (see the `copy` prop comment above). */}
+        {content && (
+          <div className="absolute inset-0 z-10 mx-auto hidden w-full max-w-page items-center px-4 md:flex md:px-8">
+            <div className="flex w-full max-w-xl flex-col items-start gap-7 md:gap-9">{content}</div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Mobile-only stacked copy below the image, same reasoning as
           HomeHero: an aspect-[12/5] box at phone widths isn't tall enough
           to overlay this much text without overflowing the artwork. */}
-      <div className="flex w-full flex-col items-start gap-7 bg-[#08060a] px-4 py-10 md:hidden">
-        <HeroCopy />
-      </div>
+      {content && (
+        <div className="flex w-full flex-col items-start gap-7 bg-[#08060a] px-4 py-10 md:hidden">{content}</div>
+      )}
     </section>
   );
 }

@@ -11,15 +11,17 @@ import GiftCardFilterBarSkeleton from "./GiftCardFilterBarSkeleton";
  */
 export default function GiftCardsPageSkeleton() {
   return (
-    <div className="mx-auto max-w-page px-4 py-16 md:px-8">
-      <div className="mb-8">
-        <div className="h-3.5 w-24 animate-pulse rounded bg-nova-slab" />
-        <div className="mt-2 h-[52px] w-64 animate-pulse rounded bg-nova-slab md:h-[80px] md:w-96" />
+    <>
+      {/* Reserves GiftCardsHero's own full-bleed aspect-[12/5] box — outside
+          the padded wrapper below, same placement as the real component,
+          so Suspense resolving doesn't shift anything horizontally either. */}
+      <div className="aspect-[12/5] w-full animate-pulse bg-nova-slab" />
+
+      <div className="mx-auto max-w-page px-4 py-16 md:px-8">
+        <GiftCardFilterBarSkeleton />
+
+        <GamesGridSkeleton />
       </div>
-
-      <GiftCardFilterBarSkeleton />
-
-      <GamesGridSkeleton />
-    </div>
+    </>
   );
 }

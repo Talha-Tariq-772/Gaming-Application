@@ -672,6 +672,27 @@
     outline: 2px solid var(--color-nova-ember);
     outline-offset: 2px;
   }
+
+  /* CardImage's (components/ui/CardImage.tsx) default width. A caller
+     overrides sizing via its own className (e.g. GameDetailBody's and
+     GiftCardDetailBody's hero-row thumbnail: "w-28 shrink-0 ... sm:w-36
+     md:w-44") — but that override and Tailwind's own .w-full utility used
+     to sit in the exact same generated `utilities` layer at the exact same
+     specificity (0,1,0), so whichever one Tailwind's generator happened to
+     emit LATER in the stylesheet won, regardless of the order classes
+     appear in the class attribute. That silently rendered both hero-row
+     thumbnails at full row width instead of w-28/sm:w-36/md:w-44
+     (confirmed via getComputedStyle, not just the class list). Declaring
+     the default here in `base` — a layer Tailwind's own `utilities` layer
+     (where every real width utility lives, including a caller's own
+     w-full if it ever passes one) always beats regardless of specificity
+     or generation order — is a real fix, not a generation-order bet: any
+     future width utility a caller adds is now guaranteed to win. Do not
+     rename this back to .w-full; that would collide with (and silently
+     redefine) Tailwind's real .w-full utility used everywhere else. */
+  .cardimage-w-full {
+    width: 100%;
+  }
 }
 
 /* ==========================================================================

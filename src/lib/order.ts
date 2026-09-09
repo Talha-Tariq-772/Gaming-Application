@@ -1,5 +1,6 @@
 import { formatPriceExact } from "@/src/lib/format";
-import type { Order } from "@/src/types/database";
+import type { GiftCardCartItem } from "@/src/stores/cart-store";
+import { GIFT_CARD_PLATFORM_LABELS, type Order } from "@/src/types/database";
 
 const RESERVATION_MINUTES = 45;
 
@@ -51,6 +52,7 @@ export function buildPendingOrder(params: {
     rejectionReason: null,
     reservedUntil: reservedUntil.toISOString(),
     refundPolicyConsentedAt: null,
+    regionAckConfirmedAt: null,
     createdAt: now.toISOString(),
   };
 }
@@ -60,6 +62,20 @@ export interface WhatsAppOrderItem {
   /** Formatted "platform, region, denomination" for a gift card item —
    * omitted entirely for a game, which has no variant of its own. */
   variant?: string;
+}
+
+/**
+ * "PlayStation Network, US, 10 USD" — the fulfilling agent needs platform
+ * and region to know which code to send, and denomination when the
+ * product has one; a bare product title isn't enough to disambiguate
+ * between two regions/denominations of the same card.
+ */
+export function formatGiftCardVariant(item: GiftCardCartItem): string {
+  const parts = [GIFT_CARD_PLATFORM_LABELS[item.platform], item.region];
+  if (item.denominationValue !== null && item.denominationCurrency) {
+    parts.push(`${item.denominationValue} ${item.denominationCurrency}`);
+  }
+  return parts.join(", ");
 }
 
 /**

@@ -229,7 +229,7 @@ describe("/library — real per-user isolation", () => {
 
     // Customer A buys and gets approved for gameA.
     sessionState.client = clientA;
-    const orderA = await createOrder(customerA.id, [{ gameId: gameA.id, paymentMethodId: paymentMethod.id }], `+9230${run}A1`);
+    const orderA = await createOrder(customerA.id, [{ kind: "credential", gameId: gameA.id, paymentMethodId: paymentMethod.id }], `+9230${run}A1`);
     expect(orderA.ok).toBe(true);
     if (!orderA.ok) return;
     orderIds.push(orderA.order.id);
@@ -242,7 +242,7 @@ describe("/library — real per-user isolation", () => {
 
     // Customer B buys and gets approved for gameB.
     sessionState.client = clientB;
-    const orderB = await createOrder(customerB.id, [{ gameId: gameB.id, paymentMethodId: paymentMethod.id }], `+9230${run}B1`);
+    const orderB = await createOrder(customerB.id, [{ kind: "credential", gameId: gameB.id, paymentMethodId: paymentMethod.id }], `+9230${run}B1`);
     expect(orderB.ok).toBe(true);
     if (!orderB.ok) return;
     orderIds.push(orderB.order.id);

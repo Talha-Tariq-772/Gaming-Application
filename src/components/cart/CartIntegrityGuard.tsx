@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { useGamesByIds } from "@/src/lib/use-games-by-ids";
+import { useGiftCardsByIds } from "@/src/lib/use-gift-cards-by-ids";
 import { useHydrated } from "@/src/lib/use-hydrated";
 import { cartItemSchema } from "@/src/lib/validation";
-import { useCartStore } from "@/src/stores/cart-store";
+import { cartItemId, useCartStore } from "@/src/stores/cart-store";
 import { useToastStore } from "@/src/stores/toast-store";
 
 const MAX_NAMES_IN_TOAST = 3;
@@ -28,11 +29,16 @@ export default function CartIntegrityGuard() {
   const items = useCartStore((s) => s.items);
   const pruneItems = useCartStore((s) => s.pruneItems);
   const showToast = useToastStore((s) => s.showToast);
-  const { games, loaded: gamesLoaded } = useGamesByIds(items.map((item) => item.gameId));
+  const { games, loaded: gamesLoaded } = useGamesByIds(
+    items.filter((i) => i.kind === "credential").map((i) => i.gameId),
+  );
+  const { products, loaded: productsLoaded } = useGiftCardsByIds(
+    items.filter((i) => i.kind === "gift_card").map((i) => i.productId),
+  );
   const checkedOnce = useRef(false);
 
   useEffect(() => {
-    if (!hydrated || !gamesLoaded || checkedOnce.current) return;
+    if (!hydrated || !gamesLoaded || !productsLoaded || checkedOnce.current) return;
     checkedOnce.current = true;
 
     const invalidIds: string[] = [];
@@ -41,13 +47,16 @@ export default function CartIntegrityGuard() {
     for (const item of items) {
       const parsed = cartItemSchema.safeParse(item);
       if (!parsed.success) {
-        invalidIds.push(item.gameId);
+        invalidIds.push(cartItemId(item));
         invalidTitles.push(item.title || "an item");
         continue;
       }
-      const game = games.find((g) => g.id === item.gameId);
-      if (!game || !game.isActive) {
-        invalidIds.push(item.gameId);
+      const isValid =
+        item.kind === "gift_card"
+          ? products.some((p) => p.id === item.productId && p.isActive)
+          : games.some((g) => g.id === item.gameId && g.isActive);
+      if (!isValid) {
+        invalidIds.push(cartItemId(item));
         invalidTitles.push(item.title);
       }
     }
@@ -59,9 +68,10 @@ export default function CartIntegrityGuard() {
       const extra = remaining > 0 ? ` and ${remaining} more` : "";
       showToast(`Removed from your cart (no longer available): ${shown}${extra}`);
     }
-    // Deliberately once, right after hydration + real game data both land — see checkedOnce above.
+    // Deliberately once, right after hydration + real product data both
+    // land — see checkedOnce above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, gamesLoaded]);
+  }, [hydrated, gamesLoaded, productsLoaded]);
 
   return null;
 }

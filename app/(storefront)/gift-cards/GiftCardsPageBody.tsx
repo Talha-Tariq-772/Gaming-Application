@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import SectionErrorBoundary from "@/src/components/SectionErrorBoundary";
 import GamesGridSkeleton from "@/src/components/games/GamesGridSkeleton";
 import GiftCardFilterBar from "@/src/components/gift-cards/GiftCardFilterBar";
+import GiftCardsHero from "@/src/components/gift-cards/GiftCardsHero";
 import type { GiftCardFilters, GiftCardPlatform, GiftCardRegion, GiftCardSort } from "@/src/types/database";
 import GiftCardsResults from "./GiftCardsResults";
 
@@ -48,24 +49,22 @@ export default async function GiftCardsPageBody({
   ).toString();
 
   return (
-    <div className="mx-auto max-w-page px-4 py-16 md:px-8">
-      <div className="mb-8">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-nova-ember-text">
-          Gift Cards
-        </span>
-        <h1 className="mt-2 text-display-sm font-display font-extrabold text-nova-bone">
-          Platform Gift Cards
-        </h1>
+    <>
+      {/* Full-bleed, outside the padded wrapper below — same technique as
+          HomeHero (app/(storefront)/(home)/page.tsx) and the game-detail
+          header (GameDetailBody.tsx's HeaderImage). */}
+      <GiftCardsHero />
+
+      <div className="mx-auto max-w-page px-4 py-16 md:px-8">
+        <h2 className="sr-only">Filters</h2>
+        <GiftCardFilterBar />
+
+        <SectionErrorBoundary label="gift cards">
+          <Suspense key={suspenseKey} fallback={<GamesGridSkeleton />}>
+            <GiftCardsResults filters={filters} />
+          </Suspense>
+        </SectionErrorBoundary>
       </div>
-
-      <h2 className="sr-only">Filters</h2>
-      <GiftCardFilterBar />
-
-      <SectionErrorBoundary label="gift cards">
-        <Suspense key={suspenseKey} fallback={<GamesGridSkeleton />}>
-          <GiftCardsResults filters={filters} />
-        </Suspense>
-      </SectionErrorBoundary>
-    </div>
+    </>
   );
 }

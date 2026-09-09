@@ -81,7 +81,14 @@ function DevStatesContent() {
     });
     Object.assign(order, overrides);
     const items: OrderItem[] = [
-      { id: crypto.randomUUID(), orderId: order.id, gameId: "game-1", price: 2499 },
+      {
+        id: crypto.randomUUID(),
+        orderId: order.id,
+        gameId: "game-1",
+        giftCardCodeId: null,
+        productType: "game",
+        price: 2499,
+      },
     ];
     addOrder(order, items);
     return order;
