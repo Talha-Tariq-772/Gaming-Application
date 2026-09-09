@@ -387,18 +387,28 @@ describe("cross-table write RLS: verified by row-level effect, not the error fie
     variant = variantRow;
   });
 
+  // No explicit game_variants cleanup here: `variant` is this describe's
+  // only variant on the outer-scope `game` (which starts with zero
+  // variants — it's a fresh test game, not one of the pre-migration rows
+  // the game_variants backfill covered), so deleting it directly would
+  // always be deleting the last active variant and trip
+  // prevent_last_active_variant_removal()'s guardrail (its exemption
+  // only covers a cascade from a games DELETE — see the matching comment
+  // in admin-variants.test.ts). Rather than time the delete around that
+  // or insert a throwaway second variant just to keep the count above
+  // one, `variant` is simply left in place: the file-level afterAll's
+  // "games" step (below, in this file) deletes `game` after every
+  // describe block has finished, and game_variants.game_id's ON DELETE
+  // CASCADE removes it then — the same exempted path, with no risk of
+  // ordering it against other tests in this block (none of which touch
+  // `variant` again after the "customer session cannot write to
+  // game_variants" test below).
   afterAll(async () => {
     await runCleanupSteps([
       {
         label: "setup_guides",
         run: async () => {
           if (guide?.id) await deleteWithRetry(() => service.from("setup_guides").delete().eq("id", guide.id), "setup_guides");
-        },
-      },
-      {
-        label: "game_variants",
-        run: async () => {
-          if (variant?.id) await deleteWithRetry(() => service.from("game_variants").delete().eq("id", variant.id), "game_variants");
         },
       },
     ]);

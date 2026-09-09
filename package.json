@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "generate-image-manifest": "node --experimental-strip-types scripts/generate-image-manifest.mjs"
+    "generate-image-manifest": "node --experimental-strip-types scripts/generate-image-manifest.mjs",
+    "purge-dummy-credentials": "node --experimental-strip-types scripts/purge-dummy-credentials.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

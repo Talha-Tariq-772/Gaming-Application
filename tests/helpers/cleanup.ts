@@ -20,7 +20,55 @@
 
 const DEFAULT_STEP_TIMEOUT_MS = 8_000;
 
-/** Retries a single Supabase request until it reports no error, or throws once retries are exhausted. */
+/** Postgres SQLSTATEs that are genuinely transient — lock contention or a
+ * serialization conflict under concurrent load, where the exact same
+ * request can succeed on a later attempt with no other change. */
+const RETRYABLE_POSTGRES_CODES = new Set([
+  "40001", // serialization_failure
+  "40P01", // deadlock_detected
+  "55P03", // lock_not_available
+  "57014", // query_canceled (e.g. a statement timeout under load)
+]);
+
+/**
+ * A constraint violation (23xxx: not-null/FK/unique/check) or a custom
+ * application error raised with `raise exception ... using errcode`
+ * (e.g. LV001, the last-active-variant guardrail) is deterministic — the
+ * exact same request fails the exact same way every time, because
+ * nothing about the *data* changes between attempts. Retrying those
+ * doesn't recover anything; it just spends the step's whole time budget
+ * re-proving the same rejection, and the eventual failure surfaces as a
+ * generic "step exceeded Nms" timeout instead of the actual error.
+ *
+ * The Auth admin API's own transient 500s (AuthRetryableFetchError, or
+ * any 5xx status) are a different, genuinely transient class — worth
+ * retrying, same as lock contention.
+ */
+function isRetryable(error: unknown): boolean {
+  if (!error || typeof error !== "object") return true; // unrecognized shape — don't assume it's a foregone conclusion
+
+  const err = error as { code?: string; status?: number; name?: string };
+
+  if (err.name === "AuthRetryableFetchError") return true;
+  if (typeof err.status === "number" && err.status >= 500) return true;
+
+  if (typeof err.code === "string") {
+    // Any Postgres/PostgREST error code we don't specifically recognize
+    // as transient is treated as a real, deterministic rejection —
+    // constraint violations and custom raised errcodes both land here.
+    return RETRYABLE_POSTGRES_CODES.has(err.code);
+  }
+
+  // No error code at all is typically a raw network/fetch failure —
+  // worth retrying.
+  return true;
+}
+
+/** Retries a single Supabase request until it reports no error, retries
+ * are exhausted, or the error is identified as non-retryable (see
+ * isRetryable) — in which case it throws immediately with the real
+ * error rather than spending the rest of the step's budget re-failing
+ * the same deterministic rejection. */
 export async function deleteWithRetry(
   makeRequest: () => PromiseLike<{ error: unknown }>,
   label: string,
@@ -29,10 +77,10 @@ export async function deleteWithRetry(
   for (let attempt = 0; ; attempt++) {
     const { error } = await makeRequest();
     if (!error) return;
+    if (!isRetryable(error)) {
+      throw new Error(`cleanup failed (${label}), non-retryable: ${JSON.stringify(error)}`);
+    }
     if (attempt >= retries) throw new Error(`cleanup failed (${label}): ${JSON.stringify(error)}`);
-    // The Auth admin API occasionally returns a transient 500
-    // (AuthRetryableFetchError) under bursty test load — worth retrying
-    // before treating it as a real failure.
     await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
   }
 }

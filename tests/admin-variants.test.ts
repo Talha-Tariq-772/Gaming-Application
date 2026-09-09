@@ -70,12 +70,15 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await runCleanupSteps([
-    {
-      label: "game_variants",
-      run: async () => {
-        if (game?.id) await deleteWithRetry(() => service.from("game_variants").delete().eq("game_id", game.id), "game_variants");
-      },
-    },
+    // No standalone game_variants step: deleting a game's variants
+    // directly while the game row still exists trips
+    // prevent_last_active_variant_removal()'s guardrail on whichever
+    // variant is processed last in the batch (its "skip the check if the
+    // game no longer exists" exemption — 20260831000004 — only covers a
+    // cascade from a games DELETE, which this isn't). game_variants.
+    // game_id references games(id) on delete cascade, so the "games"
+    // step below removes every variant for free, on the one path the
+    // trigger already exempts.
     {
       label: "games",
       run: async () => {
