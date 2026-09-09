@@ -2,7 +2,7 @@ import type {
   Game,
   GameCredentialStock,
   Order,
-  OrderItem,
+  OrderStatus,
 } from "@/src/types/database";
 
 /**
@@ -85,41 +85,27 @@ export function getDailyRevenueSeries(
   return points;
 }
 
-export interface TopSellingGame {
-  game: Game;
-  unitsSold: number;
-  revenue: number;
+export interface OrderStatusCount {
+  status: OrderStatus;
+  count: number;
 }
 
-export function getTopSellingGames(
-  orders: Order[],
-  orderItems: OrderItem[],
-  games: Game[],
-  limit = 6,
-): TopSellingGame[] {
-  const approvedOrderIds = new Set(
-    orders.filter((o) => o.status === "approved").map((o) => o.id),
-  );
-  const stats = new Map<string, { units: number; revenue: number }>();
+/** Same status order the orders-page filter pills use, so the dashboard's
+ * status breakdown and the filter list read the same way. */
+const STATUS_ORDER: OrderStatus[] = [
+  "under_review",
+  "payment_claimed",
+  "awaiting_payment",
+  "approved",
+  "rejected",
+  "expired",
+];
 
-  for (const item of orderItems) {
-    if (!approvedOrderIds.has(item.orderId)) continue;
-    const entry = stats.get(item.gameId) ?? { units: 0, revenue: 0 };
-    entry.units += 1;
-    entry.revenue += item.price;
-    stats.set(item.gameId, entry);
-  }
-
-  return Array.from(stats.entries())
-    .map(([gameId, entry]): TopSellingGame | null => {
-      const game = games.find((g) => g.id === gameId);
-      return game
-        ? { game, unitsSold: entry.units, revenue: entry.revenue }
-        : null;
-    })
-    .filter((x): x is TopSellingGame => x !== null)
-    .sort((a, b) => b.unitsSold - a.unitsSold)
-    .slice(0, limit);
+export function getOrderStatusCounts(orders: Order[]): OrderStatusCount[] {
+  const counts = new Map<OrderStatus, number>();
+  for (const status of STATUS_ORDER) counts.set(status, 0);
+  for (const order of orders) counts.set(order.status, (counts.get(order.status) ?? 0) + 1);
+  return STATUS_ORDER.map((status) => ({ status, count: counts.get(status) ?? 0 }));
 }
 
 /** Oldest-first — the longest-waiting order should be served first. */

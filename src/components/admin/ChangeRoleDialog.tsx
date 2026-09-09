@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useFocusTrap } from "@/src/lib/use-focus-trap";
+import AdminModal, { AdminDialogFooter } from "@/src/components/admin/AdminModal";
+import { isSyntheticAuthEmail } from "@/src/lib/phone";
 import type { Profile, ProfileRole } from "@/src/types/database";
 
 const ROLE_LABELS: Record<ProfileRole, string> = {
@@ -27,7 +28,6 @@ export default function ChangeRoleDialog({
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = useRef(false);
-  const panelRef = useFocusTrap<HTMLDivElement>(true, onCancel);
 
   function handleConfirm() {
     if (submittingRef.current) return;
@@ -38,56 +38,40 @@ export default function ChangeRoleDialog({
 
   const isGrantingAdmin = newRole === "admin";
   const isRevokingAdmin = profile.role === "admin" && newRole !== "admin";
+  const identifier = isSyntheticAuthEmail(profile.email)
+    ? profile.phoneNumber ?? (profile.fullName ?? profile.id)
+    : profile.email ?? profile.id;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div onClick={onCancel} aria-hidden="true" className="absolute inset-0 bg-nova-void/80" />
-      <div
-        ref={panelRef}
-        role="alertdialog"
-        aria-modal="true"
-        aria-label="Confirm role change"
-        className="relative w-full max-w-sm rounded-lg border border-nova-hairline bg-nova-crypt p-6"
-      >
-        <h2 className="text-lg font-bold text-nova-bone">Change role?</h2>
-        <p className="mt-3 text-sm text-nova-ash">
-          Change <span className="font-medium text-nova-bone">{profile.email ?? profile.id}</span> from{" "}
-          <span className="font-medium text-nova-bone">{ROLE_LABELS[profile.role]}</span> to{" "}
-          <span className="font-medium text-nova-bone">{ROLE_LABELS[newRole]}</span>?
+    <AdminModal onCancel={onCancel} role="alertdialog" ariaLabel="Confirm role change">
+      <h2 className="text-lg font-bold text-nova-bone">Change role?</h2>
+      <p className="mt-3 text-sm text-nova-ash">
+        Change <span className="font-medium text-nova-bone">{identifier}</span> from{" "}
+        <span className="font-medium text-nova-bone">{ROLE_LABELS[profile.role]}</span> to{" "}
+        <span className="font-medium text-nova-bone">{ROLE_LABELS[newRole]}</span>?
+      </p>
+
+      {isSelf && (
+        <p className="mt-3 rounded-md border border-nova-gild/40 bg-nova-gild/10 px-3 py-2 text-xs text-nova-gild">
+          This is your own account. {isRevokingAdmin ? "You will lose admin access immediately." : "You are changing your own role."}
         </p>
+      )}
+      {isGrantingAdmin && !isSelf && (
+        <p className="mt-3 rounded-md border border-nova-gild/40 bg-nova-gild/10 px-3 py-2 text-xs text-nova-gild">
+          This grants full admin access, including the ability to manage other users&apos; roles.
+        </p>
+      )}
 
-        {isSelf && (
-          <p className="mt-3 rounded-md border border-nova-gild/40 bg-nova-gild/10 px-3 py-2 text-xs text-nova-gild">
-            This is your own account. {isRevokingAdmin ? "You will lose admin access immediately." : "You are changing your own role."}
-          </p>
-        )}
-        {isGrantingAdmin && !isSelf && (
-          <p className="mt-3 rounded-md border border-nova-gild/40 bg-nova-gild/10 px-3 py-2 text-xs text-nova-gild">
-            This grants full admin access, including the ability to manage other users&apos; roles.
-          </p>
-        )}
+      {error && <p className="mt-3 text-sm text-nova-blood">{error}</p>}
 
-        {error && <p className="mt-3 text-sm text-nova-blood">{error}</p>}
-
-        <div className="mt-6 flex gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isSubmitting}
-            className="min-h-11 flex-1 rounded-md border border-nova-hairline px-4 py-2 text-sm font-medium text-nova-ash hover:text-nova-bone disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleConfirm}
-            disabled={isSubmitting}
-            className="min-h-11 flex-1 rounded-md bg-nova-ember-bright px-4 py-2 text-sm font-semibold text-nova-void transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-bright-hover disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {isSubmitting ? "Saving…" : "Confirm"}
-          </button>
-        </div>
-      </div>
-    </div>
+      <AdminDialogFooter
+        onCancel={onCancel}
+        onConfirm={handleConfirm}
+        isSubmitting={isSubmitting}
+        confirmVariant="primary"
+        confirmLabel="Confirm"
+        confirmingLabel="Saving…"
+      />
+    </AdminModal>
   );
 }

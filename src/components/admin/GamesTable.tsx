@@ -1,3 +1,4 @@
+import AdminTable, { type AdminTableColumn } from "@/src/components/admin/AdminTable";
 import { formatPrice } from "@/src/lib/format";
 import { gameCoverImage } from "@/src/lib/storage-image";
 import type { Game } from "@/src/types/database";
@@ -87,6 +88,49 @@ function ActiveToggle({
   );
 }
 
+function RowActions({
+  game,
+  onEdit,
+  onDelete,
+  onManageVariants,
+}: {
+  game: Game;
+  onEdit: (game: Game) => void;
+  onDelete: (game: Game) => void;
+  onManageVariants: (game: Game) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => onManageVariants(game)}
+        className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ash hover:text-nova-bone"
+      >
+        Variants
+      </button>
+      <button
+        type="button"
+        onClick={() => onEdit(game)}
+        className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo"
+      >
+        Edit
+      </button>
+      <button
+        type="button"
+        onClick={() => onDelete(game)}
+        className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-blood hover:text-nova-blood/80"
+      >
+        Delete
+      </button>
+    </div>
+  );
+}
+
+interface Row {
+  game: Game;
+  available: number;
+}
+
 export default function GamesTable({
   games,
   availableByGameId,
@@ -102,149 +146,81 @@ export default function GamesTable({
   onDelete: (game: Game) => void;
   onManageVariants: (game: Game) => void;
 }) {
-  if (games.length === 0) {
-    return (
-      <div className="rounded-lg border border-nova-hairline bg-nova-crypt px-4 py-12 text-center text-sm text-nova-ash">
-        No games match your search.
-      </div>
-    );
-  }
+  const rows: Row[] = games.map((game) => ({ game, available: availableByGameId.get(game.id) ?? 0 }));
 
-  const rows = games.map((game) => ({ game, available: availableByGameId.get(game.id) ?? 0 }));
+  const columns: AdminTableColumn<Row>[] = [
+    {
+      key: "game",
+      header: "Game",
+      render: ({ game }) => (
+        <div className="flex items-center gap-3">
+          <GameCoverThumb game={game} className="h-10 w-8" />
+          <span className="font-medium text-nova-bone">{game.title}</span>
+        </div>
+      ),
+    },
+    { key: "genre", header: "Genre", render: ({ game }) => <span className="text-nova-ash">{game.genre}</span> },
+    { key: "platform", header: "Platform", render: ({ game }) => <span className="text-nova-ash">{game.platform}</span> },
+    {
+      key: "price",
+      header: "Price",
+      align: "right",
+      render: ({ game }) => <span className="text-nova-bone">{formatPrice(game.price)}</span>,
+    },
+    {
+      key: "stock",
+      header: "Stock",
+      align: "right",
+      render: ({ available }) => (
+        <span className={`font-semibold ${available <= LOW_STOCK_THRESHOLD ? "text-nova-gild" : "text-nova-bone"}`}>
+          {available}
+        </span>
+      ),
+    },
+    { key: "active", header: "Active", render: ({ game }) => <ActiveToggle game={game} onToggleActive={onToggleActive} /> },
+    {
+      key: "actions",
+      header: <span className="sr-only">Actions</span>,
+      align: "right",
+      render: ({ game }) => (
+        <div className="flex justify-end">
+          <RowActions game={game} onEdit={onEdit} onDelete={onDelete} onManageVariants={onManageVariants} />
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <>
-      {/* Table — md and up. contain-layout is load-bearing, not decorative:
-          without it, this wrapper's own overflow-x-auto correctly scrolls
-          the table internally (its own scrollWidth/clientWidth are
-          properly split), but its content's true width still leaks into
-          document.documentElement.scrollWidth — measured at 768px, a
-          768px-wide document with this table inside reports 805px
-          scrollWidth, and window.scrollTo(x, 0) genuinely moves the whole
-          page sideways. Confirmed via direct isolation (toggling this
-          property alone) that the leak is specifically an overflow-auto
-          vs document-level overflow-x:clip (globals.css, html/body)
-          interaction in this Chromium build — switching this wrapper to
-          overflow-x:hidden does NOT fix it; contain:layout does, by
-          establishing a real independent formatting context rather than
-          relying on overflow alone for isolation. */}
-      <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline contain-layout md:block">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-nova-hairline bg-nova-crypt text-xs uppercase tracking-wider text-nova-smoke">
-              <th className="px-4 py-3 font-medium">Game</th>
-              <th className="px-4 py-3 font-medium">Genre</th>
-              <th className="px-4 py-3 font-medium">Platform</th>
-              <th className="px-4 py-3 text-right font-medium">Price</th>
-              <th className="px-4 py-3 text-right font-medium">Stock</th>
-              <th className="px-4 py-3 font-medium">Active</th>
-              <th className="px-4 py-3 font-medium">
-                <span className="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(({ game, available }) => {
-              const lowStock = available <= LOW_STOCK_THRESHOLD;
-              return (
-                <tr key={game.id} className="border-b border-nova-hairline last:border-b-0">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <GameCoverThumb game={game} className="h-10 w-8" />
-                      <span className="font-medium text-nova-bone">{game.title}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-nova-ash">{game.genre}</td>
-                  <td className="px-4 py-3 text-nova-ash">{game.platform}</td>
-                  <td className="px-4 py-3 text-right text-nova-bone">{formatPrice(game.price)}</td>
-                  <td className={`px-4 py-3 text-right font-semibold ${lowStock ? "text-nova-gild" : "text-nova-bone"}`}>
-                    {available}
-                  </td>
-                  <td className="px-4 py-3">
-                    <ActiveToggle game={game} onToggleActive={onToggleActive} />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        type="button"
-                        onClick={() => onManageVariants(game)}
-                        className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ash hover:text-nova-bone"
-                      >
-                        Variants
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onEdit(game)}
-                        className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onDelete(game)}
-                        className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-blood hover:text-nova-blood/80"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Stacked cards — below md */}
-      <div className="flex flex-col gap-3 md:hidden">
-        {rows.map(({ game, available }) => {
-          const lowStock = available <= LOW_STOCK_THRESHOLD;
-          return (
-            <div key={game.id} className="flex flex-col gap-3 rounded-lg border border-nova-hairline bg-nova-void p-4">
-              <div className="flex items-center gap-3">
-                <GameCoverThumb game={game} className="h-14 w-11" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-nova-bone">{game.title}</p>
-                  <p className="truncate text-xs text-nova-smoke">
-                    {game.genre} · {game.platform}
-                  </p>
-                </div>
-                <ActiveToggle game={game} onToggleActive={onToggleActive} />
+    <AdminTable
+      columns={columns}
+      rows={rows}
+      rowKey={(r) => r.game.id}
+      emptyMessage="No games match your search."
+      renderMobileCard={({ game, available }) => {
+        const lowStock = available <= LOW_STOCK_THRESHOLD;
+        return (
+          <div className="flex flex-col gap-3 rounded-lg border border-nova-hairline bg-nova-void p-4">
+            <div className="flex items-center gap-3">
+              <GameCoverThumb game={game} className="h-14 w-11" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium text-nova-bone">{game.title}</p>
+                <p className="truncate text-xs text-nova-smoke">
+                  {game.genre} · {game.platform}
+                </p>
               </div>
-
-              <div className="flex items-center justify-between border-t border-nova-hairline pt-3">
-                <div className="flex gap-4 text-sm">
-                  <span className="text-nova-bone">{formatPrice(game.price)}</span>
-                  <span className={lowStock ? "text-nova-gild" : "text-nova-ash"}>Stock: {available}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => onManageVariants(game)}
-                    className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ash hover:text-nova-bone"
-                  >
-                    Variants
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onEdit(game)}
-                    className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(game)}
-                    className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-blood hover:text-nova-blood/80"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
+              <ActiveToggle game={game} onToggleActive={onToggleActive} />
             </div>
-          );
-        })}
-      </div>
-    </>
+
+            <div className="flex items-center justify-between border-t border-nova-hairline pt-3">
+              <div className="flex gap-4 text-sm">
+                <span className="text-nova-bone">{formatPrice(game.price)}</span>
+                <span className={lowStock ? "text-nova-gild" : "text-nova-ash"}>Stock: {available}</span>
+              </div>
+              <RowActions game={game} onEdit={onEdit} onDelete={onDelete} onManageVariants={onManageVariants} />
+            </div>
+          </div>
+        );
+      }}
+    />
   );
 }

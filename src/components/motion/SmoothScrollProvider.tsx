@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { setLenisInstance } from "@/src/lib/lenis-instance";
 import { prefersReducedMotion } from "@/src/lib/motion-guards";
@@ -24,14 +25,35 @@ const ACTIVATION_FALLBACK_MS = 4000;
  * Skips Lenis entirely under prefers-reduced-motion — native scroll jumps
  * straight to target instead of easing, which is the reduced-motion-safe
  * behavior, and ScrollTrigger still works fine against native scroll.
+ *
+ * Also skips it on every /admin route — same per-pathname exclusion
+ * FloatingWhatsAppButton already does, just enforced as "never activate"
+ * here instead of "don't render". Lenis (constructed below with no
+ * wrapper/content option) only ever drives WINDOW scroll: it captures
+ * every wheel/touch event on window and preventDefault-s it to animate
+ * window.scrollTo() itself. app/admin/layout.tsx's shell is
+ * `h-screen overflow-hidden` with <main> as its own independently
+ * scrolling pane specifically so the sidebar can stay pinned — the window
+ * itself has nothing to scroll there. Left active, Lenis was still
+ * swallowing the wheel/touch event to animate a window scroll position
+ * that can't move, so the gesture never reached <main>'s own
+ * overflow-y-auto at all — only a scrollbar drag (native, never goes
+ * through Lenis's wheel listener) worked. usePathname is reactive, so
+ * navigating storefront->admin tears an already-active instance down
+ * (the effect's own cleanup, triggered by isAdminRoute flipping) and
+ * navigating back out re-arms it — this component is mounted once at the
+ * root layout and never remounts between routes.
  */
 export default function SmoothScrollProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isAdminRoute = pathname?.startsWith("/admin") ?? false;
+
   useEffect(() => {
-    if (prefersReducedMotion()) return;
+    if (isAdminRoute || prefersReducedMotion()) return;
 
     let cancelled = false;
     let cleanup: (() => void) | undefined;
@@ -90,7 +112,7 @@ export default function SmoothScrollProvider({
       clearTimeout(fallbackTimer);
       cleanup?.();
     };
-  }, []);
+  }, [isAdminRoute]);
 
   return <>{children}</>;
 }

@@ -1,11 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import AdminTable, { type AdminTableColumn } from "@/src/components/admin/AdminTable";
 import CredentialGamePanel from "@/src/components/admin/CredentialGamePanel";
 import type { CredentialStockEntry } from "@/src/lib/admin-queries";
 import type { Game } from "@/src/types/database";
 
 const DEFAULT_LOW_STOCK_THRESHOLD = 5;
+
+interface Row {
+  game: Game;
+  stock: CredentialStockEntry;
+  lowStock: boolean;
+}
 
 export default function AdminCredentialsClient({
   games,
@@ -46,10 +53,44 @@ export default function AdminCredentialsClient({
   const selectedGame = games.find((g) => g.id === selectedGameId) ?? null;
   const emptyStock: CredentialStockEntry = { gameId: "", available: 0, reserved: 0, sold: 0, revoked: 0 };
 
+  const rows: Row[] = games.map((game) => {
+    const s = stockByGameId.get(game.id) ?? { ...emptyStock, gameId: game.id };
+    return { game, stock: s, lowStock: s.available <= threshold };
+  });
+
+  const columns: AdminTableColumn<Row>[] = [
+    { key: "game", header: "Game", render: ({ game }) => <span className="font-medium text-nova-bone">{game.title}</span> },
+    {
+      key: "available",
+      header: "Available",
+      align: "right",
+      render: ({ stock: s, lowStock }) => (
+        <span className={`font-semibold ${lowStock ? "text-nova-gild" : "text-nova-bone"}`}>{s.available}</span>
+      ),
+    },
+    { key: "reserved", header: "Reserved", align: "right", render: ({ stock: s }) => <span className="text-nova-ash">{s.reserved}</span> },
+    { key: "sold", header: "Sold", align: "right", render: ({ stock: s }) => <span className="text-nova-ash">{s.sold}</span> },
+    { key: "revoked", header: "Revoked", align: "right", render: ({ stock: s }) => <span className="text-nova-smoke">{s.revoked}</span> },
+    {
+      key: "manage",
+      header: <span className="sr-only">Manage</span>,
+      align: "right",
+      render: ({ game }) => (
+        <button
+          type="button"
+          onClick={() => setSelectedGameId(game.id)}
+          className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo"
+        >
+          Manage
+        </button>
+      ),
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold text-nova-bone">Credential Stock</h1>
+        <h1 className="font-display text-xl font-bold text-nova-bone">Credential Stock</h1>
         <p className="mt-1 text-sm text-nova-ash">
           Aggregate counts only — no credential values are ever shown here.
         </p>
@@ -83,94 +124,42 @@ export default function AdminCredentialsClient({
         </label>
       </div>
 
-      {/* Table — md and up. contain-layout: same fix as GamesTable.tsx's
-          identical wrapper, applied here preemptively — this table's
-          columns are narrow enough that it didn't measure as a document-
-          level leak at 768px with today's content, but it has the exact
-          same structure (and some internal overflow-x-auto scroll
-          already, just under whatever threshold triggers the leak), so
-          there's no reason to wait for it to break the same way. */}
-      <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline contain-layout md:block">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-nova-hairline bg-nova-crypt text-xs uppercase tracking-wider text-nova-smoke">
-              <th className="px-4 py-3 font-medium">Game</th>
-              <th className="px-4 py-3 text-right font-medium">Available</th>
-              <th className="px-4 py-3 text-right font-medium">Reserved</th>
-              <th className="px-4 py-3 text-right font-medium">Sold</th>
-              <th className="px-4 py-3 text-right font-medium">Revoked</th>
-              <th className="px-4 py-3 font-medium">
-                <span className="sr-only">Manage</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {games.map((game) => {
-              const s = stockByGameId.get(game.id) ?? { ...emptyStock, gameId: game.id };
-              const lowStock = s.available <= threshold;
-              return (
-                <tr key={game.id} className="border-b border-nova-hairline last:border-b-0">
-                  <td className="px-4 py-3 font-medium text-nova-bone">{game.title}</td>
-                  <td className={`px-4 py-3 text-right font-semibold ${lowStock ? "text-nova-gild" : "text-nova-bone"}`}>
-                    {s.available}
-                  </td>
-                  <td className="px-4 py-3 text-right text-nova-ash">{s.reserved}</td>
-                  <td className="px-4 py-3 text-right text-nova-ash">{s.sold}</td>
-                  <td className="px-4 py-3 text-right text-nova-smoke">{s.revoked}</td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedGameId(game.id)}
-                      className="-my-3 flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-semibold text-nova-ember-text hover:text-nova-ember-lo"
-                    >
-                      Manage
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Stacked cards — below md */}
-      <div className="flex flex-col gap-3 md:hidden">
-        {games.map((game) => {
-          const s = stockByGameId.get(game.id) ?? { ...emptyStock, gameId: game.id };
-          const lowStock = s.available <= threshold;
-          return (
-            <button
-              key={game.id}
-              type="button"
-              onClick={() => setSelectedGameId(game.id)}
-              className="rounded-lg border border-nova-hairline bg-nova-void p-4 text-left"
-            >
-              <div className="flex items-center justify-between">
-                <p className="font-medium text-nova-bone">{game.title}</p>
-                <p className="text-xs text-nova-smoke">Manage →</p>
+      <AdminTable
+        columns={columns}
+        rows={rows}
+        rowKey={(r) => r.game.id}
+        emptyMessage="No games yet."
+        renderMobileCard={({ game, stock: s, lowStock }) => (
+          <button
+            type="button"
+            onClick={() => setSelectedGameId(game.id)}
+            className="w-full rounded-lg border border-nova-hairline bg-nova-void p-4 text-left"
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-medium text-nova-bone">{game.title}</p>
+              <p className="text-xs text-nova-smoke">Manage →</p>
+            </div>
+            <div className="mt-3 grid grid-cols-4 gap-2 border-t border-nova-hairline pt-3 text-center">
+              <div>
+                <p className="text-xs text-nova-smoke">Avail.</p>
+                <p className={`mt-1 font-semibold ${lowStock ? "text-nova-gild" : "text-nova-bone"}`}>{s.available}</p>
               </div>
-              <div className="mt-3 grid grid-cols-4 gap-2 border-t border-nova-hairline pt-3 text-center">
-                <div>
-                  <p className="text-xs text-nova-smoke">Avail.</p>
-                  <p className={`mt-1 font-semibold ${lowStock ? "text-nova-gild" : "text-nova-bone"}`}>{s.available}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-nova-smoke">Resv.</p>
-                  <p className="mt-1 font-semibold text-nova-ash">{s.reserved}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-nova-smoke">Sold</p>
-                  <p className="mt-1 font-semibold text-nova-ash">{s.sold}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-nova-smoke">Rvkd.</p>
-                  <p className="mt-1 font-semibold text-nova-ash">{s.revoked}</p>
-                </div>
+              <div>
+                <p className="text-xs text-nova-smoke">Resv.</p>
+                <p className="mt-1 font-semibold text-nova-ash">{s.reserved}</p>
               </div>
-            </button>
-          );
-        })}
-      </div>
+              <div>
+                <p className="text-xs text-nova-smoke">Sold</p>
+                <p className="mt-1 font-semibold text-nova-ash">{s.sold}</p>
+              </div>
+              <div>
+                <p className="text-xs text-nova-smoke">Rvkd.</p>
+                <p className="mt-1 font-semibold text-nova-ash">{s.revoked}</p>
+              </div>
+            </div>
+          </button>
+        )}
+      />
 
       {selectedGame && (
         <CredentialGamePanel

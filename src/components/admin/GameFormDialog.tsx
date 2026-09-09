@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
+import AdminField, { ADMIN_INPUT_CLASS } from "@/src/components/admin/AdminField";
+import AdminModal, { AdminDialogFooter } from "@/src/components/admin/AdminModal";
 import { uploadGameImage } from "@/src/lib/actions/admin-images";
 import { gameCoverImage, gameWallpaperImage } from "@/src/lib/storage-image";
-import { useFocusTrap } from "@/src/lib/use-focus-trap";
 import {
   firstFieldErrors,
   gameFormSchema,
@@ -200,7 +201,6 @@ export default function GameFormDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const submittingRef = useRef(false);
-  const panelRef = useFocusTrap<HTMLDivElement>(true, onCancel);
 
   const isMembership = game?.productType === "membership";
 
@@ -301,391 +301,255 @@ export default function GameFormDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
-      <div
-        onClick={onCancel}
-        aria-hidden="true"
-        className="absolute inset-0 bg-nova-void/80"
-      />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={game ? "Edit game" : "Add game"}
-        className="relative flex max-h-full w-full max-w-lg flex-col overflow-y-auto rounded-lg border border-nova-hairline bg-nova-crypt p-6"
-      >
-        <h2 className="text-lg font-bold text-nova-bone">
-          {game ? "Edit Game" : "Add Game"}
-        </h2>
+    <AdminModal onCancel={onCancel} ariaLabel={game ? "Edit game" : "Add game"} maxWidth="max-w-lg">
+      <h2 className="text-lg font-bold text-nova-bone">
+        {game ? "Edit Game" : "Add Game"}
+      </h2>
 
-        <div className="mt-4 flex flex-col gap-4">
-          <div>
-            <label
-              htmlFor="game-title"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
-            >
-              Title
-            </label>
+      <div className="mt-4 flex flex-col gap-4">
+        <AdminField label="Title" htmlFor="game-title" error={fieldError("title")}>
+          <input
+            id="game-title"
+            type="text"
+            value={values.title}
+            onChange={(e) => update("title", e.target.value)}
+            onBlur={() => blur("title")}
+            aria-invalid={Boolean(fieldError("title"))}
+            aria-describedby={fieldError("title") ? "game-title-error" : undefined}
+            className={ADMIN_INPUT_CLASS}
+          />
+        </AdminField>
+
+        <AdminField label="Slug" htmlFor="game-slug" error={fieldError("slug")}>
+          <input
+            id="game-slug"
+            type="text"
+            value={values.slug}
+            onChange={(e) => {
+              setSlugTouched(true);
+              update("slug", e.target.value);
+            }}
+            onBlur={() => blur("slug")}
+            aria-invalid={Boolean(fieldError("slug"))}
+            aria-describedby={fieldError("slug") ? "game-slug-error" : undefined}
+            className={`${ADMIN_INPUT_CLASS} font-mono`}
+          />
+        </AdminField>
+
+        <AdminField label="Description" htmlFor="game-description" error={fieldError("description")}>
+          <textarea
+            id="game-description"
+            value={values.description}
+            onChange={(e) => update("description", e.target.value)}
+            onBlur={() => blur("description")}
+            rows={3}
+            aria-invalid={Boolean(fieldError("description"))}
+            aria-describedby={fieldError("description") ? "game-description-error" : undefined}
+            className={ADMIN_INPUT_CLASS}
+          />
+        </AdminField>
+
+        <div className="grid grid-cols-2 gap-4">
+          <AdminField label="Price (Rs)" htmlFor="game-price" error={fieldError("price")}>
             <input
-              id="game-title"
-              type="text"
-              value={values.title}
-              onChange={(e) => update("title", e.target.value)}
-              onBlur={() => blur("title")}
-              aria-invalid={Boolean(fieldError("title"))}
-              aria-describedby={fieldError("title") ? "game-title-error" : undefined}
-              className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
+              id="game-price"
+              type="number"
+              min={0}
+              value={values.price}
+              onChange={(e) => update("price", e.target.value)}
+              onBlur={() => blur("price")}
+              aria-invalid={Boolean(fieldError("price"))}
+              aria-describedby={fieldError("price") ? "game-price-error" : undefined}
+              className={ADMIN_INPUT_CLASS}
             />
-            {fieldError("title") && (
-              <p id="game-title-error" className="mt-1 text-xs text-nova-blood">
-                {fieldError("title")}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="game-slug"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
-            >
-              Slug
-            </label>
-            <input
-              id="game-slug"
-              type="text"
-              value={values.slug}
-              onChange={(e) => {
-                setSlugTouched(true);
-                update("slug", e.target.value);
-              }}
-              onBlur={() => blur("slug")}
-              aria-invalid={Boolean(fieldError("slug"))}
-              aria-describedby={fieldError("slug") ? "game-slug-error" : undefined}
-              className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 font-mono text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
-            />
-            {fieldError("slug") && (
-              <p id="game-slug-error" className="mt-1 text-xs text-nova-blood">
-                {fieldError("slug")}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="game-description"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
-            >
-              Description
-            </label>
-            <textarea
-              id="game-description"
-              value={values.description}
-              onChange={(e) => update("description", e.target.value)}
-              onBlur={() => blur("description")}
-              rows={3}
-              aria-invalid={Boolean(fieldError("description"))}
-              aria-describedby={
-                fieldError("description") ? "game-description-error" : undefined
-              }
-              className="w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
-            />
-            {fieldError("description") && (
-              <p id="game-description-error" className="mt-1 text-xs text-nova-blood">
-                {fieldError("description")}
-              </p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="game-price"
-                className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
-              >
-                Price (Rs)
-              </label>
+          </AdminField>
+          <div className="flex items-end">
+            <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-nova-ash">
               <input
-                id="game-price"
-                type="number"
-                min={0}
-                value={values.price}
-                onChange={(e) => update("price", e.target.value)}
-                onBlur={() => blur("price")}
-                aria-invalid={Boolean(fieldError("price"))}
-                aria-describedby={fieldError("price") ? "game-price-error" : undefined}
-                className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
+                type="checkbox"
+                checked={values.isActive}
+                onChange={(e) => update("isActive", e.target.checked)}
+                className="h-4 w-4 accent-nova-ember"
               />
-              {fieldError("price") && (
-                <p id="game-price-error" className="mt-1 text-xs text-nova-blood">
-                  {fieldError("price")}
-                </p>
-              )}
-            </div>
-            <div className="flex items-end">
-              <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-nova-ash">
-                <input
-                  type="checkbox"
-                  checked={values.isActive}
-                  onChange={(e) => update("isActive", e.target.checked)}
-                  className="h-4 w-4 accent-nova-ember"
-                />
-                Active
-              </label>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              {/* Prominent by design: platform is null on every seeded game
-                  (Session 1 added the column but never the values), and
-                  populating it is what lets setup guides be split by
-                  platform. Placed before Genre for visibility, plus the
-                  explicit warning below when the underlying value is
-                  really still null. */}
-              <label
-                htmlFor="game-platform"
-                className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
-              >
-                Platform
-              </label>
-              <select
-                id="game-platform"
-                value={values.platform}
-                onChange={(e) => update("platform", e.target.value as GamePlatform)}
-                className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
-              >
-                {GAME_PLATFORMS.map((p) => (
-                  <option key={p} value={p}>
-                    {GAME_PLATFORM_LABELS[p]}
-                  </option>
-                ))}
-              </select>
-              {game && game.platform === null && (
-                <p className="mt-1 text-xs text-nova-gild">Not set yet — pick one and save.</p>
-              )}
-            </div>
-            <div>
-              <label
-                htmlFor="game-genre"
-                className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
-              >
-                Genre
-              </label>
-              <select
-                id="game-genre"
-                value={values.genre}
-                onChange={(e) => update("genre", e.target.value as GameGenre)}
-                className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
-              >
-                {GAME_GENRES.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <ImageUploadField
-              label="Cover Image"
-              kind="cover"
-              disabled={!game || isMembership}
-              disabledReason={
-                !game
-                  ? "Save the game first to upload a cover."
-                  : isMembership
-                    ? "Memberships don't have cover art."
-                    : undefined
-              }
-              previewSrc={coverPreviewSrc}
-              isUploading={coverUploading}
-              error={coverUploadError}
-              onFileSelected={(file) => handleImageUpload("cover", file)}
-            />
-            <ImageUploadField
-              label={isMembership ? "Header Image" : "Wallpaper"}
-              kind="wallpaper"
-              disabled={!game}
-              disabledReason={!game ? "Save the game first to upload a wallpaper." : undefined}
-              previewSrc={wallpaperPreviewSrc}
-              isUploading={wallpaperUploading}
-              error={wallpaperUploadError}
-              onFileSelected={(file) => handleImageUpload("wallpaper", file)}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="game-cover-url"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
-            >
-              Cover Image URL
+              Active
             </label>
-            <input
-              id="game-cover-url"
-              type="text"
-              value={values.coverImageUrl}
-              onChange={(e) => update("coverImageUrl", e.target.value)}
-              onBlur={() => blur("coverImageUrl")}
-              placeholder="https://…"
-              aria-invalid={Boolean(fieldError("coverImageUrl"))}
-              aria-describedby={
-                fieldError("coverImageUrl") ? "game-cover-url-error" : undefined
-              }
-              className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 font-mono text-xs text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
-            />
-            {fieldError("coverImageUrl") && (
-              <p id="game-cover-url-error" className="mt-1 text-xs text-nova-blood">
-                {fieldError("coverImageUrl")}
-              </p>
-            )}
           </div>
+        </div>
 
-          <div>
-            <label
-              htmlFor="game-trailer-url"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
-            >
-              Trailer URL
-            </label>
-            <input
-              id="game-trailer-url"
-              type="text"
-              value={values.trailerUrl}
-              onChange={(e) => update("trailerUrl", e.target.value)}
-              onBlur={() => blur("trailerUrl")}
-              placeholder="https://…"
-              aria-invalid={Boolean(fieldError("trailerUrl"))}
-              aria-describedby={
-                fieldError("trailerUrl") ? "game-trailer-url-error" : undefined
-              }
-              className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 font-mono text-xs text-nova-bone placeholder:text-nova-smoke focus:border-nova-ember focus:outline-none"
-            />
-            {fieldError("trailerUrl") && (
-              <p id="game-trailer-url-error" className="mt-1 text-xs text-nova-blood">
-                {fieldError("trailerUrl")}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="game-setup-guide"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
-            >
-              Setup Guide (Free Text)
-            </label>
-            <textarea
-              id="game-setup-guide"
-              value={values.setupGuide}
-              onChange={(e) => update("setupGuide", e.target.value)}
-              onBlur={() => blur("setupGuide")}
-              rows={2}
-              aria-invalid={Boolean(fieldError("setupGuide"))}
-              aria-describedby={
-                fieldError("setupGuide") ? "game-setup-guide-error" : undefined
-              }
-              className="w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
-            />
-            {fieldError("setupGuide") && (
-              <p id="game-setup-guide-error" className="mt-1 text-xs text-nova-blood">
-                {fieldError("setupGuide")}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="game-setup-guide-id"
-              className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
-            >
-              Linked Setup Guide
-            </label>
+        <div className="grid grid-cols-2 gap-4">
+          {/* Prominent by design: platform is null on every seeded game
+              (Session 1 added the column but never the values), and
+              populating it is what lets setup guides be split by
+              platform. Placed before Genre for visibility, plus the
+              explicit warning below when the underlying value is
+              really still null. */}
+          <AdminField
+            label="Platform"
+            htmlFor="game-platform"
+            hint={game && game.platform === null ? "Not set yet — pick one and save." : undefined}
+          >
             <select
-              id="game-setup-guide-id"
-              value={values.setupGuideId}
-              onChange={(e) => update("setupGuideId", e.target.value)}
-              className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
+              id="game-platform"
+              value={values.platform}
+              onChange={(e) => update("platform", e.target.value as GamePlatform)}
+              className={ADMIN_INPUT_CLASS}
             >
-              <option value="">None</option>
-              {setupGuides.map((sg) => (
-                <option key={sg.id} value={sg.id}>
-                  {sg.title}
-                  {sg.platform ? ` (${GAME_PLATFORM_LABELS[sg.platform]})` : ""}
+              {GAME_PLATFORMS.map((p) => (
+                <option key={p} value={p}>
+                  {GAME_PLATFORM_LABELS[p]}
                 </option>
               ))}
             </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="game-release-date"
-                className="mb-1 block text-xs font-semibold uppercase tracking-wider text-nova-smoke"
-              >
-                Release Date
-              </label>
-              <input
-                id="game-release-date"
-                type="date"
-                value={values.releaseDate}
-                onChange={(e) => update("releaseDate", e.target.value)}
-                onBlur={() => blur("releaseDate")}
-                aria-invalid={Boolean(fieldError("releaseDate"))}
-                aria-describedby={fieldError("releaseDate") ? "game-release-date-error" : undefined}
-                className="min-h-11 w-full rounded-md border border-nova-hairline bg-nova-slab px-3 py-2 text-sm text-nova-bone focus:border-nova-ember focus:outline-none"
-              />
-              {fieldError("releaseDate") && (
-                <p id="game-release-date-error" className="mt-1 text-xs text-nova-blood">
-                  {fieldError("releaseDate")}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col justify-end gap-1">
-              <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-nova-ash">
-                <input
-                  type="checkbox"
-                  checked={values.isNewArrival}
-                  onChange={(e) => update("isNewArrival", e.target.checked)}
-                  className="h-4 w-4 accent-nova-ember"
-                />
-                New Arrival
-              </label>
-              <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-nova-ash">
-                <input
-                  type="checkbox"
-                  checked={values.isBestSeller}
-                  onChange={(e) => update("isBestSeller", e.target.checked)}
-                  className="h-4 w-4 accent-nova-ember"
-                />
-                Best Seller
-              </label>
-            </div>
-          </div>
+          </AdminField>
+          <AdminField label="Genre" htmlFor="game-genre">
+            <select
+              id="game-genre"
+              value={values.genre}
+              onChange={(e) => update("genre", e.target.value as GameGenre)}
+              className={ADMIN_INPUT_CLASS}
+            >
+              {GAME_GENRES.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+          </AdminField>
         </div>
 
-        {submitError && <p className="mt-4 text-sm text-nova-blood">{submitError}</p>}
+        <div className="grid grid-cols-2 gap-4">
+          <ImageUploadField
+            label="Cover Image"
+            kind="cover"
+            disabled={!game || isMembership}
+            disabledReason={
+              !game
+                ? "Save the game first to upload a cover."
+                : isMembership
+                  ? "Memberships don't have cover art."
+                  : undefined
+            }
+            previewSrc={coverPreviewSrc}
+            isUploading={coverUploading}
+            error={coverUploadError}
+            onFileSelected={(file) => handleImageUpload("cover", file)}
+          />
+          <ImageUploadField
+            label={isMembership ? "Header Image" : "Wallpaper"}
+            kind="wallpaper"
+            disabled={!game}
+            disabledReason={!game ? "Save the game first to upload a wallpaper." : undefined}
+            previewSrc={wallpaperPreviewSrc}
+            isUploading={wallpaperUploading}
+            error={wallpaperUploadError}
+            onFileSelected={(file) => handleImageUpload("wallpaper", file)}
+          />
+        </div>
 
-        <div className="mt-6 flex gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isSubmitting}
-            className="min-h-11 flex-1 rounded-md border border-nova-hairline px-4 py-2 text-sm font-medium text-nova-ash hover:text-nova-bone disabled:cursor-not-allowed disabled:opacity-40"
+        <AdminField label="Cover Image URL" htmlFor="game-cover-url" error={fieldError("coverImageUrl")}>
+          <input
+            id="game-cover-url"
+            type="text"
+            value={values.coverImageUrl}
+            onChange={(e) => update("coverImageUrl", e.target.value)}
+            onBlur={() => blur("coverImageUrl")}
+            placeholder="https://…"
+            aria-invalid={Boolean(fieldError("coverImageUrl"))}
+            aria-describedby={fieldError("coverImageUrl") ? "game-cover-url-error" : undefined}
+            className={`${ADMIN_INPUT_CLASS} font-mono text-xs`}
+          />
+        </AdminField>
+
+        <AdminField label="Trailer URL" htmlFor="game-trailer-url" error={fieldError("trailerUrl")}>
+          <input
+            id="game-trailer-url"
+            type="text"
+            value={values.trailerUrl}
+            onChange={(e) => update("trailerUrl", e.target.value)}
+            onBlur={() => blur("trailerUrl")}
+            placeholder="https://…"
+            aria-invalid={Boolean(fieldError("trailerUrl"))}
+            aria-describedby={fieldError("trailerUrl") ? "game-trailer-url-error" : undefined}
+            className={`${ADMIN_INPUT_CLASS} font-mono text-xs`}
+          />
+        </AdminField>
+
+        <AdminField label="Setup Guide (Free Text)" htmlFor="game-setup-guide" error={fieldError("setupGuide")}>
+          <textarea
+            id="game-setup-guide"
+            value={values.setupGuide}
+            onChange={(e) => update("setupGuide", e.target.value)}
+            onBlur={() => blur("setupGuide")}
+            rows={2}
+            aria-invalid={Boolean(fieldError("setupGuide"))}
+            aria-describedby={fieldError("setupGuide") ? "game-setup-guide-error" : undefined}
+            className={ADMIN_INPUT_CLASS}
+          />
+        </AdminField>
+
+        <AdminField label="Linked Setup Guide" htmlFor="game-setup-guide-id">
+          <select
+            id="game-setup-guide-id"
+            value={values.setupGuideId}
+            onChange={(e) => update("setupGuideId", e.target.value)}
+            className={ADMIN_INPUT_CLASS}
           >
-            Cancel
-          </button>
-          <button
-            type="button"
-            disabled={isSubmitting}
-            onClick={handleSave}
-            className="min-h-11 flex-1 rounded-md bg-nova-ember-bright px-4 py-2 text-sm font-semibold text-nova-void transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-bright-hover disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {isSubmitting ? "Saving…" : game ? "Save Changes" : "Add Game"}
-          </button>
+            <option value="">None</option>
+            {setupGuides.map((sg) => (
+              <option key={sg.id} value={sg.id}>
+                {sg.title}
+                {sg.platform ? ` (${GAME_PLATFORM_LABELS[sg.platform]})` : ""}
+              </option>
+            ))}
+          </select>
+        </AdminField>
+
+        <div className="grid grid-cols-2 gap-4">
+          <AdminField label="Release Date" htmlFor="game-release-date" error={fieldError("releaseDate")}>
+            <input
+              id="game-release-date"
+              type="date"
+              value={values.releaseDate}
+              onChange={(e) => update("releaseDate", e.target.value)}
+              onBlur={() => blur("releaseDate")}
+              aria-invalid={Boolean(fieldError("releaseDate"))}
+              aria-describedby={fieldError("releaseDate") ? "game-release-date-error" : undefined}
+              className={ADMIN_INPUT_CLASS}
+            />
+          </AdminField>
+          <div className="flex flex-col justify-end gap-1">
+            <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-nova-ash">
+              <input
+                type="checkbox"
+                checked={values.isNewArrival}
+                onChange={(e) => update("isNewArrival", e.target.checked)}
+                className="h-4 w-4 accent-nova-ember"
+              />
+              New Arrival
+            </label>
+            <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-nova-ash">
+              <input
+                type="checkbox"
+                checked={values.isBestSeller}
+                onChange={(e) => update("isBestSeller", e.target.checked)}
+                className="h-4 w-4 accent-nova-ember"
+              />
+              Best Seller
+            </label>
+          </div>
         </div>
       </div>
-    </div>
+
+      {submitError && <p className="mt-4 text-sm text-nova-blood">{submitError}</p>}
+
+      <AdminDialogFooter
+        onCancel={onCancel}
+        onConfirm={handleSave}
+        isSubmitting={isSubmitting}
+        confirmVariant="primary"
+        confirmLabel={game ? "Save Changes" : "Add Game"}
+        confirmingLabel="Saving…"
+      />
+    </AdminModal>
   );
 }

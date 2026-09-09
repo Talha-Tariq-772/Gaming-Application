@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AdminButton from "@/src/components/admin/AdminButton";
+import AdminSlideOver from "@/src/components/admin/AdminSlideOver";
 import {
   createVariant,
   getVariantsForGame,
@@ -12,7 +14,6 @@ import {
   type VariantActionResult,
 } from "@/src/lib/actions/admin-variants";
 import { formatPrice } from "@/src/lib/format";
-import { useFocusTrap } from "@/src/lib/use-focus-trap";
 import { firstFieldErrors, variantFormSchema, type VariantFormErrors, type VariantFormInput } from "@/src/lib/validation";
 import type { Game, VariantMode } from "@/src/types/database";
 
@@ -43,8 +44,6 @@ export default function VariantsPanel({
   onClose: () => void;
   onVariantModeChanged: (gameId: string, variantMode: VariantMode) => void;
 }) {
-  const panelRef = useFocusTrap<HTMLDivElement>(true, onClose);
-
   const [variants, setVariants] = useState<AdminGameVariant[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busyVariantId, setBusyVariantId] = useState<string | null>(null);
@@ -178,30 +177,16 @@ export default function VariantsPanel({
   const estimateCount = (variants ?? []).filter((v) => v.priceSource === "estimate").length;
 
   return (
-    <>
-      <div onClick={onClose} aria-hidden="true" className="fixed inset-0 z-40 bg-nova-void/70" />
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="variants-panel-heading"
-        className="fixed inset-y-0 right-0 z-40 flex h-dvh w-full max-w-md flex-col overflow-y-auto border-l border-nova-hairline bg-nova-crypt"
-      >
-        <div className="flex items-start justify-between border-b border-nova-hairline px-5 py-4">
-          <h2 id="variants-panel-heading" className="font-display text-lg font-bold text-nova-bone">
-            {game.title}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="-mr-2 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center text-nova-ash hover:text-nova-bone"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="flex flex-1 flex-col gap-8 px-5 py-5">
+    <AdminSlideOver
+      onClose={onClose}
+      titleId="variants-panel-heading"
+      title={
+        <h2 id="variants-panel-heading" className="text-lg font-bold text-nova-bone">
+          {game.title}
+        </h2>
+      }
+      bodyClassName="flex flex-1 flex-col gap-8 px-5 py-5"
+    >
           <section>
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-nova-smoke">Variant Mode</h3>
             <div className="flex gap-2">
@@ -414,27 +399,16 @@ export default function VariantsPanel({
 
               <div className="flex gap-2">
                 {editingVariantId && (
-                  <button
-                    type="button"
-                    onClick={startAdd}
-                    disabled={isSubmitting}
-                    className="min-h-11 rounded-md border border-nova-hairline px-4 py-2 text-sm font-medium text-nova-ash hover:text-nova-bone disabled:cursor-not-allowed disabled:opacity-40"
-                  >
+                  <AdminButton type="button" variant="secondary" onClick={startAdd} disabled={isSubmitting}>
                     Cancel
-                  </button>
+                  </AdminButton>
                 )}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="min-h-11 flex-1 rounded-md bg-nova-ember-bright px-4 py-2 text-sm font-semibold text-nova-void transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-bright-hover disabled:cursor-not-allowed disabled:opacity-40"
-                >
+                <AdminButton type="submit" variant="primary" className="flex-1" disabled={isSubmitting}>
                   {isSubmitting ? "Saving…" : editingVariantId ? "Save Changes" : "Add Variant"}
-                </button>
+                </AdminButton>
               </div>
             </form>
           </section>
-        </div>
-      </div>
-    </>
+    </AdminSlideOver>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import AdminButton from "@/src/components/admin/AdminButton";
 import DeleteGameDialog from "@/src/components/admin/DeleteGameDialog";
 import GameFormDialog from "@/src/components/admin/GameFormDialog";
 import GamesTable from "@/src/components/admin/GamesTable";
@@ -108,16 +109,12 @@ export default function AdminGamesClient({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-nova-bone">Games</h1>
+          <h1 className="font-display text-xl font-bold text-nova-bone">Games</h1>
           <p className="mt-1 text-sm text-nova-ash">{games.length} total</p>
         </div>
-        <button
-          type="button"
-          onClick={() => setEditingGame(null)}
-          className="min-h-11 rounded-md bg-nova-ember-bright px-4 py-2 text-sm font-semibold text-nova-void transition-colors duration-(--duration-fast) ease-standard hover:bg-nova-ember-bright-hover"
-        >
+        <AdminButton variant="primary" onClick={() => setEditingGame(null)}>
           Add Game
-        </button>
+        </AdminButton>
       </div>
 
       {estimatedVariants.length > 0 && (

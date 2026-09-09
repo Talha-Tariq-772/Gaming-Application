@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import OrderDetailPanel from "@/src/components/admin/OrderDetailPanel";
 import OrdersTable from "@/src/components/admin/OrdersTable";
 import { matchesOrderSearch } from "@/src/lib/order-search";
-import type { Game, Order, OrderItem, OrderStatus, PaymentMethod, Profile } from "@/src/types/database";
+import type { Game, GiftCardProduct, Order, OrderItem, OrderStatus, PaymentMethod, Profile } from "@/src/types/database";
 
 const STATUS_FILTERS: { value: OrderStatus | "all"; label: string }[] = [
   { value: "under_review", label: "Under review" },
@@ -21,12 +21,14 @@ export default function AdminOrdersClient({
   orderItems,
   customers,
   games,
+  giftCardProductsByCodeId,
   paymentMethods,
 }: {
   orders: Order[];
   orderItems: OrderItem[];
   customers: Profile[];
   games: Game[];
+  giftCardProductsByCodeId: Record<string, GiftCardProduct>;
   paymentMethods: PaymentMethod[];
 }) {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("under_review");
@@ -58,7 +60,7 @@ export default function AdminOrdersClient({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 id="orders-queue-heading" tabIndex={-1} className="text-xl font-bold text-nova-bone">
+        <h1 id="orders-queue-heading" tabIndex={-1} className="font-display text-xl font-bold text-nova-bone">
           Verification Queue
         </h1>
         <p className="mt-1 text-sm text-nova-ash">Oldest first — the longest wait gets served first.</p>
@@ -110,6 +112,7 @@ export default function AdminOrdersClient({
           items={selectedItems}
           customers={customers}
           games={games}
+          giftCardProductsByCodeId={giftCardProductsByCodeId}
           paymentMethods={paymentMethods}
           onClose={() => setSelectedId(null)}
         />

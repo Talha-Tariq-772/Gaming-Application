@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/admin/slider", label: "Slider" },
   { href: "/admin/credentials", label: "Credentials" },
   { href: "/admin/users", label: "Users" },
+  { href: "/admin/resets", label: "Resets" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -23,7 +24,7 @@ export default function AdminNav() {
 
   return (
     <>
-      <aside className="hidden w-52 shrink-0 border-r border-nova-hairline bg-nova-crypt md:flex md:flex-col">
+      <aside className="hidden w-52 shrink-0 border-r border-nova-hairline bg-nova-crypt md:sticky md:top-0 md:flex md:h-screen md:flex-col">
         <div className="flex items-center justify-between gap-2 border-b border-nova-hairline px-4 py-4">
           <Link
             href="/admin"

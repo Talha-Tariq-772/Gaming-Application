@@ -1,3 +1,4 @@
+import AdminTable, { type AdminTableColumn } from "@/src/components/admin/AdminTable";
 import StatusBadge from "@/src/components/account/StatusBadge";
 import { getOrderAgeLabel } from "@/src/lib/admin-stats";
 import { formatPriceExact } from "@/src/lib/format";
@@ -15,6 +16,12 @@ function displayPhone(raw: string | null | undefined): string {
   return normalised ? formatPhoneDisplay(normalised) : raw;
 }
 
+interface Row {
+  order: Order;
+  customer: Profile | undefined;
+  method: PaymentMethod | undefined;
+}
+
 export default function OrdersTable({
   orders,
   customers,
@@ -28,125 +35,81 @@ export default function OrdersTable({
   onSelect: (id: string) => void;
   selectedId: string | null;
 }) {
-  if (orders.length === 0) {
-    return (
-      <div className="rounded-lg border border-nova-hairline bg-nova-crypt px-4 py-12 text-center text-sm text-nova-ash">
-        No orders match this filter.
-      </div>
-    );
-  }
-
-  const rows = orders.map((order) => ({
+  const rows: Row[] = orders.map((order) => ({
     order,
     customer: customers.find((p) => p.id === order.userId),
     method: paymentMethods.find((m) => m.id === order.paymentMethodId),
   }));
 
-  return (
-    <>
-      {/* Table — md and up. contain-layout: same fix as GamesTable.tsx's
-          identical wrapper, applied here preemptively for the same
-          structural reason (identical overflow-x-auto pattern), even
-          though this table didn't measure as leaking at 768px with
-          today's content. */}
-      <div className="hidden overflow-x-auto rounded-lg border border-nova-hairline contain-layout md:block">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-nova-hairline bg-nova-crypt text-xs uppercase tracking-wider text-nova-smoke">
-              <th className="px-4 py-3 font-medium">Reference</th>
-              <th className="px-4 py-3 font-medium">Customer</th>
-              <th className="px-4 py-3 font-medium">Phone</th>
-              <th className="px-4 py-3 text-right font-medium">Amount</th>
-              <th className="px-4 py-3 font-medium">Method</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 text-right font-medium">Age</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(({ order, customer, method }) => (
-              <tr
-                key={order.id}
-                onClick={() => onSelect(order.id)}
-                tabIndex={0}
-                role="button"
-                aria-label={`View order ${order.paymentReference}`}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onSelect(order.id);
-                  }
-                }}
-                className={`cursor-pointer border-b border-nova-hairline transition-colors duration-(--duration-fast) ease-standard last:border-b-0 hover:bg-nova-crypt ${
-                  selectedId === order.id ? "bg-nova-crypt" : "bg-nova-void"
-                }`}
-              >
-                <td className="px-4 py-3 font-mono text-nova-bone">
-                  {order.paymentReference}
-                </td>
-                <td className="px-4 py-3 text-nova-ash">
-                  {customer?.fullName ?? (order.guestPhone ? "Guest" : "—")}
-                </td>
-                <td className="px-4 py-3 text-nova-ash">
-                  {displayPhone(customer?.phoneNumber ?? order.guestPhone)}
-                </td>
-                <td className="px-4 py-3 text-right font-semibold text-nova-bone">
-                  {formatPriceExact(order.amountExact)}
-                </td>
-                <td className="px-4 py-3 text-nova-ash">
-                  {method?.label ?? "—"}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={order.status} />
-                </td>
-                <td className="px-4 py-3 text-right text-nova-smoke">
-                  {getOrderAgeLabel(order.createdAt)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  const columns: AdminTableColumn<Row>[] = [
+    { key: "reference", header: "Reference", mono: true, render: ({ order }) => <span className="text-nova-bone">{order.paymentReference}</span> },
+    {
+      key: "customer",
+      header: "Customer",
+      render: ({ order, customer }) => (
+        <span className="text-nova-ash">{customer?.fullName ?? (order.guestPhone ? "Guest" : "—")}</span>
+      ),
+    },
+    {
+      key: "phone",
+      header: "Phone",
+      render: ({ order, customer }) => (
+        <span className="text-nova-ash">{displayPhone(customer?.phoneNumber ?? order.guestPhone)}</span>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Amount",
+      align: "right",
+      render: ({ order }) => <span className="font-semibold text-nova-bone">{formatPriceExact(order.amountExact)}</span>,
+    },
+    { key: "method", header: "Method", render: ({ method }) => <span className="text-nova-ash">{method?.label ?? "—"}</span> },
+    { key: "status", header: "Status", render: ({ order }) => <StatusBadge status={order.status} /> },
+    {
+      key: "age",
+      header: "Age",
+      align: "right",
+      render: ({ order }) => <span className="text-nova-smoke">{getOrderAgeLabel(order.createdAt)}</span>,
+    },
+  ];
 
-      {/* Stacked cards — below md */}
-      <div className="flex flex-col gap-3 md:hidden">
-        {rows.map(({ order, customer, method }) => (
-          <button
-            key={order.id}
-            type="button"
-            onClick={() => onSelect(order.id)}
-            className={`flex flex-col gap-3 rounded-lg border p-4 text-left transition-colors duration-(--duration-fast) ease-standard ${
-              selectedId === order.id
-                ? "border-nova-ember bg-nova-crypt"
-                : "border-nova-hairline bg-nova-void"
-            }`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span className="font-mono text-sm font-semibold text-nova-bone">
-                {order.paymentReference}
-              </span>
-              <StatusBadge status={order.status} />
+  return (
+    <AdminTable
+      columns={columns}
+      rows={rows}
+      rowKey={(r) => r.order.id}
+      onRowClick={(r) => onSelect(r.order.id)}
+      isRowSelected={(r) => selectedId === r.order.id}
+      rowAriaLabel={(r) => `View order ${r.order.paymentReference}`}
+      emptyMessage="No orders match this filter."
+      renderMobileCard={({ order, customer, method }) => (
+        <button
+          type="button"
+          onClick={() => onSelect(order.id)}
+          className={`flex w-full flex-col gap-3 rounded-lg border p-4 text-left transition-colors duration-(--duration-fast) ease-standard ${
+            selectedId === order.id ? "border-nova-ember bg-nova-crypt" : "border-nova-hairline bg-nova-void"
+          }`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <span className="font-mono text-sm font-semibold text-nova-bone">{order.paymentReference}</span>
+            <StatusBadge status={order.status} />
+          </div>
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-sm text-nova-bone">
+                {customer?.fullName ?? (order.guestPhone ? "Guest" : "—")}
+              </p>
+              <p className="truncate text-xs text-nova-smoke">
+                {displayPhone(customer?.phoneNumber ?? order.guestPhone)} · {method?.label ?? "—"}
+              </p>
             </div>
-            <div className="flex items-end justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate text-sm text-nova-bone">
-                  {customer?.fullName ?? (order.guestPhone ? "Guest" : "—")}
-                </p>
-                <p className="truncate text-xs text-nova-smoke">
-                  {displayPhone(customer?.phoneNumber ?? order.guestPhone)} · {method?.label ?? "—"}
-                </p>
-              </div>
-              <div className="shrink-0 text-right">
-                <p className="text-sm font-semibold text-nova-bone">
-                  {formatPriceExact(order.amountExact)}
-                </p>
-                <p className="text-xs text-nova-smoke">
-                  {getOrderAgeLabel(order.createdAt)}
-                </p>
-              </div>
+            <div className="shrink-0 text-right">
+              <p className="text-sm font-semibold text-nova-bone">{formatPriceExact(order.amountExact)}</p>
+              <p className="text-xs text-nova-smoke">{getOrderAgeLabel(order.createdAt)}</p>
             </div>
-          </button>
-        ))}
-      </div>
-    </>
+          </div>
+        </button>
+      )}
+    />
   );
 }
