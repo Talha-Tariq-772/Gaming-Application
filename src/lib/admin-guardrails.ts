@@ -17,6 +17,20 @@ export function isLastAdminDemotion(
 }
 
 /**
+ * Same role isLastAdminDemotion plays, for deleteUser (admin-users.ts)
+ * instead of changeUserRole — advisory only, the real boundary is
+ * trg_prevent_last_admin_soft_delete/trg_prevent_last_admin_hard_delete
+ * (20260909000001_delete_users.sql), which lock every active admin row
+ * before counting inside the same transaction as the write. currentAdminCount
+ * must already be scoped to active admins (role='admin' and deleted_at is
+ * null) — the same count the trigger itself uses.
+ */
+export function isLastAdminRemoval(role: ProfileRole, currentAdminCount: number): boolean {
+  if (role !== "admin") return false;
+  return currentAdminCount <= 1;
+}
+
+/**
  * Real, server-side enforcement of the games_platform_check DB constraint
  * (20260829000002_games_catalog_columns.sql) — checked by createGame/
  * updateGame (admin-games.ts) before ever reaching the database, so an

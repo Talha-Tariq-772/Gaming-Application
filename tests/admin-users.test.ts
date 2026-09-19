@@ -15,8 +15,8 @@ vi.mock("@/src/lib/supabase/server-session", () => ({
   createClient: async () => sessionState.client,
 }));
 
-const { changeUserRole } = await import("@/src/lib/actions/admin-users");
-const { isLastAdminDemotion } = await import("@/src/lib/admin-guardrails");
+const { changeUserRole, deleteUser, previewUserDeletion } = await import("@/src/lib/actions/admin-users");
+const { isLastAdminDemotion, isLastAdminRemoval } = await import("@/src/lib/admin-guardrails");
 const { getProfilesForAdmin } = await import("@/src/lib/order-queries");
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -42,11 +42,15 @@ const password = `AdminUsersTest!${randomUUID()}`;
 let customer: { id: string; email: string };
 let adminMain: { id: string; email: string };
 let adminSecond: { id: string; email: string };
+/** Has one real order row — proves deleteUser soft-deletes rather than
+ * hard-deletes a referenced account, and that the order survives intact. */
+let customerWithOrder: { id: string; email: string };
 let clientCustomer: SupabaseClient;
 let clientAdminMain: SupabaseClient;
 let clientAdminSecond: SupabaseClient;
 
 const userIds: string[] = [];
+let orderIdForCustomerWithOrder: string;
 
 beforeAll(async () => {
   const emailCustomer = `admin-users-customer-${run}@example.com`;
@@ -88,6 +92,24 @@ beforeAll(async () => {
     .eq("id", adminSecond.id);
   if (promoteSecondErr) throw promoteSecondErr;
 
+  const emailCustomerWithOrder = `admin-users-customer-order-${run}@example.com`;
+  const { data: createdCustomerWithOrder, error: errCustomerWithOrder } = await service.auth.admin.createUser({
+    email: emailCustomerWithOrder,
+    password,
+    email_confirm: true,
+  });
+  if (errCustomerWithOrder) throw errCustomerWithOrder;
+  customerWithOrder = { id: createdCustomerWithOrder.user.id, email: emailCustomerWithOrder };
+  userIds.push(customerWithOrder.id);
+
+  const { data: createdOrder, error: orderErr } = await service
+    .from("orders")
+    .insert({ user_id: customerWithOrder.id, payment_reference: `admin-users-del-${run}`, amount_exact: 1000 })
+    .select("id")
+    .single();
+  if (orderErr) throw orderErr;
+  orderIdForCustomerWithOrder = createdOrder.id;
+
   clientCustomer = await signedInClient(customer.email, password);
   clientAdminMain = await signedInClient(adminMain.email, password);
   clientAdminSecond = await signedInClient(adminSecond.email, password);
@@ -107,9 +129,36 @@ afterAll(async () => {
       },
     },
     {
+      // orders.user_id -> profiles(id) has no ON DELETE CASCADE either —
+      // must go before deleting customerWithOrder, same reasoning as
+      // audit_log above. Deleting the order (not the customer) is exactly
+      // what proves deleteUser's soft-delete path leaves order history
+      // untouched: if the delete tests below actually hard-deleted this
+      // customer instead of soft-deleting them, this order would already
+      // be gone (cascaded) or orphaned, and this delete would either be a
+      // no-op or fail depending on which.
+      label: "orderForCustomerWithOrder",
+      run: async () => {
+        if (orderIdForCustomerWithOrder) {
+          await deleteWithRetry(() => service.from("orders").delete().eq("id", orderIdForCustomerWithOrder), "orderForCustomerWithOrder");
+        }
+      },
+    },
+    {
       label: "customer",
       run: async () => {
         if (customer?.id) await deleteWithRetry(() => service.auth.admin.deleteUser(customer.id), "customer");
+      },
+    },
+    {
+      // Regardless of whether the tests below actually soft-deleted this
+      // account, a plain hard delete cleans it up either way — GoTrue
+      // allows a real delete on top of an already-soft-deleted user.
+      label: "customerWithOrder",
+      run: async () => {
+        if (customerWithOrder?.id) {
+          await deleteWithRetry(() => service.auth.admin.deleteUser(customerWithOrder.id), "customerWithOrder");
+        }
       },
     },
     {
@@ -242,6 +291,175 @@ describe("getProfilesForAdmin — non-admin hitting /admin/users gets nothing fr
   });
 });
 
+describe("isLastAdminRemoval (pure guardrail logic)", () => {
+  it("blocks when the target is admin and is the sole remaining one", () => {
+    expect(isLastAdminRemoval("admin", 1)).toBe(true);
+  });
+
+  it("allows when other admins remain", () => {
+    expect(isLastAdminRemoval("admin", 2)).toBe(false);
+  });
+
+  it("doesn't apply to a non-admin target, regardless of count", () => {
+    expect(isLastAdminRemoval("customer", 1)).toBe(false);
+    expect(isLastAdminRemoval("agent", 0)).toBe(false);
+  });
+});
+
+describe("previewUserDeletion — CRITICAL: the order-history check deleteUser itself relies on", () => {
+  it("a customer with zero orders/reviews/audit/news previews as hard-deletable, order count 0", async () => {
+    sessionState.client = clientAdminMain;
+    const result = await previewUserDeletion(customer.id);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.orderCount).toBe(0);
+    expect(result.willHardDelete).toBe(true);
+  });
+
+  it("a customer with a real order previews as soft-deletable, with the real order count", async () => {
+    sessionState.client = clientAdminMain;
+    const result = await previewUserDeletion(customerWithOrder.id);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.orderCount).toBe(1);
+    expect(result.willHardDelete).toBe(false);
+  });
+
+  it("a plain customer session is rejected outright", async () => {
+    sessionState.client = clientCustomer;
+    await expect(previewUserDeletion(adminSecond.id)).rejects.toThrow();
+  });
+});
+
+describe("deleteUser — self-delete is always blocked, unconditionally (never merely a warning)", () => {
+  it("adminMain attempting to delete their OWN account is rejected with SELF; account is untouched", async () => {
+    sessionState.client = clientAdminMain;
+    const result = await deleteUser(adminMain.id, adminMain.id);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe("SELF");
+
+    const { data: recheck } = await service.from("profiles").select("deleted_at").eq("id", adminMain.id).single();
+    expect(recheck?.deleted_at).toBeNull();
+  });
+});
+
+describe("deleteUser — non-admin callers rejected by the server action itself, not just a hidden UI button", () => {
+  it("a plain customer session calling deleteUser on someone else is rejected", async () => {
+    sessionState.client = clientCustomer;
+    await expect(deleteUser(adminSecond.id, customer.id)).rejects.toThrow();
+
+    const { data: recheck } = await service.from("profiles").select("deleted_at").eq("id", adminSecond.id).single();
+    expect(recheck?.deleted_at).toBeNull();
+  });
+
+  it("throws when the passed adminId doesn't match the real authenticated session (spoofing attempt)", async () => {
+    sessionState.client = clientCustomer; // real session is the customer
+    await expect(deleteUser(customer.id, adminMain.id)).rejects.toThrow();
+  });
+});
+
+describe("deleteUser — CRITICAL: a real admin session deleting ANOTHER user through the actual action", () => {
+  it("hard-deletes a genuinely empty account (no orders/reviews/audit/news) — profile and auth user both actually gone", async () => {
+    const email = `admin-users-hard-delete-${run}@example.com`;
+    const { data: created, error: createErr } = await service.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
+    if (createErr) throw createErr;
+    const targetId = created.user.id;
+
+    try {
+      sessionState.client = clientAdminMain;
+      const result = await deleteUser(targetId, adminMain.id);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.hardDeleted).toBe(true);
+
+      const { data: profileRow, error: profileErr } = await service
+        .from("profiles")
+        .select("id")
+        .eq("id", targetId)
+        .maybeSingle();
+      expect(profileErr).toBeNull();
+      expect(profileRow).toBeNull(); // real DELETE, cascaded — not just flagged
+
+      const { data: authCheck } = await service.auth.admin.getUserById(targetId);
+      expect(authCheck?.user).toBeNull();
+
+      const { data: auditRows } = await service
+        .from("audit_log")
+        .select("actor_id, action, target_type, metadata")
+        .eq("target_id", targetId)
+        .eq("action", "user_deleted")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      expect(auditRows).toHaveLength(1);
+      expect(auditRows?.[0]?.actor_id).toBe(adminMain.id);
+      expect(auditRows?.[0]?.metadata).toMatchObject({ hard_deleted: true });
+    } finally {
+      // Best-effort only: the whole point of this test is that deleteUser
+      // already removed this account. A second delete on an
+      // already-gone user is expected to no-op/error harmlessly here —
+      // this is not asserted, just a safety net if the test failed before
+      // reaching the real delete call above.
+      await service.auth.admin.deleteUser(targetId).catch(() => {});
+    }
+  });
+
+  it("soft-deletes a customer WITH order history — profile stays, order remains intact and correctly attributed, sign-in is blocked afterward", async () => {
+    sessionState.client = clientAdminMain;
+    const result = await deleteUser(customerWithOrder.id, adminMain.id);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.hardDeleted).toBe(false);
+
+    // Profile row survives, flagged rather than removed.
+    const { data: profileRow } = await service
+      .from("profiles")
+      .select("id, deleted_at")
+      .eq("id", customerWithOrder.id)
+      .single();
+    expect(profileRow?.id).toBe(customerWithOrder.id);
+    expect(profileRow?.deleted_at).not.toBeNull();
+
+    // The order this customer placed is untouched and still attributed to them.
+    const { data: orderRow } = await service
+      .from("orders")
+      .select("id, user_id")
+      .eq("id", orderIdForCustomerWithOrder)
+      .single();
+    expect(orderRow?.user_id).toBe(customerWithOrder.id);
+
+    // The account can no longer sign in.
+    const freshClient = createClient(url, anonKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    const { error: signInErr } = await freshClient.auth.signInWithPassword({
+      email: customerWithOrder.email,
+      password,
+    });
+    expect(signInErr).not.toBeNull();
+
+    const { data: auditRows } = await service
+      .from("audit_log")
+      .select("actor_id, action, metadata")
+      .eq("target_id", customerWithOrder.id)
+      .eq("action", "user_deleted")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    expect(auditRows).toHaveLength(1);
+    expect(auditRows?.[0]?.metadata).toMatchObject({ hard_deleted: false, order_count: 1 });
+  });
+
+  it("a repeated delete on an already soft-deleted user is idempotent, not an error", async () => {
+    sessionState.client = clientAdminMain;
+    const result = await deleteUser(customerWithOrder.id, adminMain.id);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.hardDeleted).toBe(false);
+  });
+});
+
 /**
  * changeUserRole's own last-admin check (above this file, in
  * src/lib/actions/admin-users.ts) is a plain SELECT-then-UPDATE with no
@@ -341,5 +559,88 @@ describe.skipIf(!process.env.RUN_ADMIN_DEMOTION_RACE_TEST)(
         }
       }
       }, 30_000);
+  },
+);
+
+/**
+ * prevent_last_admin_removal (20260909000001_delete_users.sql) shares one
+ * function and one locking strategy across both the soft-delete (UPDATE)
+ * and hard-delete (DELETE) triggers it backs — see that migration. This
+ * exercises the UPDATE path directly against profiles.deleted_at, bypassing
+ * deleteUser's auth-layer step (auth.admin.deleteUser(id, true)) entirely,
+ * specifically because that call is documented as irreversible: unlike the
+ * demotion race test above (which only ever touches profiles.role and can
+ * freely restore it), there is no safe way to "undo" a real admin account
+ * having its auth email/phone scrambled if this test's setup or a crash
+ * left it in that state. Testing the trigger via a raw, fully-reversible
+ * profiles UPDATE proves the exact same database boundary — both triggers
+ * call the identical function with the identical row-locking approach —
+ * without ever risking an irreversible action against whatever real admin
+ * happens to be configured on this project.
+ *
+ * Same env-gated, same restore-in-finally discipline as the demotion race
+ * test, and the same reasoning for why: NOT part of the default suite.
+ *   RUN_ADMIN_DELETION_RACE_TEST=1 npx vitest run tests/admin-users.test.ts
+ */
+describe.skipIf(!process.env.RUN_ADMIN_DELETION_RACE_TEST)(
+  "prevent_last_admin_removal trigger — real concurrency on the soft-delete path, not just sequential calls",
+  () => {
+    it("concurrently soft-deleting two different admins, with exactly 2 admins system-wide, lets exactly one succeed and never reaches zero", async () => {
+      const { data: allAdmins, error: allAdminsErr } = await service
+        .from("profiles")
+        .select("id")
+        .eq("role", "admin")
+        .is("deleted_at", null);
+      if (allAdminsErr) throw allAdminsErr;
+      const otherAdminIds = allAdmins.map((p) => p.id).filter((id) => id !== adminMain.id && id !== adminSecond.id);
+
+      try {
+        for (const id of otherAdminIds) {
+          const { error } = await service.from("profiles").update({ role: "customer" }).eq("id", id);
+          if (error) throw error;
+        }
+
+        const { count: preRaceCount, error: preRaceErr } = await service
+          .from("profiles")
+          .select("id", { count: "exact", head: true })
+          .eq("role", "admin")
+          .is("deleted_at", null);
+        if (preRaceErr) throw preRaceErr;
+        expect(preRaceCount).toBe(2);
+
+        const now = new Date().toISOString();
+        const [resultA, resultB] = await Promise.all([
+          service.from("profiles").update({ deleted_at: now }).eq("id", adminMain.id),
+          service.from("profiles").update({ deleted_at: now }).eq("id", adminSecond.id),
+        ]);
+
+        const results = [resultA, resultB];
+        const successes = results.filter((r) => !r.error);
+        const failures = results.filter((r) => r.error);
+        expect(successes).toHaveLength(1);
+        expect(failures).toHaveLength(1);
+        expect(failures[0].error?.code).toBe("LA002");
+
+        const { count: postRaceCount, error: postRaceErr } = await service
+          .from("profiles")
+          .select("id", { count: "exact", head: true })
+          .eq("role", "admin")
+          .is("deleted_at", null);
+        if (postRaceErr) throw postRaceErr;
+        expect(postRaceCount).toBe(1); // exactly one survived — never zero
+      } finally {
+        await deleteWithRetry(
+          () => service.from("profiles").update({ deleted_at: null }).eq("id", adminMain.id),
+          "restore adminMain",
+        );
+        await deleteWithRetry(
+          () => service.from("profiles").update({ deleted_at: null }).eq("id", adminSecond.id),
+          "restore adminSecond",
+        );
+        for (const id of otherAdminIds) {
+          await deleteWithRetry(() => service.from("profiles").update({ role: "admin" }).eq("id", id), `restore ${id}`);
+        }
+      }
+    }, 30_000);
   },
 );

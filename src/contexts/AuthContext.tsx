@@ -25,6 +25,7 @@ function mapProfileRow(row: any): Profile {
     phoneVerified: row.phone_verified,
     role: row.role,
     createdAt: row.created_at,
+    deletedAt: row.deleted_at,
   };
 }
 
@@ -49,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       const { data } = await supabase
         .from("profiles")
-        .select("id, email, full_name, phone_number, phone_verified, role, created_at")
+        .select("id, email, full_name, phone_number, phone_verified, role, created_at, deleted_at")
         .eq("id", currentUser.id)
         .single();
       if (!cancelled) {

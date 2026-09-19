@@ -84,6 +84,7 @@ function mapProfileRow(row: any): Profile {
     phoneVerified: row.phone_verified,
     role: row.role,
     createdAt: row.created_at,
+    deletedAt: row.deleted_at,
   };
 }
 

@@ -359,6 +359,7 @@ export const MOCK_PROFILES: Profile[] = [
     phoneVerified: true,
     role: "customer",
     createdAt: "2026-01-05T09:00:00.000Z",
+    deletedAt: null,
   },
   {
     id: "usr_bilal02",
@@ -368,6 +369,7 @@ export const MOCK_PROFILES: Profile[] = [
     phoneVerified: true,
     role: "customer",
     createdAt: "2026-01-12T14:30:00.000Z",
+    deletedAt: null,
   },
   {
     id: "usr_hassan03",
@@ -377,6 +379,7 @@ export const MOCK_PROFILES: Profile[] = [
     phoneVerified: false,
     role: "customer",
     createdAt: "2026-02-01T11:15:00.000Z",
+    deletedAt: null,
   },
 ];
 

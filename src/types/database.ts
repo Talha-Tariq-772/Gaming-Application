@@ -189,6 +189,10 @@ export interface Profile {
   phoneVerified: boolean;
   role: ProfileRole;
   createdAt: string;
+  /** Set by deleteUser (admin-users.ts) for a soft-deleted account — one
+   * with order/review/audit/news history, where a real DELETE would break
+   * that history's attribution. Null for every normal, live account. */
+  deletedAt: string | null;
 }
 
 /**

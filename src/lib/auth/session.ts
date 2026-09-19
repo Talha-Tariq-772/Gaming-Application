@@ -27,10 +27,17 @@ export async function getAuthenticatedProfile(): Promise<AuthenticatedProfile | 
 
   const { data: profile, error: profileErr } = await supabase
     .from("profiles")
-    .select("id, role, full_name, phone_number")
+    .select("id, role, full_name, phone_number, deleted_at")
     .eq("id", user.id)
     .single();
-  if (profileErr || !profile) return null;
+  // A soft-deleted profile (deleteUser, admin-users.ts) is treated as no
+  // session at all, not merely a lower-privileged one — this is the same
+  // choke point every requireXxx() call below goes through, so a
+  // soft-deleted account loses access everywhere the instant deleted_at is
+  // set, even if its JWT hasn't technically expired yet. The auth-layer ban
+  // (auth.admin.deleteUser(id, true), also in deleteUser) is the primary
+  // mechanism; this is defense in depth, not the only layer.
+  if (profileErr || !profile || profile.deleted_at) return null;
 
   return {
     id: profile.id,
