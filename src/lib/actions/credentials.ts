@@ -10,10 +10,11 @@ export type RevealCredentialResult =
   | { ok: false; error: "NOT_FOUND" | "UNKNOWN"; message: string };
 
 /**
- * The ONLY code path in the app that ever decrypts a credential. Do not
- * add a second one — every other place that needs to know about
- * credentials (admin stock counts, order_items) works with ids/aggregates
- * only, never login_enc/password_enc contents.
+ * The ONLY code path in the app that ever decrypts a GAME credential
+ * (revealGiftCardCode below is the gift-card equivalent; both live here so
+ * decryption stays in one module). Do not add a third — every other place
+ * that needs to know about credentials (admin stock counts, order_items)
+ * works with ids/aggregates only, never login_enc/password_enc contents.
  */
 export async function revealCredential(
   orderId: string,
@@ -104,4 +105,115 @@ export async function revealCredential(
   if (auditErr) console.error("[revealCredential] audit log", auditErr);
 
   return { ok: true, login, password, revealedAt };
+}
+
+export type RevealGiftCardCodeResult =
+  | { ok: true; code: string; revealedAt: string }
+  | { ok: false; error: "NOT_FOUND" | "UNKNOWN"; message: string };
+
+/**
+ * Gift-card sibling of revealCredential above — deliberately in the same
+ * module so every decryption in this app lives in one file.
+ *
+ * Note the storage difference: game credentials are `bytea` and go through
+ * byteaToBuffer, while gift_card_codes.code_encrypted is `text` holding
+ * base64 (see scripts/seed-gift-card-codes.mjs, which writes
+ * `encrypt(code).toString("base64")`). Same AES-256-GCM payload, different
+ * wire format — decoding it the other way yields garbage that decrypt()
+ * rejects on the auth tag, not a silent wrong answer.
+ *
+ * Scoped to one order_items row rather than "any code on this order", so
+ * an order containing several gift cards reveals each line's own code.
+ */
+export async function revealGiftCardCode(
+  orderId: string,
+  orderItemId: string,
+  userId: string,
+): Promise<RevealGiftCardCodeResult> {
+  await requireUser(userId);
+  const ip = await requestIp();
+
+  const supabase = createServiceClient();
+
+  const { data: order, error: orderErr } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("id", orderId)
+    .eq("user_id", userId)
+    .eq("status", "approved")
+    .maybeSingle();
+
+  if (orderErr) {
+    console.error("[revealGiftCardCode] order lookup", orderErr);
+    return { ok: false, error: "UNKNOWN", message: "Something went wrong revealing this code." };
+  }
+  if (!order) {
+    return {
+      ok: false,
+      error: "NOT_FOUND",
+      message: "This order isn't approved yet, or doesn't belong to you.",
+    };
+  }
+
+  // The order_id filter matters as much as the item id: without it, a
+  // valid item id from someone else's order would pass the ownership
+  // check above (which only proves THIS order is yours) and leak a code.
+  const { data: item, error: itemErr } = await supabase
+    .from("order_items")
+    .select("gift_card_code_id")
+    .eq("id", orderItemId)
+    .eq("order_id", orderId)
+    .not("gift_card_code_id", "is", null)
+    .maybeSingle();
+
+  if (itemErr || !item?.gift_card_code_id) {
+    console.error("[revealGiftCardCode] order_items lookup", itemErr);
+    return { ok: false, error: "NOT_FOUND", message: "No gift card code is linked to this item." };
+  }
+
+  const { data: row, error: codeErr } = await supabase
+    .from("gift_card_codes")
+    .select("id, code_encrypted, revealed_at, status")
+    .eq("id", item.gift_card_code_id)
+    .single();
+
+  if (codeErr || !row) {
+    console.error("[revealGiftCardCode] code lookup", codeErr);
+    return { ok: false, error: "NOT_FOUND", message: "This gift card code could not be found." };
+  }
+
+  // approve_order flips reserved -> delivered. A code still sitting at
+  // 'reserved' here means the order says approved but delivery never ran —
+  // surface that rather than handing over a code the system doesn't
+  // consider sold.
+  if (row.status !== "delivered") {
+    return {
+      ok: false,
+      error: "NOT_FOUND",
+      message: "This code isn't ready yet. Message us on WhatsApp if this persists.",
+    };
+  }
+
+  const code = decrypt(Buffer.from(row.code_encrypted, "base64"));
+
+  let revealedAt = row.revealed_at ? new Date(row.revealed_at).toISOString() : null;
+  if (!revealedAt) {
+    revealedAt = new Date().toISOString();
+    const { error: updateErr } = await supabase
+      .from("gift_card_codes")
+      .update({ revealed_at: revealedAt, revealed_ip: ip })
+      .eq("id", row.id);
+    if (updateErr) console.error("[revealGiftCardCode] stamping revealed_at", updateErr);
+  }
+
+  const { error: auditErr } = await supabase.from("audit_log").insert({
+    actor_id: userId,
+    action: "gift_card_code_revealed",
+    target_type: "order",
+    target_id: orderId,
+    metadata: { ip, order_item_id: orderItemId },
+  });
+  if (auditErr) console.error("[revealGiftCardCode] audit log", auditErr);
+
+  return { ok: true, code, revealedAt };
 }

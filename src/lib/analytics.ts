@@ -34,6 +34,7 @@ export interface AnalyticsEventMap {
   };
   view_order: { orderRef: string; status: string };
   reveal_credentials: { gameId: string; orderRef: string };
+  reveal_gift_card_code: { productId: string; orderRef: string };
   view_guide: { guideSlug: string; category: string };
   search_guides: { query: string };
   filter_games: {

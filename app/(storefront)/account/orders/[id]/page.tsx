@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Button from "@/components/Button";
 import CredentialReveal from "@/src/components/account/CredentialReveal";
+import GiftCardCodeReveal from "@/src/components/account/GiftCardCodeReveal";
 import OrderTimeline from "@/src/components/account/OrderTimeline";
 import StatusBadge from "@/src/components/account/StatusBadge";
 import TrackedWhatsAppLink from "@/src/components/account/TrackedWhatsAppLink";
@@ -55,6 +56,18 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const giftCardProductsByCodeId = Object.fromEntries(giftCardProductsByCodeIdMap);
   const method = paymentMethods[0];
   const whatsAppItems = toWhatsAppOrderItems(items, games, giftCardProductsByCodeId);
+
+  // An order can hold games, gift cards, or both — label the reveal
+  // section for what is actually in it rather than always saying "Game
+  // Credentials".
+  const hasGames = items.some((i) => i.productType !== "gift_card");
+  const hasGiftCards = items.some((i) => i.productType === "gift_card");
+  const deliverablesHeading =
+    hasGames && hasGiftCards
+      ? "Credentials & Codes"
+      : hasGiftCards
+        ? "Gift Card Codes"
+        : "Game Credentials";
 
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
@@ -177,9 +190,33 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
           {order.status === "approved" && (
             <section>
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-nova-smoke">Game Credentials</h2>
+              {/* Heading follows what the order actually contains. It used to
+                  be a hardcoded "Game Credentials" whose body skipped every
+                  gift-card line, so a gift-card-only order rendered this
+                  section completely empty and the buyer had no way to get
+                  the code they'd paid for. */}
+              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-nova-smoke">
+                {deliverablesHeading}
+              </h2>
               <div className="flex flex-col gap-4">
                 {items.map((item) => {
+                  if (item.productType === "gift_card") {
+                    const product = item.giftCardCodeId
+                      ? giftCardProductsByCodeId[item.giftCardCodeId]
+                      : undefined;
+                    if (!product) return null;
+                    return (
+                      <GiftCardCodeReveal
+                        key={item.id}
+                        orderId={order.id}
+                        orderItemId={item.id}
+                        orderRef={order.paymentReference}
+                        productId={product.id}
+                        productTitle={product.title}
+                        redemptionInstructions={product.redemptionInstructions}
+                      />
+                    );
+                  }
                   const game = games.find((g) => g.id === item.gameId);
                   if (!game) return null;
                   return (
