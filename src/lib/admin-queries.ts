@@ -4,7 +4,7 @@ import { requireAdmin } from "@/src/lib/auth/session";
 import { mapGameRow } from "@/src/lib/catalog";
 import { createClient as createServiceClient } from "@/src/lib/supabase/server";
 import { createClient as createSessionClient } from "@/src/lib/supabase/server-session";
-import type { Game } from "@/src/types/database";
+import type { FaqItem, Game } from "@/src/types/database";
 
 /**
  * All games, active or not — unlike catalog.ts's getGames() (which uses
@@ -104,4 +104,33 @@ export async function getEstimatedVariants(): Promise<EstimatedVariantEntry[]> {
       },
     ];
   });
+}
+
+/**
+ * Every FAQ row, published or not — the public getFaqItems() (src/lib/faqs.ts)
+ * uses the stateless anon client and so can only ever see published rows
+ * regardless of who is asking, exactly like getGames() vs getGamesForAdmin().
+ * This needs the real admin session for faqs_select to grant draft visibility.
+ */
+export async function getFaqsForAdmin(): Promise<FaqItem[]> {
+  await requireAdmin();
+
+  const supabase = await createSessionClient();
+  const { data, error } = await supabase
+    .from("faqs")
+    .select("*")
+    .order("category", { ascending: true, nullsFirst: false })
+    .order("sort_order", { ascending: true });
+  if (error) throw error;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    slug: row.slug,
+    question: row.question,
+    answer: row.answer,
+    category: row.category,
+    sortOrder: row.sort_order,
+    isPublished: row.is_published,
+  }));
 }

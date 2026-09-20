@@ -1,7 +1,6 @@
 import { safeAsync } from "@/src/lib/safe-async";
 import {
   GUIDE_CATEGORIES,
-  type FaqItem,
   type Guide,
   type GuideCategory,
 } from "@/src/types/database";
@@ -44,7 +43,6 @@ export const REDEMPTION_GUIDE_SLUG = "redeem-your-game-key";
 
 /** Linked from checkout step 3 (confirmation) while the buyer is waiting
  * on verification. */
-export const PAYMENT_VERIFICATION_FAQ_ID = "faq-how-verification-works";
 
 /* ---------------------------------------------------------------------- */
 /* Guides                                                                   */
@@ -307,126 +305,6 @@ Avoid changing security-sensitive settings on the account (password, 2FA, linked
   },
 ];
 
-/* ---------------------------------------------------------------------- */
-/* FAQ                                                                      */
-/* ---------------------------------------------------------------------- */
-
-export const MOCK_FAQ_ITEMS: FaqItem[] = [
-  {
-    id: PAYMENT_VERIFICATION_FAQ_ID,
-    question: "How does payment verification work?",
-    answer:
-      "Every payment is checked manually by our team rather than through an automatic gateway. At checkout we give you an exact amount to send (with a small unique offset added to your total) — that's how we match your payment to your order. Send that exact amount, then tap \"I have made the payment\" and share your screenshot on WhatsApp so we can confirm it.",
-    category: "payment",
-    sortOrder: 1,
-    isPublished: true,
-  },
-  {
-    id: "faq-verification-time",
-    question: "How long does verification take?",
-    answer:
-      "Usually 1–2 hours during business hours (9am–9pm PKT). Orders sent outside those hours are picked up first thing the next morning. Weekends and public holidays can take a little longer.",
-    category: "payment",
-    sortOrder: 2,
-    isPublished: true,
-  },
-  {
-    id: "faq-agent-not-replied",
-    question:
-      "I sent my screenshot but no one has replied — what do I do?",
-    answer:
-      "First, check that your 45-minute reservation window hasn't expired — if it has, your order will show as expired and you'll need to check out again. If it's still active and you're within business hours, give it a little longer; during busy periods responses can take a bit past our usual turnaround. If it's been more than a few hours during business hours with no reply, send a follow-up message on the same WhatsApp thread with your order reference — don't open a new chat, as that can split your conversation across two threads.",
-    category: "payment",
-    sortOrder: 3,
-    isPublished: true,
-  },
-  {
-    id: "faq-payment-methods",
-    question: "What payment methods do you accept?",
-    answer:
-      "Bank transfer, JazzCash, Easypaisa, SadaPay, and NayaPay. See our accepted payment methods guide for details on each.",
-    category: "payment",
-    sortOrder: 4,
-    isPublished: true,
-  },
-  {
-    id: "faq-refund-policy",
-    question: "What's your refund policy?",
-    answer:
-      "If we can't deliver a working account or key for an approved order — and can't fix or replace it — we'll issue a refund or store credit at your choice. Refunds aren't available simply for a change of mind after credentials have been revealed, since the account is considered delivered at that point. If a payment was sent but never verified (for example, the reservation expired before we could match it), contact us with proof of payment and we'll sort it out.",
-    category: "payment",
-    sortOrder: 5,
-    isPublished: true,
-  },
-  {
-    id: "faq-access-credentials",
-    question: "How do I access my game credentials after I'm approved?",
-    answer:
-      "Go to My Orders, open the approved order, and use the Reveal Credentials button under each game. Credentials are shown once — save them somewhere safe as soon as you reveal them.",
-    category: "account-setup",
-    sortOrder: 1,
-    isPublished: true,
-  },
-  {
-    id: "faq-change-credentials",
-    question: "Can I change the password on my game account?",
-    answer:
-      "We'd rather you didn't — these are shared-pool accounts we're still responsible for managing, and a password change can lock us out or flag the account on the platform's side. If you have a specific reason to change it, message us first and we'll help you do it safely.",
-    category: "account-setup",
-    sortOrder: 2,
-    isPublished: true,
-  },
-  {
-    id: "faq-need-account",
-    question: "Do I need to create an account before I can order?",
-    answer:
-      "No separate signup step — placing your first order creates your account automatically using the name and phone number you provide at checkout.",
-    category: "account-setup",
-    sortOrder: 3,
-    isPublished: true,
-  },
-  {
-    id: "faq-account-stopped-working",
-    question: "What happens if my game account stops working?",
-    answer:
-      "Message us with your order reference and what's happening. We'll restore access, swap you to a working account, or issue store credit/refund depending on the situation. See our full guide on this for more detail on what to expect.",
-    category: "troubleshooting",
-    sortOrder: 1,
-    isPublished: true,
-  },
-  {
-    id: "faq-key-not-working",
-    question: "My game key won't redeem — what should I do?",
-    answer:
-      "Double-check you've copied the code exactly with no extra spaces, and that you're signed into the right platform account. Avoid retrying more than 2–3 times, since some platforms temporarily lock further attempts. If it still doesn't work, message us on WhatsApp with your order reference and a screenshot of the error.",
-    category: "troubleshooting",
-    sortOrder: 2,
-    isPublished: true,
-  },
-  {
-    id: "faq-how-to-redeem",
-    question: "How do I redeem my game after I'm approved?",
-    answer:
-      "It depends on your platform — see our full redemption guide for step-by-step instructions covering PC, PlayStation 5, Xbox, and Nintendo Switch.",
-    category: "getting-started",
-    sortOrder: 1,
-    isPublished: true,
-  },
-  {
-    id: "faq-platforms-supported",
-    question: "Which platforms do you support?",
-    answer:
-      "PC (via Steam), PlayStation 5, Xbox Series X|S and Xbox One, and Nintendo Switch. Each game's product page shows which platform it's for before you buy.",
-    category: "getting-started",
-    sortOrder: 2,
-    isPublished: true,
-  },
-];
-
-/* ---------------------------------------------------------------------- */
-/* Data-layer functions                                                     */
-/* ---------------------------------------------------------------------- */
-
 export interface GuideFilters {
   category?: GuideCategory;
   /** Case-insensitive match against title and excerpt. */
@@ -465,20 +343,5 @@ export async function getGuideBySlug(slug: string): Promise<Guide | null> {
   return safeAsync("guide", async () => {
     const guide = MOCK_GUIDES.find((g) => g.slug === slug && g.isPublished) ?? null;
     return delay(guide);
-  });
-}
-
-export async function getFaqItems(): Promise<FaqItem[]> {
-  return safeAsync("FAQ", async () => {
-    const results = MOCK_FAQ_ITEMS.filter((item) => item.isPublished).sort(
-      (a, b) => {
-        if (a.category !== b.category) {
-          return categoryRank(a.category) - categoryRank(b.category);
-        }
-        return a.sortOrder - b.sortOrder;
-      },
-    );
-
-    return delay(results);
   });
 }

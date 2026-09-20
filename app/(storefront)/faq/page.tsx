@@ -3,7 +3,7 @@ import Link from "next/link";
 import FaqAccordion from "@/src/components/faq/FaqAccordion";
 import FaqHashSync from "@/src/components/faq/FaqHashSync";
 import Eyebrow from "@/src/components/ui/nova/Eyebrow";
-import { getFaqItems } from "@/src/lib/mock-guides";
+import { getFaqItems } from "@/src/lib/faqs";
 
 const TITLE = "FAQ";
 const DESCRIPTION =
@@ -46,7 +46,8 @@ export default async function FaqPage() {
 
   return (
     <div className="mx-auto max-w-page px-4 py-16 md:px-8">
-      {/* Our own mock data, not user input — safe to serialize directly. */}
+      {/* Admin-authored copy from the faqs table, not end-user input, and
+          JSON.stringify escapes it — safe to serialize directly. */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

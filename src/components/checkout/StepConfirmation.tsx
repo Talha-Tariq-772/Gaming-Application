@@ -3,7 +3,7 @@ import MagneticButton from "@/src/components/motion/MagneticButton";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { track } from "@/src/lib/analytics";
 import { buildWhatsAppLink } from "@/src/lib/order";
-import { PAYMENT_VERIFICATION_FAQ_ID } from "@/src/lib/mock-guides";
+import { PAYMENT_VERIFICATION_FAQ_SLUG } from "@/src/lib/faq-anchors";
 import type { CheckoutOrderItem } from "@/src/stores/checkout-store";
 import type { Order, PaymentMethod } from "@/src/types/database";
 
@@ -79,7 +79,7 @@ export default function StepConfirmation({
         Orders are typically verified within 1–2 hours during business
         hours (9am–9pm PKT). Wondering how that works?{" "}
         <Link
-          href={`/faq#${PAYMENT_VERIFICATION_FAQ_ID}`}
+          href={`/faq#${PAYMENT_VERIFICATION_FAQ_SLUG}`}
           className="font-semibold text-nova-ember-text hover:text-nova-ember-lo"
         >
           See the payment FAQ

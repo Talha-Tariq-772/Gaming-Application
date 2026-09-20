@@ -336,9 +336,15 @@ export interface Guide {
 
 export interface FaqItem {
   id: string;
+  /** Stable, human-readable anchor — this, not `id`, is the DOM id the
+   * public /faq page renders, so existing /faq#... deep links keep
+   * working (supabase/migrations/20260920000001_faqs.sql). */
+  slug: string;
   question: string;
   answer: string;
-  category: GuideCategory;
+  /** Null for an uncategorised entry — /faq groups those into a trailing
+   * "Other" section rather than dropping them. */
+  category: GuideCategory | null;
   /** Ascending, per category — lower sorts first. */
   sortOrder: number;
   isPublished: boolean;
