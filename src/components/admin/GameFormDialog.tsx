@@ -12,7 +12,7 @@ import {
   type GameFormOutput,
 } from "@/src/lib/validation";
 import { GAME_GENRES, GAME_PLATFORM_LABELS, GAME_PLATFORMS } from "@/src/types/database";
-import type { Game, GameGenre, GamePlatform, SetupGuide } from "@/src/types/database";
+import type { AdminGame, Game, GameGenre, GamePlatform, SetupGuide } from "@/src/types/database";
 
 function slugify(title: string): string {
   return title
@@ -27,6 +27,8 @@ type FormValues = {
   slug: string;
   description: string;
   price: string;
+  /** "" means no cost recorded — not zero. */
+  costPrice: string;
   genre: GameGenre;
   platform: GamePlatform;
   coverImageUrl: string;
@@ -51,19 +53,21 @@ const TEXT_FIELDS: TextField[] = [
   "slug",
   "description",
   "price",
+  "costPrice",
   "coverImageUrl",
   "trailerUrl",
   "setupGuide",
   "releaseDate",
 ];
 
-function toFormValues(game: Game | null): FormValues {
+function toFormValues(game: AdminGame | null): FormValues {
   if (!game) {
     return {
       title: "",
       slug: "",
       description: "",
       price: "",
+      costPrice: "",
       genre: GAME_GENRES[0],
       platform: GAME_PLATFORMS[0],
       coverImageUrl: "",
@@ -81,6 +85,7 @@ function toFormValues(game: Game | null): FormValues {
     slug: game.slug,
     description: game.description,
     price: String(game.price),
+    costPrice: game.costPrice === null || game.costPrice === undefined ? "" : String(game.costPrice),
     genre: game.genre,
     // Every seeded game currently has platform = null (Session 1 populated
     // the column and its CHECK but never the values) — fall back to the
@@ -185,11 +190,13 @@ export default function GameFormDialog({
   onImageUpdated,
 }: {
   /** null means "add new game" */
-  game: Game | null;
+  game: AdminGame | null;
   /** Published guides only — same list customers can already reach. */
   setupGuides: SetupGuide[];
   onCancel: () => void;
-  onSave: (values: GameFormOutput & { price: number }) => Promise<{ ok: boolean; message?: string }>;
+  onSave: (
+    values: GameFormOutput & { price: number; costPrice: number | null },
+  ) => Promise<{ ok: boolean; message?: string }>;
   /** Fired after a successful image upload so the parent's game list (and
    * this dialog, if reopened) reflects the new cover_path/wallpaper_path
    * without a full reload. */
@@ -284,7 +291,11 @@ export default function GameFormDialog({
     submittingRef.current = true;
     setIsSubmitting(true);
     setSubmitError(null);
-    const result = await onSave({ ...parsed.data, price: Number(parsed.data.price) });
+    const result = await onSave({
+      ...parsed.data,
+      price: Number(parsed.data.price),
+      costPrice: parsed.data.costPrice,
+    });
     if (!result.ok) {
       setSubmitError(result.message ?? "Something went wrong saving this game.");
       submittingRef.current = false;
@@ -349,7 +360,7 @@ export default function GameFormDialog({
           />
         </AdminField>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <AdminField label="Price (Rs)" htmlFor="game-price" error={fieldError("price")}>
             <input
               id="game-price"
@@ -363,6 +374,30 @@ export default function GameFormDialog({
               className={ADMIN_INPUT_CLASS}
             />
           </AdminField>
+
+          {/* Admin-only. cost_price is revoked from anon/authenticated at
+              the column level (20260920000002_cost_price.sql), so this
+              value never reaches a public response or page. Saving it also
+              records a cost_price_history row — see setGameCostPrice. */}
+          <AdminField label="Cost (Rs)" htmlFor="game-cost-price" error={fieldError("costPrice")}>
+            <input
+              id="game-cost-price"
+              type="number"
+              min={0}
+              step="0.01"
+              placeholder="Not set"
+              value={values.costPrice}
+              onChange={(e) => update("costPrice", e.target.value)}
+              onBlur={() => blur("costPrice")}
+              aria-invalid={Boolean(fieldError("costPrice"))}
+              aria-describedby={fieldError("costPrice") ? "game-cost-price-error" : "game-cost-price-help"}
+              className={ADMIN_INPUT_CLASS}
+            />
+            <p id="game-cost-price-help" className="mt-1 text-xs text-nova-smoke">
+              Internal only — never shown publicly. Blank means no cost on record.
+            </p>
+          </AdminField>
+
           <div className="flex items-end">
             <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-nova-ash">
               <input

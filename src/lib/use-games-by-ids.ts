@@ -102,7 +102,12 @@ export function useGamesByIds(ids: string[]): GamesByIdsResult {
       // keeping this independent of Session 1's schema matches
       // getGamesByIds's identical reasoning (see catalog.ts). mapGameRow
       // below defaults variants to [] when the embed is absent.
-      .select("*")
+      // Explicit columns, never "*": this query runs in the browser as
+      // anon, and games.cost_price is column-revoked from that role
+      // (20260920000002_cost_price.sql) — "*" would error here.
+      .select(
+        "id, title, slug, description, price, cover_image_url, trailer_url, genre, platform, setup_guide, is_active, created_at, product_type, release_date, is_new_arrival, is_best_seller, variant_mode, cover_path, wallpaper_path, slider_position, setup_guide_id",
+      )
       .eq("is_active", true)
       .in("id", key.split(","))
       .then(({ data, error }) => {

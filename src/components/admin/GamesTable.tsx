@@ -57,12 +57,12 @@ function GameCoverThumb({ game, className }: { game: Game; className: string }) 
   );
 }
 
-function ActiveToggle({
+function ActiveToggle<T extends Game>({
   game,
   onToggleActive,
 }: {
-  game: Game;
-  onToggleActive: (game: Game) => void;
+  game: T;
+  onToggleActive: (game: T) => void;
 }) {
   return (
     <button
@@ -88,16 +88,16 @@ function ActiveToggle({
   );
 }
 
-function RowActions({
+function RowActions<T extends Game>({
   game,
   onEdit,
   onDelete,
   onManageVariants,
 }: {
-  game: Game;
-  onEdit: (game: Game) => void;
-  onDelete: (game: Game) => void;
-  onManageVariants: (game: Game) => void;
+  game: T;
+  onEdit: (game: T) => void;
+  onDelete: (game: T) => void;
+  onManageVariants: (game: T) => void;
 }) {
   return (
     <div className="flex items-center gap-1">
@@ -126,12 +126,19 @@ function RowActions({
   );
 }
 
-interface Row {
-  game: Game;
+interface Row<T extends Game = Game> {
+  game: T;
   available: number;
 }
 
-export default function GamesTable({
+/**
+ * Generic over the game type so an admin screen holding AdminGame rows
+ * (Game plus the admin-only costPrice) passes its own rows straight
+ * through and gets them back in the callbacks — without this table either
+ * knowing about cost price, or widening the handlers to `Game` and
+ * silently dropping the field on the way back out.
+ */
+export default function GamesTable<T extends Game>({
   games,
   availableByGameId,
   onToggleActive,
@@ -139,16 +146,16 @@ export default function GamesTable({
   onDelete,
   onManageVariants,
 }: {
-  games: Game[];
+  games: T[];
   availableByGameId: Map<string, number>;
-  onToggleActive: (game: Game) => void;
-  onEdit: (game: Game) => void;
-  onDelete: (game: Game) => void;
-  onManageVariants: (game: Game) => void;
+  onToggleActive: (game: T) => void;
+  onEdit: (game: T) => void;
+  onDelete: (game: T) => void;
+  onManageVariants: (game: T) => void;
 }) {
-  const rows: Row[] = games.map((game) => ({ game, available: availableByGameId.get(game.id) ?? 0 }));
+  const rows: Row<T>[] = games.map((game) => ({ game, available: availableByGameId.get(game.id) ?? 0 }));
 
-  const columns: AdminTableColumn<Row>[] = [
+  const columns: AdminTableColumn<Row<T>>[] = [
     {
       key: "game",
       header: "Game",

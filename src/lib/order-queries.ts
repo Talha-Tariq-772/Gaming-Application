@@ -6,6 +6,15 @@ import { createClient as createServiceClient } from "@/src/lib/supabase/server";
 import { createClient as createSessionClient } from "@/src/lib/supabase/server-session";
 import type { Order, OrderItem, OrderStatus, Profile } from "@/src/types/database";
 
+/**
+ * Explicit column list, never "*": order_items.cost_price is revoked from
+ * anon/authenticated at the column level
+ * (20260920000002_cost_price.sql) — a customer reading their own order
+ * must not see what it cost us.
+ */
+const PUBLIC_ORDER_ITEM_COLUMNS =
+  "id, order_id, game_id, credential_id, price, product_type, gift_card_code_id, variant_id, cost_locked_at";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapOrderItemRow(row: any): OrderItem {
   return {
@@ -46,7 +55,7 @@ export async function getOrdersForUser(userId: string): Promise<{ orders: Order[
   const supabase = await createSessionClient();
   const { data, error } = await supabase
     .from("orders")
-    .select("*, order_items(*)")
+    .select(`*, order_items(${PUBLIC_ORDER_ITEM_COLUMNS})`)
     .order("created_at", { ascending: false });
   if (error) throw error;
 
@@ -65,7 +74,7 @@ export async function getOrdersForAdmin(filters?: {
   await requireAdmin({ allowAgent: true });
 
   const supabase = await createSessionClient();
-  let query = supabase.from("orders").select("*, order_items(*)").order("created_at", { ascending: false });
+  let query = supabase.from("orders").select(`*, order_items(${PUBLIC_ORDER_ITEM_COLUMNS})`).order("created_at", { ascending: false });
   if (filters?.status) query = query.eq("status", filters.status);
 
   const { data, error } = await query;

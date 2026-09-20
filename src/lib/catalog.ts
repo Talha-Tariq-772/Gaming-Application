@@ -10,7 +10,18 @@ import type { Game, GameFilters, GameVariant, PaymentMethod } from "@/src/types/
 
 /** Every query that returns a Game embeds its variants via this — one
  * PostgREST embed, not a second round trip. */
-const GAME_SELECT = "*, game_variants(*)";
+/**
+ * Explicit column lists, never "*": games.cost_price and
+ * game_variants.cost_price are revoked from anon/authenticated at the
+ * column level (20260920000002_cost_price.sql), so "*" now errors rather
+ * than leaking margin data. Adding a public column to either table means
+ * adding it here AND granting it in a migration.
+ */
+const PUBLIC_GAME_COLUMNS =
+  "id, title, slug, description, price, cover_image_url, trailer_url, genre, platform, setup_guide, is_active, created_at, product_type, release_date, is_new_arrival, is_best_seller, variant_mode, cover_path, wallpaper_path, slider_position, setup_guide_id";
+const PUBLIC_VARIANT_COLUMNS =
+  "id, game_id, label, price_pkr, was_price_pkr, price_source, sort_order, is_active, created_at";
+const GAME_SELECT = `${PUBLIC_GAME_COLUMNS}, game_variants(${PUBLIC_VARIANT_COLUMNS})`;
 
 /**
  * Real Supabase-backed catalog reads (anon key, always is_active only —
@@ -317,7 +328,7 @@ export async function getGamesByIds(ids: string[]): Promise<Game[]> {
     // Session 1's schema has been deployed wherever this runs.
     // mapGameRow defaults variants to [] when game_variants is absent from
     // the row, so this stays a valid Game either way.
-    const { data, error } = await supabase.from("games").select("*").in("id", ids);
+    const { data, error } = await supabase.from("games").select(PUBLIC_GAME_COLUMNS).in("id", ids);
     if (error) throw error;
     return (data ?? []).map(mapGameRow);
   });

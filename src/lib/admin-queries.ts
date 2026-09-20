@@ -4,7 +4,7 @@ import { requireAdmin } from "@/src/lib/auth/session";
 import { mapGameRow } from "@/src/lib/catalog";
 import { createClient as createServiceClient } from "@/src/lib/supabase/server";
 import { createClient as createSessionClient } from "@/src/lib/supabase/server-session";
-import type { FaqItem, Game } from "@/src/types/database";
+import type { AdminGame, FaqItem } from "@/src/types/database";
 
 /**
  * All games, active or not — unlike catalog.ts's getGames() (which uses
@@ -12,13 +12,23 @@ import type { FaqItem, Game } from "@/src/types/database";
  * can never see inactive rows regardless of who's really asking), this
  * needs the real admin session so RLS actually grants full visibility.
  */
-export async function getGamesForAdmin(): Promise<Game[]> {
+export async function getGamesForAdmin(): Promise<AdminGame[]> {
   await requireAdmin();
 
-  const supabase = await createSessionClient();
+  // SERVICE client, not the session client this used before: cost_price is
+  // revoked from `authenticated` at the column level
+  // (20260920000002_cost_price.sql), so an admin's own session cannot read
+  // it. requireAdmin() above is the authorization boundary — the same
+  // arrangement getCredentialStock() already uses for game_credentials.
+  // Service role also sees inactive rows, which is what the session client
+  // was relied on for here.
+  const supabase = createServiceClient();
   const { data, error } = await supabase.from("games").select("*").order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map(mapGameRow);
+  return (data ?? []).map((row) => ({
+    ...mapGameRow(row),
+    costPrice: row.cost_price === null || row.cost_price === undefined ? null : Number(row.cost_price),
+  }));
 }
 
 export interface CredentialStockEntry {

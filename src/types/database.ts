@@ -217,6 +217,65 @@ export interface GameCredentialStock {
   sold: number;
 }
 
+/**
+ * Cost price is deliberately NOT a field on `Game` or `GameVariant`.
+ * Those types are what public pages render, and the database revokes the
+ * cost columns from anon/authenticated at the column level
+ * (supabase/migrations/20260920000002_cost_price.sql). Keeping cost off
+ * the public types means a public component cannot even reference it —
+ * the compiler rejects it before RLS ever has to.
+ *
+ * Admin screens use these wider types, populated only by service-role
+ * reads behind requireAdmin().
+ */
+export interface AdminGame extends Game {
+  /** Null when no cost has been recorded yet — profit reports count these
+   * separately rather than treating them as zero-cost. */
+  costPrice: number | null;
+}
+
+export interface AdminGameVariant extends GameVariant {
+  costPrice: number | null;
+}
+
+/** One recorded cost change. Exactly one of gameId/variantId is set. */
+export interface CostPriceHistoryEntry {
+  id: string;
+  gameId: string | null;
+  variantId: string | null;
+  costPrice: number;
+  /** ISO date (YYYY-MM-DD) this cost took effect. */
+  effectiveFrom: string;
+  note: string | null;
+  createdAt: string;
+  createdBy: string | null;
+}
+
+export type ProfitGranularity = "day" | "week" | "month";
+
+export interface ProfitPoint {
+  /** ISO timestamp of the bucket start. */
+  bucket: string;
+  revenue: number;
+  cost: number;
+  profit: number;
+  itemsSold: number;
+  /** Lines approved with no cost on record — profit excludes their cost,
+   * so a non-zero value here means the figure is a ceiling, not exact. */
+  itemsMissingCost: number;
+}
+
+export interface ProfitByProduct {
+  gameId: string;
+  title: string;
+  slug: string;
+  revenue: number;
+  cost: number;
+  profit: number;
+  itemsSold: number;
+  itemsMissingCost: number;
+}
+
 export type GameSort = "newest" | "price_asc" | "price_desc" | "name";
 
 /** Query shape accepted by `getGames`. */

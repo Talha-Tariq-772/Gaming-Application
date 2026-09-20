@@ -7,9 +7,10 @@ import GameFormDialog from "@/src/components/admin/GameFormDialog";
 import GamesTable from "@/src/components/admin/GamesTable";
 import VariantsPanel from "@/src/components/admin/VariantsPanel";
 import { createGame, deleteGame, setGameActive, updateGame } from "@/src/lib/actions/admin-games";
+import { setGameCostPrice } from "@/src/lib/actions/admin-cost-price";
 import { formatPrice } from "@/src/lib/format";
 import { useToastStore } from "@/src/stores/toast-store";
-import type { Game, SetupGuide, VariantMode } from "@/src/types/database";
+import type { AdminGame, Game, SetupGuide, VariantMode } from "@/src/types/database";
 import type { CredentialStockEntry, EstimatedVariantEntry } from "@/src/lib/admin-queries";
 
 export default function AdminGamesClient({
@@ -18,18 +19,18 @@ export default function AdminGamesClient({
   setupGuides,
   estimatedVariants,
 }: {
-  initialGames: Game[];
+  initialGames: AdminGame[];
   stock: CredentialStockEntry[];
   setupGuides: SetupGuide[];
   /** Every active variant still price_source='estimate', across every
    * game — one screen listing all of them (see getEstimatedVariants). */
   estimatedVariants: EstimatedVariantEntry[];
 }) {
-  const [games, setGames] = useState(initialGames);
+  const [games, setGames] = useState<AdminGame[]>(initialGames);
   const [search, setSearch] = useState("");
-  const [editingGame, setEditingGame] = useState<Game | null | undefined>(undefined); // undefined = closed, null = adding new, Game = editing
-  const [deletingGame, setDeletingGame] = useState<Game | null>(null);
-  const [variantsGame, setVariantsGame] = useState<Game | null>(null);
+  const [editingGame, setEditingGame] = useState<AdminGame | null | undefined>(undefined); // undefined = closed, null = adding new, Game = editing
+  const [deletingGame, setDeletingGame] = useState<AdminGame | null>(null);
+  const [variantsGame, setVariantsGame] = useState<AdminGame | null>(null);
   const showToast = useToastStore((s) => s.showToast);
 
   const availableByGameId = useMemo(() => {
@@ -46,22 +47,49 @@ export default function AdminGamesClient({
     return games.filter((g) => g.title.toLowerCase().includes(q));
   }, [games, search]);
 
-  async function handleToggleActive(game: Game) {
+  async function handleToggleActive(game: AdminGame) {
     const result = await setGameActive(game.id, !game.isActive);
     if (!result.ok) {
       showToast(result.message);
       return;
     }
-    setGames((prev) => prev.map((g) => (g.id === game.id ? result.game : g)));
+    setGames((prev) => prev.map((g) => (g.id === game.id ? { ...g, ...result.game } : g)));
   }
 
-  async function handleSave(values: Parameters<typeof createGame>[0]): Promise<{ ok: boolean; message?: string }> {
-    const result = editingGame ? await updateGame(editingGame.id, values) : await createGame(values);
+  async function handleSave(
+    values: Parameters<typeof createGame>[0] & { costPrice: number | null },
+  ): Promise<{ ok: boolean; message?: string }> {
+    const { costPrice, ...gameValues } = values;
+    const result = editingGame ? await updateGame(editingGame.id, gameValues) : await createGame(gameValues);
     if (!result.ok) return result;
 
+    // Cost price is saved separately, not as part of the games row write,
+    // because setting it must also append to cost_price_history — that
+    // pairing lives in one place (setGameCostPrice) rather than being
+    // duplicated into createGame/updateGame. Only write when it actually
+    // changed, so re-saving a game doesn't stack identical history rows.
+    const previousCost = editingGame ? editingGame.costPrice : null;
+    let savedCost = previousCost;
+    if (costPrice !== previousCost) {
+      const costResult = await setGameCostPrice(result.game.id, costPrice);
+      if (!costResult.ok) {
+        // The game itself saved — reflect that, then report the cost failure.
+        setGames((prev) =>
+          editingGame
+            ? prev.map((g) => (g.id === result.game.id ? { ...g, ...result.game } : g))
+            : [{ ...result.game, costPrice: null }, ...prev],
+        );
+        setEditingGame(undefined);
+        showToast(costResult.message);
+        return { ok: true };
+      }
+      savedCost = costResult.costPrice;
+    }
+
+    const saved: AdminGame = { ...result.game, costPrice: savedCost };
     setGames((prev) => {
-      if (editingGame) return prev.map((g) => (g.id === result.game.id ? result.game : g));
-      return [result.game, ...prev];
+      if (editingGame) return prev.map((g) => (g.id === saved.id ? saved : g));
+      return [saved, ...prev];
     });
     showToast(editingGame ? "Game updated" : "Game added");
     setEditingGame(undefined);

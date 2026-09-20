@@ -192,6 +192,17 @@ export const gameFormSchema = z.object({
   price: z.coerce
     .number({ error: "Enter a valid price" })
     .positive("Price must be greater than 0"),
+  // Cost price is optional: "" means "no cost recorded", which is a real
+  // state the profit report handles explicitly (items_missing_cost) rather
+  // than treating as zero. Unlike `price` it may be 0 — a free/bundled
+  // item genuinely costs nothing.
+  costPrice: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || (Number.isFinite(Number(v)) && Number(v) >= 0), {
+      message: "Enter a valid cost price",
+    })
+    .transform((v) => (v === "" ? null : Number(v))),
   genre: z.enum(GAME_GENRES),
   platform: z.enum(GAME_PLATFORMS),
   coverImageUrl: z.string().trim().min(1, "Cover image URL is required").url("Enter a valid URL"),
