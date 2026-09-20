@@ -65,7 +65,12 @@ export function useGiftCardsByIds(ids: string[]): GiftCardsByIdsResult {
 
     supabase
       .from("gift_card_products")
-      .select("*")
+      // Explicit columns, never "*": this runs in the BROWSER as anon, and
+      // gift_card_products.cost_price is column-revoked from that role
+      // (20260920000004_gift_card_cost_price.sql) — "*" would error here.
+      .select(
+        "id, slug, title, platform, region, denomination_value, denomination_currency, price_pkr, card_image_url, header_image_url, description, redemption_instructions, is_active, sort_order, created_at, updated_at",
+      )
       .eq("is_active", true)
       .in("id", key.split(","))
       .then(({ data, error }) => {

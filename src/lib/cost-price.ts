@@ -25,6 +25,7 @@ function mapHistoryRow(row: any): CostPriceHistoryEntry {
     id: row.id,
     gameId: row.game_id,
     variantId: row.variant_id,
+    giftCardProductId: row.gift_card_product_id,
     costPrice: Number(row.cost_price),
     effectiveFrom: row.effective_from,
     note: row.note,
@@ -57,6 +58,7 @@ export async function getCostHistoryForGame(gameId: string): Promise<CostPriceHi
 export async function getCostPriceAt(
   gameId: string | null,
   variantId: string | null,
+  giftCardProductId: string | null,
   at: Date,
 ): Promise<number | null> {
   await requireAdmin();
@@ -65,6 +67,7 @@ export async function getCostPriceAt(
   const { data, error } = await supabase.rpc("cost_price_at", {
     p_game_id: gameId,
     p_variant_id: variantId,
+    p_gift_card_product_id: giftCardProductId,
     p_at: at.toISOString(),
   });
   if (error) throw error;
@@ -118,6 +121,7 @@ export async function getProfitByProduct(range: ProfitRange): Promise<ProfitByPr
     gameId: row.game_id,
     title: row.title,
     slug: row.slug,
+    productType: row.product_type === "gift_card" ? "gift_card" : "game",
     revenue: Number(row.revenue),
     cost: Number(row.cost),
     profit: Number(row.profit),
@@ -154,3 +158,19 @@ export function sumProfit(points: Pick<ProfitPoint, "revenue" | "cost" | "profit
   };
 }
 
+/** Cost-change history for one gift-card product, newest first. */
+export async function getCostHistoryForGiftCard(
+  giftCardProductId: string,
+): Promise<CostPriceHistoryEntry[]> {
+  await requireAdmin();
+
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("cost_price_history")
+    .select("*")
+    .eq("gift_card_product_id", giftCardProductId)
+    .order("effective_from", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(mapHistoryRow);
+}

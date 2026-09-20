@@ -284,6 +284,7 @@ describe("historical cost lookups", () => {
       const { data, error: rpcErr } = await service.rpc("cost_price_at", {
         p_game_id: game.id,
         p_variant_id: null,
+        p_gift_card_product_id: null,
         p_at: iso,
       });
       expect(rpcErr).toBeNull();
@@ -307,6 +308,7 @@ describe("historical cost lookups", () => {
     const { data } = await service.rpc("cost_price_at", {
       p_game_id: game.id,
       p_variant_id: null,
+      p_gift_card_product_id: null,
       p_at: "2026-01-01T00:00:00Z",
     });
     expect(Number(data)).toBe(555);
@@ -321,6 +323,7 @@ describe("historical cost lookups", () => {
     const { data } = await service.rpc("cost_price_at", {
       p_game_id: game.id,
       p_variant_id: variant.id,
+      p_gift_card_product_id: null,
       p_at: new Date().toISOString(),
     });
     expect(Number(data)).toBe(777);

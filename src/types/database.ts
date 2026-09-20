@@ -238,11 +238,17 @@ export interface AdminGameVariant extends GameVariant {
   costPrice: number | null;
 }
 
-/** One recorded cost change. Exactly one of gameId/variantId is set. */
+export interface AdminGiftCardProduct extends GiftCardProduct {
+  costPrice: number | null;
+}
+
+/** One recorded cost change. Exactly one of gameId / variantId /
+ * giftCardProductId is set. */
 export interface CostPriceHistoryEntry {
   id: string;
   gameId: string | null;
   variantId: string | null;
+  giftCardProductId: string | null;
   costPrice: number;
   /** ISO date (YYYY-MM-DD) this cost took effect. */
   effectiveFrom: string;
@@ -269,6 +275,9 @@ export interface ProfitByProduct {
   gameId: string;
   title: string;
   slug: string;
+  /** Which catalog the row came from — the per-product report covers both
+   * games and gift cards, and their slugs live under different routes. */
+  productType: "game" | "gift_card";
   revenue: number;
   cost: number;
   profit: number;

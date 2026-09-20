@@ -1,5 +1,15 @@
 import "server-only";
 
+/**
+ * Explicit column list, never "*": gift_card_products.cost_price is
+ * revoked from anon/authenticated at the column level
+ * (20260920000004_gift_card_cost_price.sql), so "*" now errors rather than
+ * leaking what a card costs us. Adding a public column means adding it
+ * here AND granting it in a migration.
+ */
+const PUBLIC_GIFT_CARD_COLUMNS =
+  "id, slug, title, platform, region, denomination_value, denomination_currency, price_pkr, card_image_url, header_image_url, description, redemption_instructions, is_active, sort_order, created_at, updated_at";
+
 import { cache } from "react";
 import { safeAsync } from "@/src/lib/safe-async";
 import { createClient } from "@/src/lib/supabase/public";
@@ -47,7 +57,7 @@ export async function getGiftCardProducts(filters: GiftCardFilters = {}): Promis
     const { platform, region, search, sort = "newest", isActive = true } = filters;
 
     const supabase = createClient();
-    let query = supabase.from("gift_card_products").select("*").eq("is_active", isActive);
+    let query = supabase.from("gift_card_products").select(PUBLIC_GIFT_CARD_COLUMNS).eq("is_active", isActive);
 
     if (platform && platform.length > 0) query = query.in("platform", platform);
     if (region && region.length > 0) query = query.in("region", region);
@@ -90,7 +100,7 @@ export async function getGiftCardProductsByIds(ids: string[]): Promise<GiftCardP
   if (ids.length === 0) return [];
   return safeAsync("gift card products by id", async () => {
     const supabase = createServiceClient();
-    const { data, error } = await supabase.from("gift_card_products").select("*").in("id", ids);
+    const { data, error } = await supabase.from("gift_card_products").select(PUBLIC_GIFT_CARD_COLUMNS).in("id", ids);
     if (error) throw error;
     return (data ?? []).map(mapGiftCardProductRow);
   });
@@ -138,7 +148,7 @@ export const getGiftCardProductBySlug = cache(async (slug: string): Promise<Gift
     const supabase = createClient();
     const { data, error } = await supabase
       .from("gift_card_products")
-      .select("*")
+      .select(PUBLIC_GIFT_CARD_COLUMNS)
       .eq("slug", slug)
       .maybeSingle();
     if (error) throw error;

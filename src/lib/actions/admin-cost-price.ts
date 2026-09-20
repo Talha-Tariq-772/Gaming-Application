@@ -122,3 +122,52 @@ export async function setVariantCostPrice(
   return { ok: true, costPrice: value };
 }
 
+/**
+ * Same contract as setGameCostPrice, for a gift-card product.
+ *
+ * Gift cards needed this because order_items rows for them carry
+ * game_id = NULL, so cost_price_at had nothing to resolve and every gift
+ * card sold counted as items_missing_cost forever
+ * (20260920000004_gift_card_cost_price.sql).
+ */
+export async function setGiftCardCostPrice(
+  giftCardProductId: string,
+  costPrice: number | null,
+  options?: { effectiveFrom?: string; note?: string },
+): Promise<CostPriceActionResult> {
+  const admin = await requireAdmin();
+
+  const invalid = validateCost(costPrice);
+  if (invalid) return { ok: false, message: invalid };
+
+  const value = costPrice === null ? null : round2(costPrice);
+  const supabase = createServiceClient();
+
+  const { error: updateErr } = await supabase
+    .from("gift_card_products")
+    .update({ cost_price: value })
+    .eq("id", giftCardProductId);
+  if (updateErr) {
+    console.error("[setGiftCardCostPrice] update", updateErr);
+    return { ok: false, message: "Something went wrong saving the cost price." };
+  }
+
+  if (value !== null) {
+    const { error: historyErr } = await supabase.from("cost_price_history").insert({
+      gift_card_product_id: giftCardProductId,
+      cost_price: value,
+      effective_from: options?.effectiveFrom ?? new Date().toISOString().slice(0, 10),
+      note: options?.note ?? null,
+      created_by: admin.id,
+    });
+    if (historyErr) {
+      console.error("[setGiftCardCostPrice] history", historyErr);
+      return {
+        ok: false,
+        message: "Cost price saved, but recording the change in history failed — historical reports may be inaccurate.",
+      };
+    }
+  }
+
+  return { ok: true, costPrice: value };
+}
