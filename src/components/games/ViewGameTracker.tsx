@@ -15,7 +15,7 @@ export default function ViewGameTracker({
   platform,
 }: {
   gameId: string;
-  genre: string;
+  genre: string | null;
   platform: string | null;
 }) {
   useEffect(() => {

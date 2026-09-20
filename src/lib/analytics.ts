@@ -13,7 +13,7 @@
  */
 
 export interface AnalyticsEventMap {
-  view_game: { gameId: string; genre: string; platform: string | null };
+  view_game: { gameId: string; genre: string | null; platform: string | null };
   add_to_cart: { gameId: string; price: number };
   remove_from_cart: { gameId: string };
   begin_checkout: { itemCount: number; cartTotal: number };

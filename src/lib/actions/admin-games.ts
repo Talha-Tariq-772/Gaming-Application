@@ -11,7 +11,7 @@ export interface GameInput {
   slug: string;
   description: string;
   price: number;
-  genre: GameGenre;
+  genre: GameGenre | null;
   platform: GamePlatform;
   coverImageUrl: string;
   trailerUrl: string;

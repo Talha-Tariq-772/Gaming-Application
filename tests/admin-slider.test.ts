@@ -62,9 +62,9 @@ beforeAll(async () => {
   const { data: gameRows, error: gamesErr } = await service
     .from("games")
     .insert([
-      { title: `Admin Slider Test A ${run}`, slug: `admin-slider-test-a-${run}`, price: 999, is_active: true },
-      { title: `Admin Slider Test B ${run}`, slug: `admin-slider-test-b-${run}`, price: 999, is_active: true },
-      { title: `Admin Slider Test C ${run}`, slug: `admin-slider-test-c-${run}`, price: 999, is_active: true },
+      { title: `Admin Slider Test A ${run}`, slug: `admin-slider-test-a-${run}`, genre: "Action", price: 999, is_active: true },
+      { title: `Admin Slider Test B ${run}`, slug: `admin-slider-test-b-${run}`, genre: "Action", price: 999, is_active: true },
+      { title: `Admin Slider Test C ${run}`, slug: `admin-slider-test-c-${run}`, genre: "Action", price: 999, is_active: true },
     ])
     .select("id");
   if (gamesErr) throw gamesErr;

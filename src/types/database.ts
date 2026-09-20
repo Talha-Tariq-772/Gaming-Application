@@ -82,7 +82,11 @@ export interface Game {
   price: number;
   coverImageUrl: string;
   trailerUrl: string;
-  genre: GameGenre;
+  /** Null for memberships, which have no genre — enforced by
+   * games_genre_required_for_game_check
+   * (20260920000005_membership_genre_nullable.sql). Mirrors `platform`,
+   * which is already nullable for the same reason. */
+  genre: GameGenre | null;
   /** Null on every game seeded so far — Session 1 populated the column and
    * its CHECK constraint but never the values themselves. */
   platform: GamePlatform | null;

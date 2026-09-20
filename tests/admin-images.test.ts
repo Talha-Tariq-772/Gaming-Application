@@ -62,7 +62,7 @@ beforeAll(async () => {
 
   const { data: gameRow, error: gameErr } = await service
     .from("games")
-    .insert({ title: `Admin Images Test Game ${run}`, slug: `admin-images-test-game-${run}`, price: 999, is_active: true })
+    .insert({ title: `Admin Images Test Game ${run}`, slug: `admin-images-test-game-${run}`, genre: "Action", price: 999, is_active: true })
     .select("id, slug")
     .single();
   if (gameErr) throw gameErr;
@@ -73,6 +73,7 @@ beforeAll(async () => {
     .insert({
       title: `Admin Images Test Membership ${run}`,
       slug: `admin-images-test-membership-${run}`,
+      genre: "Action",
       price: 999,
       is_active: true,
       product_type: "membership",

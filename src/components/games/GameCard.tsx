@@ -39,7 +39,7 @@ export default function GameCard({
           {game.title}
         </h3>
         <div className="flex flex-wrap gap-2">
-          <Tag>{game.genre}</Tag>
+          {game.genre && <Tag>{game.genre}</Tag>}
           {game.platform && <Tag>{GAME_PLATFORM_LABELS[game.platform]}</Tag>}
         </div>
         {price && (

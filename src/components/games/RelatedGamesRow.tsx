@@ -20,9 +20,14 @@ const MIN_GENRE_MATCHES = 3;
  * heading or empty carousel.
  */
 export default async function RelatedGamesRow({ game }: { game: Game }) {
-  const sameGenre = (await getGames({ genre: [game.genre] })).filter((g) => g.id !== game.id);
+  // A membership has no genre (games_genre_required_for_game_check), so
+  // there is nothing to match on — skip straight to the mixed fallback
+  // rather than querying for genre=null and getting an empty row.
+  const sameGenre = game.genre
+    ? (await getGames({ genre: [game.genre] })).filter((g) => g.id !== game.id)
+    : [];
 
-  let heading = `More ${game.genre}`;
+  let heading = game.genre ? `More ${game.genre}` : "More Games";
   let related: Game[] = sameGenre;
 
   if (sameGenre.length < MIN_GENRE_MATCHES) {

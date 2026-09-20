@@ -122,18 +122,25 @@ export default function CredentialReveal({
             Revealed on {formatDateTime(credential.revealedAt)}
           </p>
 
-          <div className="mt-2 rounded-md border border-nova-hairline bg-nova-slab p-4">
-            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-nova-smoke">
-              Setup Guide
-            </h4>
-            <p className="text-sm text-nova-ash">{setupGuide}</p>
-            <Link
-              href={`/guides/${REDEMPTION_GUIDE_SLUG}`}
-              className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
-            >
-              Read the full redemption guide →
-            </Link>
-          </div>
+          {/* setupGuide is optional (gameFormSchema no longer requires it),
+              so skip this panel rather than render a heading with nothing
+              under it. The redemption-guide link sits outside so it shows
+              either way. */}
+          {setupGuide.trim() && (
+            <div className="mt-2 rounded-md border border-nova-hairline bg-nova-slab p-4">
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-nova-smoke">
+                Setup Guide
+              </h4>
+              <p className="text-sm text-nova-ash">{setupGuide}</p>
+            </div>
+          )}
+
+          <Link
+            href={`/guides/${REDEMPTION_GUIDE_SLUG}`}
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-nova-ember-text hover:text-nova-ember-lo"
+          >
+            Read the full redemption guide →
+          </Link>
         </div>
       )}
     </div>

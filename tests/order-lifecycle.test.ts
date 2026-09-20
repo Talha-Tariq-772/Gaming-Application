@@ -66,6 +66,7 @@ async function seedGame(title: string, availableCredentials: number, price = 999
     .insert({
       title,
       slug: `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${randomUUID().slice(0, 6)}`,
+      genre: "Action",
       price,
       is_active: true,
     })

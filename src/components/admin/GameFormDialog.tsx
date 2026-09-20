@@ -29,7 +29,11 @@ type FormValues = {
   price: string;
   /** "" means no cost recorded — not zero. */
   costPrice: string;
-  genre: GameGenre;
+  /** "" = no genre, the correct state for a membership. */
+  genre: GameGenre | "";
+  /** Not editable here — carried so the schema knows whether genre is
+   * required for this product (see gameFormSchema's superRefine). */
+  productType: "game" | "membership";
   platform: GamePlatform;
   coverImageUrl: string;
   trailerUrl: string;
@@ -45,7 +49,7 @@ type FormValues = {
 
 type TextField = Exclude<
   keyof FormValues,
-  "genre" | "platform" | "isActive" | "isNewArrival" | "isBestSeller" | "setupGuideId"
+  "genre" | "platform" | "productType" | "isActive" | "isNewArrival" | "isBestSeller" | "setupGuideId"
 >;
 
 const TEXT_FIELDS: TextField[] = [
@@ -69,6 +73,7 @@ function toFormValues(game: AdminGame | null): FormValues {
       price: "",
       costPrice: "",
       genre: GAME_GENRES[0],
+      productType: "game",
       platform: GAME_PLATFORMS[0],
       coverImageUrl: "",
       trailerUrl: "",
@@ -86,7 +91,13 @@ function toFormValues(game: AdminGame | null): FormValues {
     description: game.description,
     price: String(game.price),
     costPrice: game.costPrice === null || game.costPrice === undefined ? "" : String(game.costPrice),
-    genre: game.genre,
+    // NO fallback to GAME_GENRES[0] any more. That fallback is what
+    // silently stamped "Action" onto PS Plus Extra & Premium: a controlled
+    // <select value={null}> still displays the first option, so the form
+    // looked valid while nobody had chosen anything. "" maps to the
+    // explicit "— None —" option and stays null on save.
+    genre: game.genre ?? "",
+    productType: game.productType === "membership" ? "membership" : "game",
     // Every seeded game currently has platform = null (Session 1 populated
     // the column and its CHECK but never the values) — fall back to the
     // first option same as the "add new game" branch above, rather than
@@ -207,6 +218,9 @@ export default function GameFormDialog({
   const [touched, setTouched] = useState<Partial<Record<TextField, boolean>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // genre is not a TEXT_FIELD, so it has no per-field "touched" entry —
+  // this is what lets its error render after a save attempt.
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const submittingRef = useRef(false);
 
   const isMembership = game?.productType === "membership";
@@ -285,6 +299,19 @@ export default function GameFormDialog({
       // Reveal every error at once rather than making the admin blur
       // through each field individually to discover what's wrong.
       setTouched(Object.fromEntries(TEXT_FIELDS.map((f) => [f, true])));
+
+      // fieldError() only renders for TEXT_FIELDS, so a failure on
+      // genre/platform/setupGuideId would otherwise show NOTHING and make
+      // this button look dead. Surface those explicitly instead.
+      setSubmitAttempted(true);
+      const hidden = parsed.error.issues
+        .map((issue) => String(issue.path[0]))
+        .filter((field) => !TEXT_FIELDS.includes(field as TextField) && field !== "genre");
+      setSubmitError(
+        hidden.length
+          ? `Fix these fields before saving: ${[...new Set(hidden)].join(", ")}.`
+          : null,
+      );
       return;
     }
 
@@ -436,13 +463,25 @@ export default function GameFormDialog({
               ))}
             </select>
           </AdminField>
-          <AdminField label="Genre" htmlFor="game-genre">
+          {/* Genre is required for a game and meaningless for a
+              membership — the same split the database enforces
+              (games_genre_required_for_game_check). The explicit
+              "— None —" option is what makes "no genre" a thing an admin
+              can actually see and choose, instead of the old invisible
+              null that the select rendered as "Action". */}
+          <AdminField
+            label={isMembership ? "Genre (not used for memberships)" : "Genre"}
+            htmlFor="game-genre"
+            error={submitAttempted ? errors.genre : undefined}
+          >
             <select
               id="game-genre"
               value={values.genre}
-              onChange={(e) => update("genre", e.target.value as GameGenre)}
+              onChange={(e) => update("genre", e.target.value as GameGenre | "")}
+              aria-invalid={Boolean(submitAttempted && errors.genre)}
               className={ADMIN_INPUT_CLASS}
             >
+              <option value="">— None —</option>
               {GAME_GENRES.map((g) => (
                 <option key={g} value={g}>
                   {g}
@@ -481,7 +520,7 @@ export default function GameFormDialog({
           />
         </div>
 
-        <AdminField label="Cover Image URL" htmlFor="game-cover-url" error={fieldError("coverImageUrl")}>
+        <AdminField label="Cover Image URL (optional)" htmlFor="game-cover-url" error={fieldError("coverImageUrl")}>
           <input
             id="game-cover-url"
             type="text"
@@ -495,7 +534,7 @@ export default function GameFormDialog({
           />
         </AdminField>
 
-        <AdminField label="Trailer URL" htmlFor="game-trailer-url" error={fieldError("trailerUrl")}>
+        <AdminField label="Trailer URL (optional)" htmlFor="game-trailer-url" error={fieldError("trailerUrl")}>
           <input
             id="game-trailer-url"
             type="text"

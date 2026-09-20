@@ -324,6 +324,7 @@ describe("createOrder — gift cards", () => {
       .insert({
         title: `GC-adjacent game ${run}`,
         slug: `gc-adjacent-game-${run}-${randomUUID().slice(0, 6)}`,
+        genre: "Action",
         price: 999,
         is_active: true,
       })
@@ -390,6 +391,7 @@ describe("createOrder — gift cards", () => {
       .insert({
         title: `Mixed game ${run}`,
         slug: `mixed-game-${run}-${randomUUID().slice(0, 6)}`,
+        genre: "Action",
         price: 1500,
         is_active: true,
       })

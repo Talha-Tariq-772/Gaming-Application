@@ -64,6 +64,7 @@ beforeAll(async () => {
     .insert({
       title: `RLS Test Game ${run}`,
       slug: `rls-test-game-${run}`,
+      genre: "Action",
       price: 999,
       is_active: true,
     })
@@ -476,6 +477,7 @@ describe("reserve_credential inventory logic", () => {
       .insert({
         title: `RLS Test Empty Game ${run}`,
         slug: `rls-test-empty-game-${run}`,
+        genre: "Action",
         price: 500,
         is_active: true,
       })
@@ -524,6 +526,7 @@ describe("reserve_credential inventory logic", () => {
       .insert({
         title: `RLS Test Race Game ${run}`,
         slug: `rls-test-race-game-${run}`,
+        genre: "Action",
         price: 750,
         is_active: true,
       })

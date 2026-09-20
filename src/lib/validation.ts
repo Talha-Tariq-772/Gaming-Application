@@ -181,6 +181,27 @@ export type CheckoutFormInput = z.input<typeof checkoutFormSchema>;
 /* Admin: game form (GameFormDialog)                                       */
 /* ---------------------------------------------------------------------- */
 
+/**
+ * Root-relative asset path ("/game-cover-placeholder.png") — what the
+ * seeded catalog actually stores, and what next/image accepts without any
+ * remotePatterns config. Rejects protocol-relative "//evil.com/x" and
+ * anything with a backslash, both of which browsers can read as a host.
+ */
+function isRootRelativePath(value: string): boolean {
+  return value.startsWith("/") && !value.startsWith("//") && !value.includes("\\");
+}
+
+/** Absolute http(s) URL. Uses the URL parser rather than a regex so the
+ * accepted set matches what the browser will actually fetch. */
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export const gameFormSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200, "Title is too long"),
   slug: z
@@ -188,7 +209,14 @@ export const gameFormSchema = z.object({
     .trim()
     .min(1, "Slug is required")
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens only"),
-  description: z.string().trim().min(1, "Description is required"),
+  // Optional for the same reason as the three fields below: the three
+  // seeded membership products (PlayStation Plus, PS Plus Extra &
+  // Premium, Xbox Game Pass Ultimate) ship with no description, so
+  // requiring it left them unsaveable even after cover/trailer/setup
+  // guide were relaxed. GameDetailBody already renders the description
+  // behind a `hasDescription &&` guard, so "" is a state the storefront
+  // handles.
+  description: z.string().trim(),
   price: z.coerce
     .number({ error: "Enter a valid price" })
     .positive("Price must be greater than 0"),
@@ -203,11 +231,46 @@ export const gameFormSchema = z.object({
       message: "Enter a valid cost price",
     })
     .transform((v) => (v === "" ? null : Number(v))),
-  genre: z.enum(GAME_GENRES),
+  // "" means "no genre", which is the correct state for a membership —
+  // subscriptions have no genre and the DB enforces exactly that split
+  // (games_genre_required_for_game_check). The superRefine below is what
+  // still requires one for an actual game, so relaxing the enum here does
+  // not let a genre-less game through.
+  genre: z
+    .union([z.enum(GAME_GENRES), z.literal("")])
+    .transform((v) => (v === "" ? null : v)),
+  // Carried through the form but never edited in it — the field exists so
+  // the genre rule below knows which kind of product it is looking at.
+  productType: z.enum(["game", "membership"]),
   platform: z.enum(GAME_PLATFORMS),
-  coverImageUrl: z.string().trim().min(1, "Cover image URL is required").url("Enter a valid URL"),
-  trailerUrl: z.string().trim().min(1, "Trailer URL is required").url("Enter a valid URL"),
-  setupGuide: z.string().trim().min(1, "Setup guide is required"),
+  // All three are optional in practice and the schema now says so.
+  //
+  // They were required-and-absolute, which made EVERY seeded game
+  // unsaveable: seed rows carry a ROOT-RELATIVE cover_image_url
+  // ("/game-cover-placeholder.png") and empty trailer/setup-guide, so
+  // opening any of them in this form and pressing save failed on three
+  // fields the admin never touched. Worse, satisfying .url() by typing an
+  // absolute "http://localhost:3000/..." then broke the public product
+  // page outright — next/image rejects any host not listed in
+  // next.config.ts ("hostname localhost is not configured").
+  //
+  // What the app actually renders:
+  //   cover: mapGameRow falls back to GAME_COVER_PLACEHOLDER when empty,
+  //          and the real art comes from coverPath (storage pipeline)
+  //   trailer: TrailerEmbed returns null when the URL is empty/unparseable
+  //   setupGuide: free text, rendered only if present
+  // so "" is a valid, already-handled state for each.
+  coverImageUrl: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || isRootRelativePath(v) || isHttpUrl(v), {
+      message: "Use a path like /cover.png or a full http(s) URL",
+    }),
+  trailerUrl: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || isHttpUrl(v), { message: "Enter a valid URL" }),
+  setupGuide: z.string().trim(),
   isActive: z.boolean(),
   isNewArrival: z.boolean(),
   isBestSeller: z.boolean(),
@@ -221,7 +284,20 @@ export const gameFormSchema = z.object({
   // check (games_setup_guide_id_fkey), not something worth duplicating
   // here — see createGame/updateGame's 23503 handling.
   setupGuideId: z.string().trim().transform((v) => (v === "" ? null : v)),
-});
+  })
+  .superRefine((values, ctx) => {
+    // Genre is required for a game and meaningless for a membership.
+    // Mirrors games_genre_required_for_game_check so the form refuses what
+    // the database would refuse, with a readable message instead of a
+    // constraint violation.
+    if (values.productType === "game" && values.genre === null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["genre"],
+        message: "Pick a genre",
+      });
+    }
+  });
 
 export type GameFormInput = z.input<typeof gameFormSchema>;
 /** releaseDate/setupGuideId transform "" -> null on parse, so the shape

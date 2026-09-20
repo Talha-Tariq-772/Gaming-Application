@@ -59,7 +59,7 @@ beforeAll(async () => {
 
   const { data: gameRow, error: gameErr } = await service
     .from("games")
-    .insert({ title: `Admin Variants Test Game ${run}`, slug: `admin-variants-test-game-${run}`, price: 999, is_active: true })
+    .insert({ title: `Admin Variants Test Game ${run}`, slug: `admin-variants-test-game-${run}`, genre: "Action", price: 999, is_active: true })
     .select("id, slug")
     .single();
   if (gameErr) throw gameErr;
