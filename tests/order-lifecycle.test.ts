@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { bufferToBytea, encrypt } from "@/src/lib/crypto";
 import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
+import { attachPaymentProof } from "./helpers/payment-proof";
 
 /**
  * These server actions internally call next/headers (cookies()/headers()),
@@ -112,6 +113,10 @@ async function seedDecidableOrder(userId: string, status: "under_review" | "paym
     .single();
   if (orderErr) throw orderErr;
   orderIds.push(order.id);
+  // approve_order refuses an order with no payment screenshot
+  // (20260921000005_payment_screenshots.sql) — a real buyer uploads one
+  // before an admin ever sees the order.
+  await attachPaymentProof(service, order.id);
 
   await service.from("game_credentials").update({ status: "reserved", order_id: order.id }).eq("id", cred.id);
   await service.from("order_items").insert({
@@ -154,6 +159,10 @@ async function seedApprovedOrder(userId: string, loginPlain: string, passwordPla
     .single();
   if (orderErr) throw orderErr;
   orderIds.push(order.id);
+  // approve_order refuses an order with no payment screenshot
+  // (20260921000005_payment_screenshots.sql) — a real buyer uploads one
+  // before an admin ever sees the order.
+  await attachPaymentProof(service, order.id);
 
   await service.from("order_items").insert({
     order_id: order.id,
@@ -732,6 +741,109 @@ describe("revealCredential", () => {
     const result = await revealCredential(order.id, customerA.id, "203.0.113.9");
     expect(result.ok).toBe(false);
   });
+
+  /**
+   * decrypt() is the only operation in this action that can THROW rather
+   * than return a failure — AES-GCM verifies an auth tag, so a wrong key,
+   * a truncated buffer, or a value that was never ciphertext all raise.
+   * Left unguarded, that rejected the whole server action: the client
+   * awaited it with no catch, so the button sat on "Revealing…" forever
+   * with nothing displayed. These pin the typed-result contract instead.
+   */
+  describe("when the stored bytes can't be decrypted", () => {
+    /** Overwrites a seeded order's credential with bytes that are not
+     * valid ciphertext, the way a wrong encryption key or a hand-written
+     * row would look. */
+    async function corruptCredential(orderId: string) {
+      const { data: item } = await service
+        .from("order_items")
+        .select("credential_id")
+        .eq("order_id", orderId)
+        .not("credential_id", "is", null)
+        .limit(1)
+        .maybeSingle();
+
+      const { error } = await service
+        .from("game_credentials")
+        .update({
+          login_enc: bufferToBytea(Buffer.from("not actually encrypted", "utf8")),
+          password_enc: bufferToBytea(Buffer.from("also not encrypted", "utf8")),
+        })
+        .eq("id", item!.credential_id);
+      if (error) throw error;
+      return item!.credential_id;
+    }
+
+    it("returns a typed failure instead of rejecting", async () => {
+      const { order } = await seedApprovedOrder(customerA.id, "player.corrupt@novagames.dev", "Corrupt#1");
+      await corruptCredential(order.id);
+      sessionState.client = clientA;
+
+      // The assertion that matters: this RESOLVES. Before the fix it
+      // rejected, and .rejects.toThrow() would have been the passing
+      // expectation — which is exactly what left the UI stuck.
+      const result = await revealCredential(order.id, customerA.id, "203.0.113.10");
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error).toBe("UNREADABLE");
+    });
+
+    it("gives the buyer something they can act on, and leaks no crypto detail", async () => {
+      const { order } = await seedApprovedOrder(customerA.id, "player.msg@novagames.dev", "Corrupt#2");
+      await corruptCredential(order.id);
+      sessionState.client = clientA;
+
+      const result = await revealCredential(order.id, customerA.id, "203.0.113.11");
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.message).toMatch(/order reference/i);
+      // "Invalid authentication tag length" and friends are ours to
+      // diagnose from the server log, not the customer's to read.
+      expect(result.message).not.toMatch(/decrypt|authentication tag|cipher|buffer/i);
+    });
+
+    it("does NOT burn the buyer's one-time reveal", async () => {
+      // "Once revealed" is what refund eligibility hangs on, so a failure
+      // the buyer never saw must not stamp revealed_at.
+      const { order } = await seedApprovedOrder(customerA.id, "player.noburn@novagames.dev", "Corrupt#3");
+      const credentialId = await corruptCredential(order.id);
+      sessionState.client = clientA;
+
+      const result = await revealCredential(order.id, customerA.id, "203.0.113.12");
+      expect(result.ok).toBe(false);
+
+      const { data: row } = await service
+        .from("game_credentials")
+        .select("revealed_at")
+        .eq("id", credentialId)
+        .single();
+      expect(row!.revealed_at, "a failed reveal must not count as revealed").toBeNull();
+    });
+
+    it("recovers once the stored bytes are valid again", async () => {
+      // Proves the failure is about the DATA, not a latched error state:
+      // re-encrypting the same row makes the very same call succeed.
+      const { order } = await seedApprovedOrder(customerA.id, "player.recover@novagames.dev", "Recover#4");
+      const credentialId = await corruptCredential(order.id);
+      sessionState.client = clientA;
+
+      expect((await revealCredential(order.id, customerA.id, "203.0.113.13")).ok).toBe(false);
+
+      await service
+        .from("game_credentials")
+        .update({
+          login_enc: bufferToBytea(encrypt("player.recover@novagames.dev")),
+          password_enc: bufferToBytea(encrypt("Recover#4")),
+        })
+        .eq("id", credentialId);
+
+      const after = await revealCredential(order.id, customerA.id, "203.0.113.14");
+      expect(after.ok).toBe(true);
+      if (!after.ok) return;
+      expect(after.login).toBe("player.recover@novagames.dev");
+      expect(after.password).toBe("Recover#4");
+    });
+  });
 });
 
 describe("end to end: storefront order -> admin queue -> approve -> customer sees it", () => {
@@ -753,6 +865,13 @@ describe("end to end: storefront order -> admin queue -> approve -> customer see
     expect(claimed.ok).toBe(true);
     if (!claimed.ok) return;
     expect(claimed.order.status).toBe("payment_claimed");
+
+    // 1b. The buyer uploads their payment screenshot. This step is what
+    // unblocks approval — approve_order raises NO_PAYMENT_SCREENSHOT
+    // without it (20260921000005_payment_screenshots.sql). The upload
+    // path itself is covered in tests/payment-screenshots.test.ts; here
+    // it just has to happen, in the order a real buyer does it.
+    await attachPaymentProof(service, created.order.id);
 
     // 2. Admin's real query (no status filter — "all statuses") sees it.
     sessionState.client = clientAdmin;

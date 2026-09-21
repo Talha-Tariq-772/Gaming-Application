@@ -3,7 +3,7 @@ import { formatDate } from "@/src/lib/date";
 import { formatPrice } from "@/src/lib/format";
 import { buildWhatsAppLink } from "@/src/lib/order";
 import { toWhatsAppOrderItems } from "@/src/lib/order-item-display";
-import type { Game, GiftCardProduct, Order, OrderItem, PaymentMethod } from "@/src/types/database";
+import type { Game, GiftCardProduct, HardwareProduct, Order, OrderItem, PaymentMethod } from "@/src/types/database";
 import StatusBadge from "./StatusBadge";
 import TrackedWhatsAppLink from "./TrackedWhatsAppLink";
 
@@ -22,15 +22,17 @@ export default function OrderCard({
   items,
   games,
   giftCardProductsByCodeId,
+  hardwareById,
   paymentMethods,
 }: {
   order: Order;
   items: OrderItem[];
   games: Game[];
   giftCardProductsByCodeId: Record<string, GiftCardProduct>;
+  hardwareById: Record<string, HardwareProduct>;
   paymentMethods: PaymentMethod[];
 }) {
-  const whatsAppItems = toWhatsAppOrderItems(items, games, giftCardProductsByCodeId);
+  const whatsAppItems = toWhatsAppOrderItems(items, games, giftCardProductsByCodeId, hardwareById);
   const titles = whatsAppItems.map((item) => item.title);
 
   const method = paymentMethods.find((m) => m.id === order.paymentMethodId);

@@ -13,7 +13,7 @@ import type { Order, OrderItem, OrderStatus, Profile } from "@/src/types/databas
  * must not see what it cost us.
  */
 const PUBLIC_ORDER_ITEM_COLUMNS =
-  "id, order_id, game_id, credential_id, price, product_type, gift_card_code_id, variant_id, cost_locked_at";
+  "id, order_id, game_id, credential_id, price, product_type, gift_card_code_id, hardware_product_id, variant_id, cost_locked_at";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapOrderItemRow(row: any): OrderItem {
@@ -22,6 +22,7 @@ function mapOrderItemRow(row: any): OrderItem {
     orderId: row.order_id,
     gameId: row.game_id,
     giftCardCodeId: row.gift_card_code_id,
+    hardwareProductId: row.hardware_product_id ?? null,
     productType: row.product_type,
     price: Number(row.price),
   };

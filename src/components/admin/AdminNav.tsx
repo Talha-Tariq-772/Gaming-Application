@@ -9,10 +9,13 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/games", label: "Games" },
+  { href: "/admin/hardware", label: "Hardware" },
+  { href: "/admin/gift-cards", label: "Gift Cards" },
   { href: "/admin/slider", label: "Slider" },
   { href: "/admin/credentials", label: "Credentials" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/profit", label: "Profit" },
+  { href: "/admin/payments", label: "Payments" },
   { href: "/admin/faqs", label: "FAQs" },
   { href: "/admin/resets", label: "Resets" },
 ];

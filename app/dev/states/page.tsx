@@ -86,6 +86,7 @@ function DevStatesContent() {
         orderId: order.id,
         gameId: "game-1",
         giftCardCodeId: null,
+        hardwareProductId: null,
         productType: "game",
         price: 2499,
       },

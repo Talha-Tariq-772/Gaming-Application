@@ -129,3 +129,28 @@ export function getCardImageDimensions(game: Pick<Game, "slug" | "coverPath">): 
   if (game.coverPath) return { width: 900, height: 1200 };
   return { width: GAME_COVER_PLACEHOLDER_WIDTH, height: GAME_COVER_PLACEHOLDER_HEIGHT };
 }
+
+/**
+ * Hardware art resolution, in priority order:
+ *
+ *  1. The product's own first image_urls entry — hardware has no
+ *     build-time art manifest and no Supabase Storage pipeline, just the
+ *     paths an admin types into the form, so this is the only real
+ *     source.
+ *  2. The shared card placeholder — never throws.
+ *
+ * imageUrls is ordered and the first entry is the card image by
+ * convention (see HardwareProduct.imageUrls). Entries are validated on
+ * the way in (isUsableImageRef in src/lib/hardware-validation.ts), so
+ * anything stored here is already a root-relative path or an http(s) URL
+ * — this does not re-validate, it only handles absence.
+ *
+ * Returns a plain URL string, not a Game-shaped object, exactly like
+ * getGiftCardImage: callers adapt a HardwareProduct to CardImage's
+ * existing { slug, title, coverPath: null, coverImageUrl } shape using
+ * this as coverImageUrl, so CardImage needs no hardware-specific code.
+ */
+export function getHardwareImage(product: { imageUrls: string[] }): string {
+  const first = product.imageUrls.find((url) => url.trim().length > 0);
+  return first ?? GAME_COVER_PLACEHOLDER;
+}

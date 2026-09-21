@@ -48,14 +48,30 @@ export default function CredentialReveal({
     if (!profile) return;
     setRevealing(true);
     setError(null);
-    const result = await revealCredential(orderId, profile.id, "");
-    setRevealing(false);
-    if (!result.ok) {
-      setError(result.message);
-      return;
+    try {
+      const result = await revealCredential(orderId, profile.id, "");
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setCredential({
+        login: result.login,
+        password: result.password,
+        revealedAt: result.revealedAt,
+      });
+      track("reveal_credentials", { gameId, orderRef });
+    } catch (e) {
+      // A server action can REJECT rather than resolve — a dropped
+      // connection, an expired session, or anything that throws before it
+      // can return a typed result. `setRevealing(false)` used to sit
+      // directly after the await, so a rejection skipped it and left the
+      // button on "Revealing…" permanently with nothing displayed. The
+      // finally below is what actually guarantees it runs.
+      console.error("[CredentialReveal]", e);
+      setError("Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setRevealing(false);
     }
-    setCredential({ login: result.login, password: result.password, revealedAt: result.revealedAt });
-    track("reveal_credentials", { gameId, orderRef });
   }
 
   return (
@@ -65,7 +81,7 @@ export default function CredentialReveal({
       </h3>
 
       <span role="status" aria-live="polite" className="sr-only">
-        {credential ? `${gameTitle} credentials revealed` : ""}
+        {credential ? `${gameTitle} details revealed` : ""}
       </span>
 
       {!credential ? (
@@ -76,7 +92,7 @@ export default function CredentialReveal({
           </p>
           {error && <p className="text-sm text-nova-blood">{error}</p>}
           <Button type="button" variant="primary" onClick={handleReveal} disabled={revealing}>
-            {revealing ? "Revealing…" : "Reveal Credentials"}
+            {revealing ? "Revealing…" : "Reveal"}
           </Button>
         </div>
       ) : (
@@ -109,7 +125,7 @@ export default function CredentialReveal({
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-pressed={showPassword}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? "Hide" : "Show"}
                 className="flex min-h-11 items-center px-1 text-xs font-semibold uppercase tracking-wider text-nova-ash hover:text-nova-bone"
               >
                 {showPassword ? "Hide" : "Show"}

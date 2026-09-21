@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import AdminField, { ADMIN_INPUT_CLASS } from "@/src/components/admin/AdminField";
 import AdminModal, { AdminDialogFooter } from "@/src/components/admin/AdminModal";
-import { uploadGameImage } from "@/src/lib/actions/admin-images";
+import { removeGameImage, uploadGameImage } from "@/src/lib/actions/admin-images";
 import { gameCoverImage, gameWallpaperImage } from "@/src/lib/storage-image";
 import {
   firstFieldErrors,
@@ -134,6 +134,8 @@ function ImageUploadField({
   isUploading,
   error,
   onFileSelected,
+  onRemove,
+  isRemoving = false,
 }: {
   label: string;
   kind: "cover" | "wallpaper";
@@ -143,6 +145,9 @@ function ImageUploadField({
   isUploading: boolean;
   error: string | null;
   onFileSelected: (file: File) => void;
+  /** Absent when the caller has nothing removable to offer. */
+  onRemove?: () => void;
+  isRemoving?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = `game-image-${kind}`;
@@ -177,14 +182,29 @@ function ImageUploadField({
               if (file) onFileSelected(file);
             }}
           />
-          <button
-            type="button"
-            disabled={disabled || isUploading}
-            onClick={() => inputRef.current?.click()}
-            className="min-h-11 w-fit rounded-md border border-nova-hairline px-3 py-2 text-xs font-semibold text-nova-ash hover:text-nova-bone disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {isUploading ? "Uploading…" : previewSrc ? "Replace" : "Upload"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={disabled || isUploading || isRemoving}
+              onClick={() => inputRef.current?.click()}
+              className="min-h-11 w-fit rounded-md border border-nova-hairline px-3 py-2 text-xs font-semibold text-nova-ash hover:text-nova-bone disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isUploading ? "Uploading…" : previewSrc ? "Replace" : "Upload"}
+            </button>
+            {/* Only rendered when something is actually stored — a Remove
+                button next to "No image" would be a control that can
+                only ever no-op. */}
+            {onRemove && previewSrc && (
+              <button
+                type="button"
+                disabled={disabled || isUploading || isRemoving}
+                onClick={onRemove}
+                className="min-h-11 w-fit rounded-md border border-nova-blood/40 px-3 py-2 text-xs font-semibold text-nova-blood hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {isRemoving ? "Removing…" : "Remove"}
+              </button>
+            )}
+          </div>
           {disabled && disabledReason && <p className="text-xs text-nova-smoke">{disabledReason}</p>}
           {error && <p className="text-xs text-nova-blood">{error}</p>}
         </div>
@@ -231,6 +251,8 @@ export default function GameFormDialog({
   const [wallpaperUploading, setWallpaperUploading] = useState(false);
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null);
   const [wallpaperUploadError, setWallpaperUploadError] = useState<string | null>(null);
+  const [coverRemoving, setCoverRemoving] = useState(false);
+  const [wallpaperRemoving, setWallpaperRemoving] = useState(false);
   // Replacing an image uploads to the SAME object path (upsert:true), so
   // the URL alone never changes on a replace — this cache-busts just the
   // preview shown in this dialog for the rest of the session.
@@ -248,24 +270,76 @@ export default function GameFormDialog({
 
     setUploading(true);
     setError(null);
-    const formData = new FormData();
-    formData.set("gameId", game.id);
-    formData.set("kind", kind);
-    formData.set("file", file);
-    const result = await uploadGameImage(formData);
-    setUploading(false);
+    try {
+      const formData = new FormData();
+      formData.set("gameId", game.id);
+      formData.set("kind", kind);
+      formData.set("file", file);
+      const result = await uploadGameImage(formData);
 
-    if (!result.ok) {
-      setError(result.message);
-      return;
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setCacheBust(Date.now());
+      if (kind === "cover") {
+        setCoverPath(result.path);
+        onImageUpdated?.(game.id, { coverPath: result.path });
+      } else {
+        setWallpaperPath(result.path);
+        onImageUpdated?.(game.id, { wallpaperPath: result.path });
+      }
+    } catch (e) {
+      // The action can REJECT rather than return ok:false, and this is not
+      // hypothetical: Next refuses a Server Action body over its
+      // bodySizeLimit with a bare 413 the action never sees, which is what
+      // every real (2.8-3.4MB) source photo in this repo used to hit. With
+      // the await unguarded, that rejection left `setUploading(false)`
+      // unreached, so the button sat on "Uploading…" forever with nothing
+      // displayed. next.config.ts raises the limit; this makes the failure
+      // visible whatever causes it.
+      console.error("[GameFormDialog] upload image", e);
+      setError("Couldn't upload that image. It may be too large, or the connection dropped.");
+    } finally {
+      setUploading(false);
     }
-    setCacheBust(Date.now());
-    if (kind === "cover") {
-      setCoverPath(result.path);
-      onImageUpdated?.(game.id, { coverPath: result.path });
-    } else {
-      setWallpaperPath(result.path);
-      onImageUpdated?.(game.id, { wallpaperPath: result.path });
+  }
+
+  /**
+   * Clearing an image is a real, supported end state, not damage: the
+   * storefront falls back to a placeholder cover and the shared header
+   * art, both of which already render for every product that never had
+   * an upload. Nulling the path here is what restores that fallback.
+   */
+  async function handleImageRemove(kind: "cover" | "wallpaper") {
+    if (!game) return;
+    const setRemoving = kind === "cover" ? setCoverRemoving : setWallpaperRemoving;
+    const setError = kind === "cover" ? setCoverUploadError : setWallpaperUploadError;
+
+    setRemoving(true);
+    setError(null);
+    try {
+      const result = await removeGameImage(game.id, kind);
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setCacheBust(Date.now());
+      if (kind === "cover") {
+        setCoverPath(null);
+        onImageUpdated?.(game.id, { coverPath: null });
+      } else {
+        setWallpaperPath(null);
+        onImageUpdated?.(game.id, { wallpaperPath: null });
+      }
+    } catch (e) {
+      // A server action can reject outright (session expired mid-edit,
+      // a network drop). Without this the promise rejects unhandled and
+      // the button stays stuck on "Removing…" with nothing shown.
+      console.error("[GameFormDialog] remove image", e);
+      setError("Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setRemoving(false);
     }
   }
 
@@ -507,6 +581,8 @@ export default function GameFormDialog({
             isUploading={coverUploading}
             error={coverUploadError}
             onFileSelected={(file) => handleImageUpload("cover", file)}
+            onRemove={() => handleImageRemove("cover")}
+            isRemoving={coverRemoving}
           />
           <ImageUploadField
             label={isMembership ? "Header Image" : "Wallpaper"}
@@ -517,6 +593,8 @@ export default function GameFormDialog({
             isUploading={wallpaperUploading}
             error={wallpaperUploadError}
             onFileSelected={(file) => handleImageUpload("wallpaper", file)}
+            onRemove={() => handleImageRemove("wallpaper")}
+            isRemoving={wallpaperRemoving}
           />
         </div>
 

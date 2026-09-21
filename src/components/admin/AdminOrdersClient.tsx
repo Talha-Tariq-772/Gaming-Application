@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import OrderDetailPanel from "@/src/components/admin/OrderDetailPanel";
 import OrdersTable from "@/src/components/admin/OrdersTable";
 import { matchesOrderSearch } from "@/src/lib/order-search";
-import type { Game, GiftCardProduct, Order, OrderItem, OrderStatus, PaymentMethod, Profile } from "@/src/types/database";
+import type { Game, GiftCardProduct, HardwareProduct, Order, OrderItem, OrderStatus, PaymentMethod, Profile } from "@/src/types/database";
 
 const STATUS_FILTERS: { value: OrderStatus | "all"; label: string }[] = [
   { value: "under_review", label: "Under review" },
@@ -22,6 +22,7 @@ export default function AdminOrdersClient({
   customers,
   games,
   giftCardProductsByCodeId,
+  hardwareById,
   paymentMethods,
 }: {
   orders: Order[];
@@ -29,6 +30,7 @@ export default function AdminOrdersClient({
   customers: Profile[];
   games: Game[];
   giftCardProductsByCodeId: Record<string, GiftCardProduct>;
+  hardwareById: Record<string, HardwareProduct>;
   paymentMethods: PaymentMethod[];
 }) {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("under_review");
@@ -113,6 +115,7 @@ export default function AdminOrdersClient({
           customers={customers}
           games={games}
           giftCardProductsByCodeId={giftCardProductsByCodeId}
+          hardwareById={hardwareById}
           paymentMethods={paymentMethods}
           onClose={() => setSelectedId(null)}
         />

@@ -1,6 +1,7 @@
 import AdminOrdersClient from "@/src/components/admin/AdminOrdersClient";
 import { getGamesByIds, getPaymentMethodsByIds } from "@/src/lib/catalog";
 import { getGiftCardProductsForCodeIds } from "@/src/lib/gift-card-catalog";
+import { getHardwareProductsByIds } from "@/src/lib/hardware-catalog";
 import { getOrdersForAdmin, getProfilesByIds } from "@/src/lib/order-queries";
 
 export default async function AdminOrdersPage() {
@@ -13,10 +14,15 @@ export default async function AdminOrdersPage() {
   ];
   const paymentMethodIds = [...new Set(orders.map((o) => o.paymentMethodId).filter((id): id is string => Boolean(id)))];
 
-  const [customers, games, giftCardProductsByCodeId, paymentMethods] = await Promise.all([
+  const hardwareIds = [
+    ...new Set(orderItems.map((i) => i.hardwareProductId).filter((id): id is string => Boolean(id))),
+  ];
+
+  const [customers, games, giftCardProductsByCodeId, hardware, paymentMethods] = await Promise.all([
     getProfilesByIds(userIds),
     getGamesByIds(gameIds),
     getGiftCardProductsForCodeIds(giftCardCodeIds),
+    getHardwareProductsByIds(hardwareIds),
     getPaymentMethodsByIds(paymentMethodIds),
   ]);
 
@@ -27,6 +33,7 @@ export default async function AdminOrdersPage() {
       customers={customers}
       games={games}
       giftCardProductsByCodeId={Object.fromEntries(giftCardProductsByCodeId)}
+      hardwareById={Object.fromEntries(hardware.map((h) => [h.id, h]))}
       paymentMethods={paymentMethods}
     />
   );

@@ -73,7 +73,12 @@ export default async function GiftCardDetailBody({
           copy={null} drops GiftCardsHero's own "Gift Cards" title/blurb
           since the hero-row right below already carries this product's
           real title. */}
-      <GiftCardsHero copy={null} />
+      {/* Per-product banner when one is uploaded, otherwise the shared
+          Gift Cards artwork — the same fallback every product used
+          before admin image management existed. copy={null} drops the
+          "Gift Cards" title either way, since the hero row below
+          already carries this product's real title. */}
+      <GiftCardsHero copy={null} imageUrl={product.headerImageUrl} />
 
       <div className="mx-auto max-w-page px-4 md:px-8">
         <div

@@ -4,7 +4,7 @@ import MembershipsBody from "./MembershipsBody";
 import MembershipsSkeleton from "./MembershipsSkeleton";
 
 const TITLE = "Memberships";
-const DESCRIPTION = "PlayStation Plus, PS Plus Extra & Premium, and Xbox Game Pass Ultimate — delivered as full account credentials.";
+const DESCRIPTION = "PlayStation Plus, PS Plus Extra & Premium, and Xbox Game Pass Ultimate — ready after payment confirmation.";
 
 export const metadata: Metadata = {
   title: TITLE,

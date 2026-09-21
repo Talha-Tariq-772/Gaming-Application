@@ -2,6 +2,7 @@ import AdminDashboardClient from "@/src/components/admin/AdminDashboardClient";
 import { getGamesForAdmin, getCredentialStock } from "@/src/lib/admin-queries";
 import { getGamesByIds, getPaymentMethodsByIds } from "@/src/lib/catalog";
 import { getGiftCardProductsForCodeIds } from "@/src/lib/gift-card-catalog";
+import { getHardwareProductsByIds } from "@/src/lib/hardware-catalog";
 import { getOrdersForAdmin, getProfilesByIds, getProfilesForAdmin } from "@/src/lib/order-queries";
 
 export default async function AdminDashboardPage() {
@@ -27,11 +28,16 @@ export default async function AdminDashboardPage() {
     ...new Set(allOrders.map((o) => o.paymentMethodId).filter((id): id is string => Boolean(id))),
   ];
 
-  const [customers, queueGames, giftCardProductsByCodeId, paymentMethods, allGames, credentialStock, allProfiles] =
+  const hardwareIds = [
+    ...new Set(allOrderItems.map((i) => i.hardwareProductId).filter((id): id is string => Boolean(id))),
+  ];
+
+  const [customers, queueGames, giftCardProductsByCodeId, hardware, paymentMethods, allGames, credentialStock, allProfiles] =
     await Promise.all([
       getProfilesByIds(userIds),
       getGamesByIds(gameIds),
       getGiftCardProductsForCodeIds(giftCardCodeIds),
+      getHardwareProductsByIds(hardwareIds),
       getPaymentMethodsByIds(paymentMethodIds),
       getGamesForAdmin(),
       getCredentialStock(),
@@ -44,6 +50,7 @@ export default async function AdminDashboardPage() {
       customers={customers}
       games={queueGames}
       giftCardProductsByCodeId={Object.fromEntries(giftCardProductsByCodeId)}
+      hardwareById={Object.fromEntries(hardware.map((h) => [h.id, h]))}
       paymentMethods={paymentMethods}
       allOrders={allOrders}
       allOrderItems={allOrderItems}

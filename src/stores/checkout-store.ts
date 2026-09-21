@@ -4,6 +4,7 @@ import { claimPayment, createOrder } from "@/src/lib/actions/checkout";
 import { formatGiftCardVariant } from "@/src/lib/order";
 import { safeStorage } from "@/src/lib/safe-storage";
 import type { CartItem } from "@/src/stores/cart-store";
+import { HARDWARE_CATEGORY_LABELS } from "@/src/types/database";
 import type { Order } from "@/src/types/database";
 
 export type CheckoutStep = 1 | 2 | 3;
@@ -27,6 +28,11 @@ interface CheckoutState {
    * resetCheckout. */
   regionAck: boolean;
   order: Order | null;
+  /** Guest return path: the no-login /order-status/<token> link. Kept in
+   * the persisted checkout store so a guest who refreshes the confirmation
+   * step does not lose the only way back to their own order. Cleared by
+   * resetCheckout along with everything else. */
+  lookupToken: string | null;
   /** Snapshot of the cart's item titles, captured at order-creation time
    * — the cart itself is cleared right after, and the WhatsApp handoff
    * message (built on step 3) still needs titles to show. */
@@ -64,6 +70,7 @@ export const useCheckoutStore = create<CheckoutState>()(
       phoneNumber: "",
       regionAck: false,
       order: null,
+      lookupToken: null,
       orderItems: [],
 
       setPaymentMethodId: (id) => set({ paymentMethodId: id }),
@@ -76,11 +83,15 @@ export const useCheckoutStore = create<CheckoutState>()(
           return { ok: false, message: "Select a payment method and add items to your cart." };
         }
 
-        const items = cartItems.map((item) =>
-          item.kind === "gift_card"
-            ? { kind: "gift_card" as const, productId: item.productId, paymentMethodId }
-            : { kind: "credential" as const, gameId: item.gameId, paymentMethodId },
-        );
+        const items = cartItems.map((item) => {
+          if (item.kind === "hardware") {
+            return { kind: "hardware" as const, productId: item.productId, paymentMethodId };
+          }
+          if (item.kind === "gift_card") {
+            return { kind: "gift_card" as const, productId: item.productId, paymentMethodId };
+          }
+          return { kind: "credential" as const, gameId: item.gameId, paymentMethodId };
+        });
         const result = await createOrder(userId, items, phoneNumber, regionAck);
         if (!result.ok) {
           return { ok: false, message: result.message };
@@ -88,11 +99,19 @@ export const useCheckoutStore = create<CheckoutState>()(
 
         set({
           order: result.order,
-          orderItems: cartItems.map((item) =>
-            item.kind === "gift_card"
-              ? { title: item.title, variant: formatGiftCardVariant(item) }
-              : { title: item.title },
-          ),
+          lookupToken: result.lookupToken,
+          orderItems: cartItems.map((item) => {
+            if (item.kind === "gift_card") {
+              return { title: item.title, variant: formatGiftCardVariant(item) };
+            }
+            // The agent packing a box needs to know it IS a box, and
+            // which shelf: a bare product title reads identically to a
+            // digital line in the handoff message.
+            if (item.kind === "hardware") {
+              return { title: item.title, variant: HARDWARE_CATEGORY_LABELS[item.category] };
+            }
+            return { title: item.title };
+          }),
           step: 2,
         });
         return { ok: true };
@@ -119,7 +138,15 @@ export const useCheckoutStore = create<CheckoutState>()(
       },
 
       resetCheckout: () =>
-        set({ step: 1, paymentMethodId: null, phoneNumber: "", regionAck: false, order: null, orderItems: [] }),
+        set({
+          step: 1,
+          paymentMethodId: null,
+          phoneNumber: "",
+          regionAck: false,
+          order: null,
+          lookupToken: null,
+          orderItems: [],
+        }),
     }),
     { name: "gk-checkout", storage: createJSONStorage(() => safeStorage) },
   ),

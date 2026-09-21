@@ -105,6 +105,68 @@ export function buildWhatsAppLink(
   return `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
 
+/**
+ * How long an approved order takes to be ready. The same "1–2 hours"
+ * the storefront already promises (product-page trust bullets, How It
+ * Works, the payment-confirmation guide) — defined once here so the
+ * message a customer RECEIVES can't quietly disagree with what the site
+ * told them before they paid.
+ */
+export const ORDER_READY_ESTIMATE = "1–2 hours";
+export const BUSINESS_HOURS_PKT = "9am–9pm PKT";
+
+/**
+ * The confirmation an admin sends a customer after approving their
+ * payment. Same plain-text layout as buildWhatsAppLink's handoff — the
+ * reference first on its own line, then items, then the exact amount and
+ * method — so both directions of the conversation read the same way and
+ * the reference pastes back out cleanly. Plain text for the same reason:
+ * WhatsApp's own *bold* syntax renders literally on clients that don't
+ * support it.
+ *
+ * Deliberately says nothing about HOW the order is delivered (see the
+ * site-wide copy rules): it confirms payment, confirms the order, and
+ * gives a time window. That's all a customer needs from this message.
+ *
+ * Pure and exported so the template is unit-testable without a browser.
+ */
+export function buildOrderConfirmedMessage(
+  order: Pick<Order, "paymentReference" | "amountExact">,
+  items: WhatsAppOrderItem[],
+  paymentMethodLabel: string | null,
+): string {
+  const lines = [
+    order.paymentReference,
+    "",
+    "Payment received — thank you! Your order is confirmed.",
+    "",
+    ...items.map((item) => (item.variant ? `${item.title} (${item.variant})` : item.title)),
+    formatPriceExact(order.amountExact),
+    ...(paymentMethodLabel ? [paymentMethodLabel] : []),
+    "",
+    `It'll be ready within ${ORDER_READY_ESTIMATE} during business hours (${BUSINESS_HOURS_PKT}). We'll message you here if we need anything else.`,
+  ];
+  return lines.join("\n");
+}
+
+/**
+ * A wa.me link that opens a chat WITH THE CUSTOMER, message pre-filled.
+ *
+ * Unlike every other builder in this file, which targets
+ * SUPPORT_WHATSAPP_NUMBER (the customer messaging us), this is the admin
+ * messaging the customer — so the recipient is the customer's own number.
+ * Nothing is sent: wa.me only opens the composer, and the admin still
+ * presses Send in WhatsApp themselves.
+ *
+ * `phoneWaMe` is the digits-only form from toWaMeNumber(). Null in, null
+ * out — a caller with no usable number must show that, not a link to
+ * "wa.me/null".
+ */
+export function buildCustomerWhatsAppLink(phoneWaMe: string | null, text: string): string | null {
+  if (!phoneWaMe) return null;
+  return `https://wa.me/${phoneWaMe}?text=${encodeURIComponent(text)}`;
+}
+
 /** Generic support contact link (footer, /contact) — not tied to a
  * specific order, unlike buildWhatsAppLink above. */
 export function buildGeneralWhatsAppLink(): string {

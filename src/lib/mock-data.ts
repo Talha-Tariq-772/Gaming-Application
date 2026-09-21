@@ -388,13 +388,13 @@ export const MOCK_PROFILES: Profile[] = [
 /* ---------------------------------------------------------------------- */
 
 export const MOCK_ORDER_ITEMS: OrderItem[] = [
-  { id: "item-1", orderId: "order-1", gameId: "game-1", giftCardCodeId: null, productType: "game", price: 2499 },
-  { id: "item-2", orderId: "order-2", gameId: "game-3", giftCardCodeId: null, productType: "game", price: 4499 },
-  { id: "item-3", orderId: "order-2", gameId: "game-8", giftCardCodeId: null, productType: "game", price: 599 },
-  { id: "item-4", orderId: "order-3", gameId: "game-4", giftCardCodeId: null, productType: "game", price: 1999 },
-  { id: "item-5", orderId: "order-4", gameId: "game-2", giftCardCodeId: null, productType: "game", price: 3499 },
-  { id: "item-6", orderId: "order-5", gameId: "game-6", giftCardCodeId: null, productType: "game", price: 3999 },
-  { id: "item-7", orderId: "order-6", gameId: "game-7", giftCardCodeId: null, productType: "game", price: 999 },
+  { id: "item-1", orderId: "order-1", gameId: "game-1", giftCardCodeId: null, hardwareProductId: null, productType: "game", price: 2499 },
+  { id: "item-2", orderId: "order-2", gameId: "game-3", giftCardCodeId: null, hardwareProductId: null, productType: "game", price: 4499 },
+  { id: "item-3", orderId: "order-2", gameId: "game-8", giftCardCodeId: null, hardwareProductId: null, productType: "game", price: 599 },
+  { id: "item-4", orderId: "order-3", gameId: "game-4", giftCardCodeId: null, hardwareProductId: null, productType: "game", price: 1999 },
+  { id: "item-5", orderId: "order-4", gameId: "game-2", giftCardCodeId: null, hardwareProductId: null, productType: "game", price: 3499 },
+  { id: "item-6", orderId: "order-5", gameId: "game-6", giftCardCodeId: null, hardwareProductId: null, productType: "game", price: 3999 },
+  { id: "item-7", orderId: "order-6", gameId: "game-7", giftCardCodeId: null, hardwareProductId: null, productType: "game", price: 999 },
 ];
 
 // One seeded order per status, so every StatusBadge variant has a real
@@ -598,6 +598,7 @@ function buildRecentOrders(): { orders: Order[]; items: OrderItem[] } {
       orderId,
       gameId: game.id,
       giftCardCodeId: null,
+      hardwareProductId: null,
       productType: "game",
       price: game.price,
     });

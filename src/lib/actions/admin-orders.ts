@@ -7,7 +7,11 @@ import type { Order } from "@/src/types/database";
 
 export type OrderDecisionResult =
   | { ok: true; order: Order }
-  | { ok: false; error: "ORDER_NOT_FOUND" | "INVALID_TRANSITION" | "UNKNOWN"; message: string };
+  | {
+      ok: false;
+      error: "ORDER_NOT_FOUND" | "INVALID_TRANSITION" | "NO_PAYMENT_SCREENSHOT" | "UNKNOWN";
+      message: string;
+    };
 
 function mapRpcError(error: { message?: string }, action: string): OrderDecisionResult {
   const message = error.message ?? "";
@@ -19,6 +23,18 @@ function mapRpcError(error: { message?: string }, action: string): OrderDecision
       ok: false,
       error: "INVALID_TRANSITION",
       message: "This order isn't in a state that can be reviewed right now.",
+    };
+  }
+  // approve_order refuses an order with no payment screenshot
+  // (20260921000005_payment_screenshots.sql). The panel already disables
+  // Approve in that state, but a second admin tab, or a screenshot
+  // removed mid-review, can still reach here — say why, not "something
+  // went wrong".
+  if (message.includes("NO_PAYMENT_SCREENSHOT")) {
+    return {
+      ok: false,
+      error: "NO_PAYMENT_SCREENSHOT",
+      message: "This order can't be approved until the buyer uploads a payment screenshot.",
     };
   }
   console.error(`[${action}]`, error);

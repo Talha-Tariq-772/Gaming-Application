@@ -50,15 +50,24 @@ export async function getCostHistoryForGame(gameId: string): Promise<CostPriceHi
 }
 
 /**
- * What a game (or one of its variants) cost on a given date, resolved by
- * the same `cost_price_at` function approve_order uses to lock costs in —
- * so an admin checking "what would this have cost in March?" sees exactly
- * what the lock would have written.
+ * What a product cost on a given date, resolved by the same
+ * `cost_price_at` function approve_order uses to lock costs in — so an
+ * admin checking "what would this have cost in March?" sees exactly what
+ * the lock would have written.
+ *
+ * Every product family the function knows about gets a parameter here,
+ * even though callers only ever set one: supabase-js does not type RPC
+ * arguments, so a missing parameter is not a compile error, it is a
+ * PGRST202 at runtime. Each time cost_price_at grows an arm (gift cards
+ * in 20260920000004, hardware in 20260921000002) the old signature is
+ * DROPPED in the same migration precisely so this call site fails loudly
+ * instead of silently resolving NULL.
  */
 export async function getCostPriceAt(
   gameId: string | null,
   variantId: string | null,
   giftCardProductId: string | null,
+  hardwareProductId: string | null,
   at: Date,
 ): Promise<number | null> {
   await requireAdmin();
@@ -68,6 +77,7 @@ export async function getCostPriceAt(
     p_game_id: gameId,
     p_variant_id: variantId,
     p_gift_card_product_id: giftCardProductId,
+    p_hardware_product_id: hardwareProductId,
     p_at: at.toISOString(),
   });
   if (error) throw error;

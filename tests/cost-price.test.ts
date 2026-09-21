@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
+import { attachPaymentProof } from "./helpers/payment-proof";
 
 const sessionState = vi.hoisted(() => ({ client: null as SupabaseClient | null }));
 
@@ -203,6 +204,7 @@ async function createOrderWithItem(price: number, gameId?: string): Promise<stri
     .insert({ order_id: order.id, game_id: gameId ?? game.id, price });
   if (itemErr) throw itemErr;
 
+  await attachPaymentProof(service, order.id);
   return order.id;
 }
 
@@ -285,6 +287,7 @@ describe("historical cost lookups", () => {
         p_game_id: game.id,
         p_variant_id: null,
         p_gift_card_product_id: null,
+        p_hardware_product_id: null,
         p_at: iso,
       });
       expect(rpcErr).toBeNull();
@@ -309,6 +312,7 @@ describe("historical cost lookups", () => {
       p_game_id: game.id,
       p_variant_id: null,
       p_gift_card_product_id: null,
+      p_hardware_product_id: null,
       p_at: "2026-01-01T00:00:00Z",
     });
     expect(Number(data)).toBe(555);
@@ -324,6 +328,7 @@ describe("historical cost lookups", () => {
       p_game_id: game.id,
       p_variant_id: variant.id,
       p_gift_card_product_id: null,
+      p_hardware_product_id: null,
       p_at: new Date().toISOString(),
     });
     expect(Number(data)).toBe(777);

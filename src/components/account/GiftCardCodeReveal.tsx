@@ -45,14 +45,23 @@ export default function GiftCardCodeReveal({
     if (!profile) return;
     setRevealing(true);
     setError(null);
-    const result = await revealGiftCardCode(orderId, orderItemId, profile.id);
-    setRevealing(false);
-    if (!result.ok) {
-      setError(result.message);
-      return;
+    try {
+      const result = await revealGiftCardCode(orderId, orderItemId, profile.id);
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setRevealed({ code: result.code, revealedAt: result.revealedAt });
+      track("reveal_gift_card_code", { productId, orderRef });
+    } catch (e) {
+      // Same guarantee as CredentialReveal — see that file's comment for
+      // why `setRevealing(false)` has to be in a finally rather than
+      // after the await.
+      console.error("[GiftCardCodeReveal]", e);
+      setError("Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      setRevealing(false);
     }
-    setRevealed({ code: result.code, revealedAt: result.revealedAt });
-    track("reveal_gift_card_code", { productId, orderRef });
   }
 
   return (

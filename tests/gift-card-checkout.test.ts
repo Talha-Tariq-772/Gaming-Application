@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { bufferToBytea, encrypt } from "@/src/lib/crypto";
 import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
+import { attachPaymentProof } from "./helpers/payment-proof";
 
 /**
  * Gift cards wired through cart/checkout — see
@@ -123,6 +124,10 @@ async function seedDecidableGiftCardOrder(userId: string, status: "under_review"
     .single();
   if (orderErr) throw orderErr;
   orderIds.push(order.id);
+  // approve_order refuses an order with no payment screenshot
+  // (20260921000005_payment_screenshots.sql) — a real buyer uploads one
+  // before an admin ever sees the order.
+  await attachPaymentProof(service, order.id);
 
   await service.from("gift_card_codes").update({ status: "reserved", order_id: order.id }).eq("id", code.id);
   await service.from("order_items").insert({

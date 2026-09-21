@@ -78,7 +78,12 @@ export default function CartDrawer() {
               {displayItems.map((item) => {
                 const id = cartItemId(item);
                 const unavailable = unavailableIds.has(id);
-                const href = item.kind === "gift_card" ? `/gift-cards/${item.slug}` : `/games/${item.slug}`;
+                const href =
+                  item.kind === "hardware"
+                    ? `/hardware/${item.slug}`
+                    : item.kind === "gift_card"
+                      ? `/gift-cards/${item.slug}`
+                      : `/games/${item.slug}`;
                 return (
                   <li
                     key={id}

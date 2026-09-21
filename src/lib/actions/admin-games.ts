@@ -1,6 +1,7 @@
 "use server";
 
 import { isValidGamePlatform } from "@/src/lib/admin-guardrails";
+import { purgeGameImages } from "@/src/lib/actions/admin-images";
 import { requireAdmin } from "@/src/lib/auth/session";
 import { mapGameRow } from "@/src/lib/catalog";
 import { createClient as createServiceClient } from "@/src/lib/supabase/server";
@@ -64,7 +65,44 @@ export async function createGame(input: GameInput): Promise<GameActionResult> {
     console.error("[createGame]", error);
     return { ok: false, message: "Something went wrong creating this game." };
   }
-  return { ok: true, game: mapGameRow(data) };
+
+  // Every game needs at least one variant to be sellable: game_variants is
+  // the single source of truth for price in BOTH variant_mode values
+  // (20260829000003_game_variants.sql), and VariantPicker returns null
+  // outright when a game has none — so a game created through this action
+  // used to render a product page with no price and no Add to Cart button
+  // at all. Not a crash, just quietly unbuyable, which is worse.
+  //
+  // 20260829000003 backfilled exactly this shape ('Standard' at the row's
+  // price, price_source 'estimate' since a bare price carries no recorded
+  // provenance) for every game that predated variants. New games get the
+  // same rather than being born in a state the schema's own backfill
+  // treated as broken.
+  //
+  // Non-fatal on failure: the game row itself is already committed, and
+  // reporting "creating this game failed" for a row that plainly exists
+  // would send the admin looking for a problem that isn't there. The
+  // variants panel can add one by hand.
+  const { error: variantErr } = await supabase.from("game_variants").insert({
+    game_id: data.id,
+    label: "Standard",
+    price_pkr: Math.round(input.price),
+    price_source: "estimate",
+  });
+  if (variantErr) {
+    console.error("[createGame] default variant", variantErr);
+  }
+
+  // Re-read so the returned Game carries the variant just created —
+  // mapGameRow(data) above would report variants: [] and the admin list
+  // would show a price of zero until the next refresh.
+  const { data: withVariants } = await supabase
+    .from("games")
+    .select("*, game_variants(*)")
+    .eq("id", data.id)
+    .single();
+
+  return { ok: true, game: mapGameRow(withVariants ?? data) };
 }
 
 export async function updateGame(gameId: string, input: GameInput): Promise<GameActionResult> {
@@ -105,15 +143,35 @@ export async function setGameActive(gameId: string, isActive: boolean): Promise<
   return { ok: true, game: mapGameRow(data) };
 }
 
-export type DeleteGameResult = { ok: true; hardDeleted: boolean } | { ok: false; message: string };
+export type DeleteGameResult =
+  | { ok: true; hardDeleted: true }
+  /** The delete was refused because history references this game. Not an
+   * error the admin caused — `blockedByHistory` lets the UI offer the
+   * alternative (deactivate) rather than just reporting a failure. */
+  | { ok: false; message: string; blockedByHistory: true }
+  | { ok: false; message: string; blockedByHistory?: false };
 
 /**
- * Soft-deletes (is_active=false) if any order_items or game_credentials
- * ever referenced this game — a hard delete would break order_items
- * history, and would also silently orphan any provisioned-but-unsold
- * credential inventory (broader than the literal "orders" check, but the
- * same underlying reasoning). Real delete only when genuinely nothing
- * references it.
+ * Deletes a game only when genuinely nothing references it. A game with
+ * order_items or game_credentials history is REFUSED, with a message
+ * naming the alternative.
+ *
+ * This used to silently soft-delete instead: same end state, but the admin
+ * pressed "Delete" and got a deactivation they never asked for, with the
+ * dialog's own copy as the only hint. Refusing matches
+ * deleteHardwareProduct's contract (23503 -> "…can't be deleted. Set it
+ * inactive instead…") so the two destructive flows in the panel behave
+ * identically, and it keeps the decision with the admin rather than
+ * quietly making it for them.
+ *
+ * game_credentials counts as history alongside order_items: hard-deleting
+ * a game with provisioned-but-unsold inventory would orphan credentials
+ * that cost real money to acquire.
+ *
+ * On a real delete, stored images are purged FIRST. game_variants cascade
+ * at the database level (game_variants_game_id_fkey, ON DELETE CASCADE)
+ * but Storage objects have no FK to cascade through, so without this they
+ * would sit in the bucket forever with nothing referencing them.
  */
 export async function deleteGame(gameId: string): Promise<DeleteGameResult> {
   await requireAdmin();
@@ -132,16 +190,26 @@ export async function deleteGame(gameId: string): Promise<DeleteGameResult> {
     return { ok: false, message: "Something went wrong checking this game's credential inventory." };
   }
 
-  const isReferenced = (orderItemsCheck.count ?? 0) > 0 || (credentialsCheck.count ?? 0) > 0;
+  const orderCount = orderItemsCheck.count ?? 0;
+  const credentialCount = credentialsCheck.count ?? 0;
 
-  if (isReferenced) {
-    const { error } = await supabase.from("games").update({ is_active: false }).eq("id", gameId);
-    if (error) {
-      console.error("[deleteGame] soft delete", error);
-      return { ok: false, message: "Something went wrong deactivating this game." };
-    }
-    return { ok: true, hardDeleted: false };
+  if (orderCount > 0 || credentialCount > 0) {
+    const reason =
+      orderCount > 0 && credentialCount > 0
+        ? "appears on existing orders and has credential inventory"
+        : orderCount > 0
+          ? "appears on existing orders"
+          : "has credential inventory";
+    return {
+      ok: false,
+      blockedByHistory: true,
+      message: `This game ${reason}, so it can't be deleted. Set it inactive instead to hide it from the store.`,
+    };
   }
+
+  // Before the row goes, not after: once it's deleted there is no slug or
+  // cover_path/wallpaper_path left to locate the objects from.
+  await purgeGameImages(gameId);
 
   const { error } = await supabase.from("games").delete().eq("id", gameId);
   if (error) {

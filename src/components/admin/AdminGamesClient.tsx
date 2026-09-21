@@ -56,6 +56,22 @@ export default function AdminGamesClient({
     setGames((prev) => prev.map((g) => (g.id === game.id ? { ...g, ...result.game } : g)));
   }
 
+  /**
+   * Explicitly sets inactive — deliberately NOT handleToggleActive, which
+   * flips. The blocked-delete toast offers this as a recovery action, and
+   * a game that is already inactive would be switched back ON by a toggle,
+   * which is the opposite of what the button says.
+   */
+  async function handleDeactivate(game: AdminGame) {
+    const result = await setGameActive(game.id, false);
+    if (!result.ok) {
+      showToast(result.message);
+      return;
+    }
+    setGames((prev) => prev.map((g) => (g.id === game.id ? { ...g, ...result.game } : g)));
+    showToast(`${game.title} hidden from the store`);
+  }
+
   async function handleSave(
     values: Parameters<typeof createGame>[0] & { costPrice: number | null },
   ): Promise<{ ok: boolean; message?: string }> {
@@ -112,19 +128,28 @@ export default function AdminGamesClient({
 
   async function handleConfirmDelete() {
     if (!deletingGame) return;
-    const result = await deleteGame(deletingGame.id);
+    const game = deletingGame;
+    const result = await deleteGame(game.id);
+
     if (!result.ok) {
-      showToast(result.message);
+      if (result.blockedByHistory) {
+        // Same treatment deleteHardwareProduct's FK refusal gets: the
+        // longer action-toast, carrying the alternative as a button rather
+        // than only naming it in prose. This is the message an admin most
+        // needs to actually read.
+        showToast(result.message, {
+          label: "Set inactive",
+          onClick: () => handleDeactivate(game),
+        });
+      } else {
+        showToast(result.message);
+      }
       setDeletingGame(null);
       return;
     }
-    if (result.hardDeleted) {
-      setGames((prev) => prev.filter((g) => g.id !== deletingGame.id));
-      showToast(`${deletingGame.title} deleted`);
-    } else {
-      setGames((prev) => prev.map((g) => (g.id === deletingGame.id ? { ...g, isActive: false } : g)));
-      showToast(`${deletingGame.title} deactivated`);
-    }
+
+    setGames((prev) => prev.filter((g) => g.id !== game.id));
+    showToast(`${game.title} deleted`);
     setDeletingGame(null);
   }
 

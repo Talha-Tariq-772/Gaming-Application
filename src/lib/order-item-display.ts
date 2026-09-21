@@ -1,6 +1,11 @@
 import type { WhatsAppOrderItem } from "@/src/lib/order";
-import { GIFT_CARD_PLATFORM_LABELS } from "@/src/types/database";
-import type { Game, GiftCardProduct, OrderItem } from "@/src/types/database";
+import { GIFT_CARD_PLATFORM_LABELS, HARDWARE_CATEGORY_LABELS } from "@/src/types/database";
+import type {
+  Game,
+  GiftCardProduct,
+  HardwareProduct,
+  OrderItem,
+} from "@/src/types/database";
 
 /** "PlayStation Network, US, 10 USD" for a gift-card product — the
  * DB-order-history counterpart of src/lib/order.ts's formatGiftCardVariant,
@@ -27,8 +32,18 @@ export function toWhatsAppOrderItems(
   items: OrderItem[],
   games: Game[],
   giftCardProductsByCodeId: Record<string, GiftCardProduct>,
+  hardwareById: Record<string, HardwareProduct>,
 ): WhatsAppOrderItem[] {
   return items.flatMap((item) => {
+    if (item.productType === "hardware") {
+      const product = item.hardwareProductId ? hardwareById[item.hardwareProductId] : undefined;
+      // The agent packing a box needs to know it IS a box, and which
+      // shelf — a bare product name reads identically to a digital
+      // line in the handoff message.
+      return product
+        ? [{ title: product.name, variant: HARDWARE_CATEGORY_LABELS[product.category] }]
+        : [];
+    }
     if (item.productType === "gift_card") {
       const product = item.giftCardCodeId ? giftCardProductsByCodeId[item.giftCardCodeId] : undefined;
       return product ? [{ title: product.title, variant: formatGiftCardProductVariant(product) }] : [];

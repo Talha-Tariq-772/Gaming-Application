@@ -168,7 +168,7 @@ export interface Order {
   createdAt: string;
 }
 
-export type OrderItemProductType = "game" | "gift_card";
+export type OrderItemProductType = "game" | "gift_card" | "hardware";
 
 export interface OrderItem {
   id: string;
@@ -177,6 +177,10 @@ export interface OrderItem {
   gameId: string | null;
   /** Null for a game item — see productType. */
   giftCardCodeId: string | null;
+  /** Null for a game or gift-card item. Points at the PRODUCT, not a
+   * per-unit row: hardware stock is a counter, so there is no per-unit
+   * row to reference. See 20260921000002_hardware_products.sql. */
+  hardwareProductId: string | null;
   productType: OrderItemProductType;
   /** Price snapshot at purchase time, independent of the game's current price. */
   price: number;
@@ -281,12 +285,34 @@ export interface ProfitByProduct {
   slug: string;
   /** Which catalog the row came from — the per-product report covers both
    * games and gift cards, and their slugs live under different routes. */
-  productType: "game" | "gift_card";
+  productType: "game" | "gift_card" | "hardware";
   revenue: number;
   cost: number;
   profit: number;
   itemsSold: number;
   itemsMissingCost: number;
+}
+
+/** One payment method's confirmed revenue over a reporting window, plus
+ * the volume still waiting on approval. Both figures come from
+ * `get_revenue_by_payment_method` — see
+ * supabase/migrations/20260921000001_payment_method_revenue.sql for why
+ * revenue uses orders.amount_exact rather than summed line prices. */
+export interface PaymentMethodRevenue {
+  /** Null for orders that never recorded a method (the column is
+   * nullable) — those group into a single "Not recorded" row rather than
+   * being dropped, which would understate the grand total. */
+  paymentMethodId: string | null;
+  label: string;
+  /** Approved orders only. */
+  ordersCount: number;
+  /** Approved orders only, counted on approval date. Never includes
+   * pending, rejected or expired orders. */
+  revenue: number;
+  /** Created in the window but not yet approved — excluded from `revenue`
+   * and reported separately so the exclusion is visible, not silent. */
+  pendingOrders: number;
+  pendingAmount: number;
 }
 
 export type GameSort = "newest" | "price_asc" | "price_desc" | "name";
@@ -380,6 +406,86 @@ export interface GiftCardFilters {
   /** Defaults to true (only active products) when omitted — mirrors
    * GameFilters.isActive. */
   isActive?: boolean;
+}
+
+// Matches the hardware_products.category check constraint in
+// supabase/migrations/20260921000002_hardware_products.sql exactly —
+// change one, change the other.
+export const HARDWARE_CATEGORIES = [
+  "console",
+  "controller",
+  "headset",
+  "storage",
+  "cable",
+  "accessory",
+] as const;
+
+export type HardwareCategory = (typeof HARDWARE_CATEGORIES)[number];
+
+export const HARDWARE_CATEGORY_LABELS: Record<HardwareCategory, string> = {
+  console: "Consoles",
+  controller: "Controllers",
+  headset: "Headsets",
+  storage: "Storage",
+  cable: "Cables",
+  accessory: "Accessories",
+};
+
+/**
+ * Physical hardware and accessories — the third product family, alongside
+ * Game (digital account credentials) and GiftCardProduct (redemption
+ * codes). The distinguishing property is inventory shape: both digital
+ * families are unit-per-row, this one is a counter. See
+ * supabase/migrations/20260921000002_hardware_products.sql.
+ */
+export interface HardwareProduct {
+  id: string;
+  slug: string;
+  /** `name`, not `title` — this table's column is named for what the
+   * spec asked for; the profit report coalesces across all three
+   * families, so the difference costs one coalesce arm and nothing else. */
+  name: string;
+  description: string;
+  category: HardwareCategory;
+  salePrice: number;
+  /** Units nobody is currently holding. A pending order's units are
+   * already subtracted, so this is what a new buyer can actually claim —
+   * not a warehouse count. */
+  stockQuantity: number;
+  /** Ordered; the first entry is what a listing card renders. Empty is
+   * valid and falls back to the shared placeholder. */
+  imageUrls: string[];
+  isActive: boolean;
+  sortOrder: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * HardwareProduct plus the admin-only cost column. Deliberately a separate
+ * type rather than an optional field on HardwareProduct: cost_price is
+ * revoked from anon/authenticated at the column level, so a value here can
+ * only have come through the service client behind requireAdmin().
+ * Mirrors AdminGame's relationship to Game.
+ */
+export interface AdminHardwareProduct extends HardwareProduct {
+  /** Null = no cost recorded. Not zero — the profit report counts these
+   * in items_missing_cost instead of treating them as free. */
+  costPrice: number | null;
+}
+
+export type HardwareSort = "newest" | "price_asc" | "price_desc" | "name";
+
+/** Query shape accepted by `getHardwareProducts`. */
+export interface HardwareFilters {
+  category?: HardwareCategory[];
+  search?: string;
+  sort?: HardwareSort;
+  /** Defaults to true (only active products) when omitted — mirrors
+   * GameFilters.isActive and GiftCardFilters.isActive. */
+  isActive?: boolean;
+  /** When true, drops products with stockQuantity = 0. */
+  inStockOnly?: boolean;
 }
 
 export const GUIDE_CATEGORIES = [

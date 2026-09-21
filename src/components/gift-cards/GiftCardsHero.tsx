@@ -39,14 +39,28 @@ function HeroCopy(): ReactNode {
   );
 }
 
-export default function GiftCardsHero({ copy }: { copy?: ReactNode }) {
+export default function GiftCardsHero({
+  copy,
+  imageUrl,
+}: {
+  copy?: ReactNode;
+  /**
+   * Per-product banner, when one has been uploaded through the admin
+   * panel (gift_card_products.header_image_url). Omitted or null falls
+   * back to the shared Gift Cards artwork below — which is what every
+   * product rendered before image management existed, and what
+   * removing an image restores.
+   */
+  imageUrl?: string | null;
+}) {
   const content = copy === undefined ? <HeroCopy /> : copy;
+  const src = imageUrl ?? "/products/gift-cards/optimised/header.webp";
 
   return (
     <section className="w-full overflow-hidden bg-nova-void">
       <div className="relative aspect-[12/5] w-full">
         <Image
-          src="/products/gift-cards/optimised/header.webp"
+          src={src}
           alt=""
           fill
           unoptimized

@@ -158,8 +158,13 @@ export default function StepPaymentInstructions({
             required
             className="mt-0.5 h-4 w-4 shrink-0 rounded border-nova-hairline bg-nova-crypt accent-nova-ember"
           />
+          {/* Wording kept deliberately close to the refund policy this
+              links to: it is a consent gate, not marketing copy, so it has
+              to describe the same thing the policy does. "Once revealed"
+              is the operative condition and stays; naming WHAT is revealed
+              is what goes — see the site-wide copy rules. */}
           <span>
-            I understand credentials are non-refundable once revealed. Read
+            I understand items are non-refundable once revealed. Read
             the{" "}
             <Link
               href="/refund-policy"
@@ -203,8 +208,9 @@ export default function StepPaymentInstructions({
         </Button>
 
         <p className="max-w-sm text-xs text-nova-smoke">
-          Orders are typically verified within 1–2 hours during business
-          hours (9am–9pm PKT).
+          Next you&rsquo;ll upload a screenshot of the transfer. Orders are
+          typically confirmed within 1–2 hours during business hours
+          (9am–9pm PKT).
         </p>
       </div>
 

@@ -7,7 +7,41 @@ import { createClient as createServiceClient } from "@/src/lib/supabase/server";
 
 export type RevealCredentialResult =
   | { ok: true; login: string; password: string; revealedAt: string }
-  | { ok: false; error: "NOT_FOUND" | "UNKNOWN"; message: string };
+  /** UNREADABLE: the row exists and belongs to this buyer, but its stored
+   * bytes would not decrypt. Distinct from NOT_FOUND on purpose — nothing
+   * is missing, so "doesn't belong to you" would be a lie, and it is not
+   * UNKNOWN either: this is a specific, diagnosable data-integrity fault
+   * (wrong CREDENTIAL_ENCRYPTION_KEY, a truncated/rewritten column, a row
+   * written by something that didn't encrypt). */
+  | { ok: false; error: "NOT_FOUND" | "UNREADABLE" | "UNKNOWN"; message: string };
+
+/**
+ * decrypt() is the ONLY operation in either reveal path that can throw:
+ * AES-GCM verifies an auth tag, so a wrong key, a truncated buffer, or a
+ * value that was never ciphertext all raise rather than returning
+ * nonsense. Every other failure in these functions already returns a
+ * typed result, and leaving this one unguarded meant the whole server
+ * action REJECTED — which the client awaited without a catch, so the
+ * button sat on "Revealing…" forever with nothing shown. Caught here so
+ * the failure travels the same typed path as every other one.
+ *
+ * The thrown error is logged server-side and deliberately never returned:
+ * a customer can do nothing with "Invalid authentication tag length", and
+ * crypto internals are not theirs to see.
+ */
+function tryDecrypt(label: string, id: string, run: () => string): string | null {
+  try {
+    return run();
+  } catch (e) {
+    console.error(`[${label}] decrypt failed for ${id}`, e);
+    return null;
+  }
+}
+
+/** Shown for UNREADABLE. Says what the buyer should DO — the cause is
+ * ours to fix, not theirs to understand. */
+const UNREADABLE_MESSAGE =
+  "We couldn't load this right now. Message us with your order reference and we'll sort it out.";
 
 /**
  * The ONLY code path in the app that ever decrypts a GAME credential
@@ -42,7 +76,7 @@ export async function revealCredential(
 
   if (orderErr) {
     console.error("[revealCredential] order lookup", orderErr);
-    return { ok: false, error: "UNKNOWN", message: "Something went wrong revealing this credential." };
+    return { ok: false, error: "UNKNOWN", message: "Something went wrong opening this order." };
   }
   if (!order) {
     return {
@@ -62,7 +96,7 @@ export async function revealCredential(
 
   if (itemErr || !item?.credential_id) {
     console.error("[revealCredential] order_items lookup", itemErr);
-    return { ok: false, error: "NOT_FOUND", message: "No credential is linked to this order." };
+    return { ok: false, error: "NOT_FOUND", message: "Nothing is linked to this order yet." };
   }
 
   const { data: credential, error: credErr } = await supabase
@@ -73,11 +107,21 @@ export async function revealCredential(
 
   if (credErr || !credential) {
     console.error("[revealCredential] credential lookup", credErr);
-    return { ok: false, error: "NOT_FOUND", message: "This credential could not be found." };
+    return { ok: false, error: "NOT_FOUND", message: "This item could not be found." };
   }
 
-  const login = decrypt(byteaToBuffer(credential.login_enc));
-  const password = decrypt(byteaToBuffer(credential.password_enc));
+  const login = tryDecrypt("revealCredential", credential.id, () =>
+    decrypt(byteaToBuffer(credential.login_enc)),
+  );
+  const password = tryDecrypt("revealCredential", credential.id, () =>
+    decrypt(byteaToBuffer(credential.password_enc)),
+  );
+  // Returns BEFORE revealed_at is stamped below: the buyer never saw
+  // anything, so burning their one-time reveal on a failure would cost
+  // them the refund protection that "once revealed" is tied to.
+  if (login === null || password === null) {
+    return { ok: false, error: "UNREADABLE", message: UNREADABLE_MESSAGE };
+  }
 
   // Postgres/PostgREST returns timestamptz as "...+00:00", but freshly
   // generated timestamps below use "...Z" — same instant, different string.
@@ -109,7 +153,7 @@ export async function revealCredential(
 
 export type RevealGiftCardCodeResult =
   | { ok: true; code: string; revealedAt: string }
-  | { ok: false; error: "NOT_FOUND" | "UNKNOWN"; message: string };
+  | { ok: false; error: "NOT_FOUND" | "UNREADABLE" | "UNKNOWN"; message: string };
 
 /**
  * Gift-card sibling of revealCredential above — deliberately in the same
@@ -190,11 +234,20 @@ export async function revealGiftCardCode(
     return {
       ok: false,
       error: "NOT_FOUND",
-      message: "This code isn't ready yet. Message us on WhatsApp if this persists.",
+      message: "This code isn't ready yet. Message us with your order reference if this persists.",
     };
   }
 
-  const code = decrypt(Buffer.from(row.code_encrypted, "base64"));
+  // Extra exposure here vs the game path: code_encrypted is TEXT holding
+  // base64, so a value that is not valid base64 decodes to garbage bytes
+  // rather than failing outright — the auth tag is what actually catches
+  // it, inside decrypt(), by throwing.
+  const code = tryDecrypt("revealGiftCardCode", row.id, () =>
+    decrypt(Buffer.from(row.code_encrypted, "base64")),
+  );
+  if (code === null) {
+    return { ok: false, error: "UNREADABLE", message: UNREADABLE_MESSAGE };
+  }
 
   let revealedAt = row.revealed_at ? new Date(row.revealed_at).toISOString() : null;
   if (!revealedAt) {

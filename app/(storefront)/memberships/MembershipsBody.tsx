@@ -128,8 +128,8 @@ export default async function MembershipsBody() {
             PlayStation & Xbox Memberships
           </h1>
           <p className="mt-2 max-w-2xl text-base text-nova-ash">
-            Delivered as full account credentials, same as every game in the store — pay, get approved, reveal
-            the login, and activate on your console.
+            Bought the same way as every game in the store — pay, get approved, then open your order to
+            get set up on your console.
           </p>
         </div>
 

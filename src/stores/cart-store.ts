@@ -1,9 +1,16 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { getGiftCardImage } from "@/lib/product-image";
+import { getGiftCardImage, getHardwareImage } from "@/lib/product-image";
 import { safeStorage } from "@/src/lib/safe-storage";
 import { useToastStore } from "@/src/stores/toast-store";
-import type { Game, GiftCardPlatform, GiftCardProduct, GiftCardRegion } from "@/src/types/database";
+import type {
+  Game,
+  GiftCardPlatform,
+  GiftCardProduct,
+  GiftCardRegion,
+  HardwareCategory,
+  HardwareProduct,
+} from "@/src/types/database";
 
 /** One credential per purchase — no quantity, just a snapshot of the game. */
 export interface CredentialCartItem {
@@ -33,7 +40,29 @@ export interface GiftCardCartItem {
   denominationCurrency: string | null;
 }
 
-export type CartItem = CredentialCartItem | GiftCardCartItem;
+/**
+ * One physical unit per purchase — no quantity, matching both digital
+ * kinds. Hardware stock is a COUNTER rather than a per-unit inventory,
+ * so two controllers is two cart lines (or two checkouts), never a
+ * quantity of two; see
+ * supabase/migrations/20260921000002_hardware_products.sql.
+ *
+ * category rides on the item for the same reason platform/region ride
+ * on a gift-card item: the WhatsApp handoff message has to say what the
+ * agent is shipping without a product round-trip once the cart is
+ * already what's being checked out.
+ */
+export interface HardwareCartItem {
+  kind: "hardware";
+  productId: string;
+  slug: string;
+  title: string;
+  price: number;
+  coverImageUrl: string;
+  category: HardwareCategory;
+}
+
+export type CartItem = CredentialCartItem | GiftCardCartItem | HardwareCartItem;
 
 /** Arbitrary but real — nothing about the checkout flow (45-minute single
  * reservation, one exact-amount transfer) is designed for a cart this
@@ -45,7 +74,10 @@ export const MAX_CART_SIZE = 20;
  * pruneItems, React list keys) goes through this instead, since a
  * gift-card item has no gameId at all. */
 export function cartItemId(item: CartItem): string {
-  return item.kind === "gift_card" ? item.productId : item.gameId;
+  // Inverted from the original gift-card check: with three kinds, two
+  // of them carry productId, so keying off the ONE that carries gameId
+  // is what stays correct as more product families are added.
+  return item.kind === "credential" ? item.gameId : item.productId;
 }
 
 interface CartState {
@@ -58,6 +90,7 @@ interface CartState {
   ownerId: string | null;
   addItem: (game: Game) => void;
   addGiftCardItem: (product: GiftCardProduct) => void;
+  addHardwareItem: (product: HardwareProduct) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
   /** Drops items by cartItemId — used by the on-load integrity check (games
@@ -156,6 +189,48 @@ export const useCartStore = create<CartState>()(
           ],
         });
         useToastStore.getState().showToast(`${product.title} added to cart`);
+      },
+
+      addHardwareItem: (product) => {
+        const items = get().items;
+
+        if (items.some((item) => cartItemId(item) === product.id)) {
+          useToastStore
+            .getState()
+            .showToast(`${product.name} is already in your cart`);
+          return;
+        }
+
+        if (items.length >= MAX_CART_SIZE) {
+          useToastStore
+            .getState()
+            .showToast(`Your cart is full (max ${MAX_CART_SIZE} items)`);
+          return;
+        }
+
+        // Checked here as well as on the button so a stale page (opened
+        // while the last unit was still on the shelf) can't queue an
+        // item that create_order will only reject at checkout.
+        if (product.stockQuantity <= 0) {
+          useToastStore.getState().showToast(`${product.name} is out of stock`);
+          return;
+        }
+
+        set({
+          items: [
+            ...items,
+            {
+              kind: "hardware",
+              productId: product.id,
+              slug: product.slug,
+              title: product.name,
+              price: product.salePrice,
+              coverImageUrl: getHardwareImage(product),
+              category: product.category,
+            },
+          ],
+        });
+        useToastStore.getState().showToast(`${product.name} added to cart`);
       },
 
       removeItem: (id) => {

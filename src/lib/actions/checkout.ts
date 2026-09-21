@@ -4,16 +4,23 @@ import { requireAuthenticated, requireUser } from "@/src/lib/auth/session";
 import { mapOrderRow } from "@/src/lib/actions/order-mapping";
 import { getGamesByIds } from "@/src/lib/catalog";
 import { getGiftCardProductsByIds } from "@/src/lib/gift-card-catalog";
+import { getHardwareProductsByIds } from "@/src/lib/hardware-catalog";
 import { normalisePhone } from "@/src/lib/phone";
 import { createClient as createServiceClient } from "@/src/lib/supabase/server";
 import type { Order } from "@/src/types/database";
 
 export type CreateOrderItem =
   | { kind: "credential"; gameId: string; paymentMethodId: string }
-  | { kind: "gift_card"; productId: string; paymentMethodId: string };
+  | { kind: "gift_card"; productId: string; paymentMethodId: string }
+  | { kind: "hardware"; productId: string; paymentMethodId: string };
 
 export type CreateOrderResult =
-  | { ok: true; order: Order }
+  /** lookupToken is the ONLY time this value crosses a boundary. It is
+   * deliberately NOT on the Order type: order queries select("*"), so
+   * mapOrderRow would carry a bearer token into every admin list and
+   * client prop. Handed over once, here, to the buyer who just created
+   * the order. */
+  | { ok: true; order: Order; lookupToken: string }
   | {
       ok: false;
       error:
@@ -80,17 +87,23 @@ export async function createOrder(
     const [game] = await getGamesByIds([id]);
     if (game) return game.title;
     const [product] = await getGiftCardProductsByIds([id]);
-    return product?.title;
+    if (product) return product.title;
+    const [hardware] = await getHardwareProductsByIds([id]);
+    return hardware?.name;
   }
 
   const supabase = createServiceClient();
   const { data, error } = await supabase.rpc("create_order", {
     p_user_id: userId ?? null,
-    p_items: items.map((item) =>
-      item.kind === "gift_card"
-        ? { product_type: "gift_card", product_id: item.productId, payment_method_id: item.paymentMethodId }
-        : { product_type: "game", game_id: item.gameId, payment_method_id: item.paymentMethodId },
-    ),
+    p_items: items.map((item) => {
+      if (item.kind === "hardware") {
+        return { product_type: "hardware", product_id: item.productId, payment_method_id: item.paymentMethodId };
+      }
+      if (item.kind === "gift_card") {
+        return { product_type: "gift_card", product_id: item.productId, payment_method_id: item.paymentMethodId };
+      }
+      return { product_type: "game", game_id: item.gameId, payment_method_id: item.paymentMethodId };
+    }),
     p_phone_number: userId ? phoneNumber : null,
     p_guest_phone: guestPhone,
     p_region_ack: regionAck,
@@ -138,7 +151,7 @@ export async function createOrder(
     return { ok: false, error: "UNKNOWN", message: "Something went wrong creating your order." };
   }
 
-  return { ok: true, order: mapOrderRow(data) };
+  return { ok: true, order: mapOrderRow(data), lookupToken: data.lookup_token };
 }
 
 export type ClaimPaymentResult =

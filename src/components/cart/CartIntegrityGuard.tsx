@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useGamesByIds } from "@/src/lib/use-games-by-ids";
 import { useGiftCardsByIds } from "@/src/lib/use-gift-cards-by-ids";
+import { useHardwareByIds } from "@/src/lib/use-hardware-by-ids";
 import { useHydrated } from "@/src/lib/use-hydrated";
 import { cartItemSchema } from "@/src/lib/validation";
 import { cartItemId, useCartStore } from "@/src/stores/cart-store";
@@ -35,10 +36,14 @@ export default function CartIntegrityGuard() {
   const { products, loaded: productsLoaded } = useGiftCardsByIds(
     items.filter((i) => i.kind === "gift_card").map((i) => i.productId),
   );
+  const { hardware, loaded: hardwareLoaded } = useHardwareByIds(
+    items.filter((i) => i.kind === "hardware").map((i) => i.productId),
+  );
   const checkedOnce = useRef(false);
 
   useEffect(() => {
-    if (!hydrated || !gamesLoaded || !productsLoaded || checkedOnce.current) return;
+    if (!hydrated || !gamesLoaded || !productsLoaded || !hardwareLoaded || checkedOnce.current)
+      return;
     checkedOnce.current = true;
 
     const invalidIds: string[] = [];
@@ -52,9 +57,11 @@ export default function CartIntegrityGuard() {
         continue;
       }
       const isValid =
-        item.kind === "gift_card"
-          ? products.some((p) => p.id === item.productId && p.isActive)
-          : games.some((g) => g.id === item.gameId && g.isActive);
+        item.kind === "hardware"
+          ? hardware.some((h) => h.id === item.productId && h.isActive && h.stockQuantity > 0)
+          : item.kind === "gift_card"
+            ? products.some((p) => p.id === item.productId && p.isActive)
+            : games.some((g) => g.id === item.gameId && g.isActive);
       if (!isValid) {
         invalidIds.push(cartItemId(item));
         invalidTitles.push(item.title);
@@ -71,7 +78,7 @@ export default function CartIntegrityGuard() {
     // Deliberately once, right after hydration + real product data both
     // land — see checkedOnce above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, gamesLoaded, productsLoaded]);
+  }, [hydrated, gamesLoaded, productsLoaded, hardwareLoaded]);
 
   return null;
 }

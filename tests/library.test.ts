@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { bufferToBytea, encrypt } from "@/src/lib/crypto";
 import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
+import { attachPaymentProof } from "./helpers/payment-proof";
 import { randomTestPhone } from "./helpers/phone";
 import { collectText, findAllElementsOfType } from "./helpers/react-tree";
 
@@ -237,6 +238,7 @@ describe("/library — real per-user isolation", () => {
     orderIds.push(orderA.order.id);
     const claimedA = await claimPayment(orderA.order.id);
     expect(claimedA.ok).toBe(true);
+    await attachPaymentProof(service, orderA.order.id);
 
     sessionState.client = clientAdmin;
     const approvedA = await approveOrder(orderA.order.id, adminUser.id);
@@ -250,6 +252,7 @@ describe("/library — real per-user isolation", () => {
     orderIds.push(orderB.order.id);
     const claimedB = await claimPayment(orderB.order.id);
     expect(claimedB.ok).toBe(true);
+    await attachPaymentProof(service, orderB.order.id);
 
     sessionState.client = clientAdmin;
     const approvedB = await approveOrder(orderB.order.id, adminUser.id);

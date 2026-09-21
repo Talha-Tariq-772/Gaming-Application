@@ -4,9 +4,30 @@ import GameDetailSkeleton from "@/src/components/games/GameDetailSkeleton";
 import { getGameBySlug, getGames } from "@/src/lib/catalog";
 import GameDetailBody from "./GameDetailBody";
 
+/**
+ * Both product types in the `games` table, not just product_type='game'.
+ *
+ * getGames() defaults to productType: "game", so the three membership
+ * products (PlayStation Plus, PS Plus Extra & Premium, Xbox Game Pass
+ * Ultimate) were the only sellable rows in the catalog with no dedicated
+ * page of their own. getGameBySlug has never filtered on product_type, so
+ * /games/playstation-plus already resolved and rendered — it was simply
+ * never prerendered and nothing linked to it. Listing them here makes
+ * that a real page rather than an accident of the lookup being permissive.
+ *
+ * The detail page itself needs no membership branch: HeaderImage already
+ * resolves a membership's own "{slug}/header" art via wallpaperPath +
+ * productType, the cover falls through to the placeholder (memberships
+ * have no cover by design), and RelatedGamesRow skips a genre-less
+ * product instead of querying genre=null. /memberships stays the
+ * merchandised landing page for the family.
+ */
 export async function generateStaticParams() {
-  const games = await getGames();
-  return games.map((game) => ({ slug: game.slug }));
+  const [games, memberships] = await Promise.all([
+    getGames(),
+    getGames({ productType: "membership" }),
+  ]);
+  return [...games, ...memberships].map((game) => ({ slug: game.slug }));
 }
 
 export async function generateMetadata({

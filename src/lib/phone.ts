@@ -77,3 +77,17 @@ export function phoneToAuthEmail(raw: string): string | null {
 export function isSyntheticAuthEmail(email: string | null | undefined): boolean {
   return Boolean(email?.endsWith("@phone.pscbundle.local"));
 }
+
+/**
+ * The digits-only form wa.me expects in its path: "923001234567" — no "+",
+ * no spaces, no leading 0. Accepts either stored format (profiles keep
+ * "+92 300 1234567", guest_phone keeps "+923001234567") by going through
+ * normalisePhone first, so a spaced number can never produce a broken
+ * link. Null for anything that isn't a usable Pakistani mobile, which
+ * callers must handle rather than building "https://wa.me/null".
+ */
+export function toWaMeNumber(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+  const e164 = normalisePhone(phone);
+  return e164 ? e164.slice(1) : null;
+}

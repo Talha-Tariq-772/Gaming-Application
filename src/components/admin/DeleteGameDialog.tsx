@@ -28,29 +28,34 @@ export default function DeleteGameDialog({
 
   return (
     <AdminModal onCancel={onCancel} role="alertdialog" ariaLabel="Confirm delete">
-      <h2 className="text-lg font-bold text-nova-bone">
-        {willHardDelete ? "Delete this game?" : "Deactivate this game?"}
-      </h2>
+      <h2 className="text-lg font-bold text-nova-bone">Delete this game?</h2>
       <p className="mt-3 text-sm text-nova-ash">
         {willHardDelete ? (
           <>
             <span className="font-semibold text-nova-bone">{game.title}</span> has never been ordered
-            or had credentials added — this permanently removes it.
+            or had credentials added &mdash; this permanently removes it, along with its variants and
+            any uploaded cover or header art.
           </>
         ) : (
           <>
             <span className="font-semibold text-nova-bone">{game.title}</span> has order or credential
-            history, so it can&rsquo;t be permanently deleted without breaking that record. It will
-            be deactivated (hidden from the store) instead.
+            history, so the delete will be refused &mdash; removing it would break that record. Set it
+            inactive instead to hide it from the store.
           </>
         )}
       </p>
+      {/* Deliberately still shows a Delete button in the blocked case
+          rather than hiding it: willHardDelete is a client-side HINT
+          (derived from credential stock only, so it cannot see pure order
+          history), and the server re-derives the real answer. Letting the
+          admin press it and get the refusal toast is honest; greying out a
+          button on a guess that might be wrong is not. */}
       <AdminDialogFooter
         onCancel={onCancel}
         onConfirm={handleConfirm}
         isSubmitting={isSubmitting}
         confirmVariant="destructive"
-        confirmLabel={willHardDelete ? "Confirm Delete" : "Confirm Deactivate"}
+        confirmLabel="Confirm Delete"
         confirmingLabel="Working…"
       />
     </AdminModal>

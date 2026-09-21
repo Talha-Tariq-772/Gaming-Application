@@ -28,6 +28,7 @@ export interface AnalyticsEventMap {
       | "footer"
       | "contact"
       | "admin"
+      | "admin-approval"
       | "community"
       | "floating-button";
     orderRef?: string;

@@ -15,6 +15,7 @@ import {
   GAME_PLATFORMS,
   GIFT_CARD_PLATFORMS,
   GIFT_CARD_REGIONS,
+  HARDWARE_CATEGORIES,
 } from "@/src/types/database";
 import type { OrderStatus } from "@/src/types/database";
 
@@ -92,9 +93,20 @@ const giftCardCartItemSchema = z.object({
   denominationCurrency: z.string().nullable(),
 });
 
+const hardwareCartItemSchema = z.object({
+  kind: z.literal("hardware"),
+  productId: z.string().min(1),
+  slug: z.string().min(1),
+  title: z.string().min(1),
+  price: z.number().positive(),
+  coverImageUrl: z.string().min(1),
+  category: z.enum(HARDWARE_CATEGORIES),
+});
+
 export const cartItemSchema = z.discriminatedUnion("kind", [
   credentialCartItemSchema,
   giftCardCartItemSchema,
+  hardwareCartItemSchema,
 ]);
 
 export type CartItemInput = z.infer<typeof cartItemSchema>;

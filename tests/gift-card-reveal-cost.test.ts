@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { encrypt, sha256Hex } from "@/src/lib/crypto-core";
 import { deleteWithRetry, runCleanupSteps } from "./helpers/cleanup";
+import { attachPaymentProof } from "./helpers/payment-proof";
 
 /**
  * Covers the two gift-card gaps found during manual verification:
@@ -124,6 +125,11 @@ async function createApprovedGiftCardOrder(
   if (itemErr) throw itemErr;
 
   await service.from("gift_card_codes").update({ order_id: order.id }).eq("id", code.id);
+
+  // approve_order refuses an order with no payment screenshot
+  // (20260921000005_payment_screenshots.sql) — a real buyer uploads one
+  // before an admin ever sees the order.
+  await attachPaymentProof(service, order.id);
 
   const { error: approveErr } = await service.rpc("approve_order", {
     p_order_id: order.id,
@@ -360,6 +366,7 @@ describe("gift-card cost price", () => {
         p_game_id: null,
         p_variant_id: null,
         p_gift_card_product_id: product.id,
+        p_hardware_product_id: null,
         p_at: iso,
       });
       expect(error).toBeNull();

@@ -59,28 +59,28 @@ export const MOCK_GUIDES: Guide[] = [
     isPublished: true,
     sortOrder: 1,
     updatedAt: "2026-03-18T10:00:00.000Z",
-    body: `Once your order is approved and your credentials are revealed, redeeming your game only takes a few minutes. Find your platform below.
+    body: `Once your order is approved, redeeming your game only takes a few minutes. Find your platform below.
 
 ## Before You Start
 
-Make sure you've saved your login and password from the credential reveal page — it's only shown once. If you closed the page before copying them, contact us on WhatsApp with your order reference and we'll help you recover access.
+Make sure you've saved the sign-in details from your order page — they're only shown once. If you closed the page before copying them, contact us with your order reference and we'll help you get back in.
 
 ## PC (Steam)
 
-1. Open Steam and sign in with the account details we gave you — most games are pre-loaded on a dedicated account rather than added via a key, so you'll usually be signing into a *new* Steam account, not activating a code on your own.
+1. Open Steam and sign in using the details on your order page. Most PC titles work this way rather than by entering a code.
 2. If a specific redemption code was provided instead, go to **Library → Add a Game → Activate a Product on Steam** and paste it in.
 3. Download and install from your Library like any other game.
 
 ## PlayStation 5
 
 1. On your PS5, go to **PlayStation Store → Redeem Codes** from the sidebar.
-2. Enter the code exactly as shown on your credential page — codes are case-sensitive and don't include spaces.
+2. Enter the code exactly as shown on your order page — codes are case-sensitive and don't include spaces.
 3. Once redeemed, install the game from **Your Library**.
 
 ## Xbox (Series X|S and One)
 
 1. Go to the **Microsoft Store** app and select **Redeem** from the menu (or visit redeem.microsoft.com on any browser signed into your Xbox account).
-2. Enter the 25-character code shown on your credential page.
+2. Enter the 25-character code shown on your order page.
 3. Install from **My Library** once the redemption completes.
 
 ## Nintendo Switch
@@ -91,7 +91,7 @@ Make sure you've saved your login and password from the credential reveal page �
 
 ## Still Stuck?
 
-If a code comes back as invalid or already used, don't try it more than two or three times — some platforms temporarily lock redemption after repeated failed attempts. Message us on WhatsApp with your order reference instead and we'll check it from our side.`,
+If a code comes back as invalid or already used, don't try it more than two or three times — some platforms temporarily lock redemption after repeated failed attempts. Message us with your order reference instead and we'll check it from our side.`,
   },
   {
     id: "guide-2",
@@ -99,7 +99,7 @@ If a code comes back as invalid or already used, don't try it more than two or t
     title: "Placing Your First Order",
     category: "getting-started",
     excerpt:
-      "A quick walkthrough from browsing the store to getting your credentials, for anyone ordering with us for the first time.",
+      "A quick walkthrough from browsing the store to getting your order, for anyone buying from us for the first time.",
     isPublished: true,
     sortOrder: 2,
     updatedAt: "2026-03-10T09:30:00.000Z",
@@ -113,49 +113,51 @@ Filter by platform, genre, or price on the store page, and add whatever you're a
 
 At checkout you'll pick from bank transfer, JazzCash, Easypaisa, SadaPay, or NayaPay. Pick whichever you already use — see our [accepted payment methods guide](/guides/accepted-payment-methods) if you're not sure which is fastest for you.
 
-## 3. Send Payment and Claim It
+## 3. Send Payment and Confirm It
 
-We'll show you an *exact* amount to send — it'll be a few rupees off your order total on purpose. That small difference is how we automatically match your payment to your order, so send precisely that amount, not a rounded-up figure. Once you've paid, tap **I have made the payment** and send your screenshot to the WhatsApp number shown.
+We'll show you an *exact* amount to send — it'll be a few rupees off your order total on purpose. That small difference is how we match your payment to your order, so send precisely that amount, not a rounded-up figure. Once you've paid, tap **I have made the payment** and upload a screenshot of the transaction.
 
 You have 45 minutes from checkout to complete this before your reservation expires and the price/stock is released back.
 
-## 4. Verification and Delivery
+## 4. Confirmation and Delivery
 
-Our team checks the payment against your reference — usually within an hour or two during business hours (9am–9pm PKT), sometimes faster. Once approved, your order status changes to **Approved** and your game credentials become available to reveal from your order page.
+We check the payment against your reference — usually within an hour or two during business hours (9am–9pm PKT), sometimes faster. Once approved, your order status changes to **Approved** and everything you need becomes available on your order page.
 
-That's it — see [how to redeem your game key](/guides/redeem-your-game-key) once you've got your credentials.`,
+That's it — see [how to redeem your game key](/guides/redeem-your-game-key) once your order is ready.`,
   },
   {
     id: "guide-3",
     slug: "how-payment-verification-works",
-    title: "How Payment Verification Works",
+    title: "How Payment Confirmation Works",
     category: "payment",
     excerpt:
-      "Why we verify payments manually, how the exact-amount matching works, and what to expect after you send your screenshot.",
+      "How the exact-amount matching works, and what to expect after you pay.",
     isPublished: true,
     sortOrder: 1,
     updatedAt: "2026-03-22T13:15:00.000Z",
-    body: `We don't have automatic payment gateway integration yet, so every order is verified by a real person on our team. Here's exactly how that works.
+    body: `Every order is checked against the payment before it's approved. Here's exactly how that works.
 
-## Why We Verify Manually
+## Why It Works This Way
 
-Bank transfers, JazzCash, Easypaisa, and the other methods we support don't give us a reliable, instant way to confirm a specific payment belongs to a specific order automatically. Manual verification is slower than a card checkout, but it means no chargebacks, no payment gateway fees eating into prices, and a real person double-checking every order.
+Bank transfers, JazzCash, Easypaisa, and the other methods we support don't give us an instant way to tie a specific payment to a specific order. Checking each one takes a little longer than a card checkout, but it means no gateway fees eating into prices, and every order double-checked before it goes out.
 
 ## The Exact-Amount Trick
 
 When you check out, we don't ask you to send a round number — we add a small random offset (a few rupees) to your total. That unique amount is how our team matches your incoming payment to your specific order without needing a reference number to line up perfectly. Always send the *exact* amount shown, including the odd paisa, not your cart total.
 
-## Sending Your Screenshot
+## Confirming Your Payment
 
-After paying, tap **I have made the payment** on the checkout page — this sends you straight to WhatsApp with your order reference pre-filled. Attach a screenshot of the transaction (the confirmation screen from your banking app or wallet) so we can cross-check it against what arrives in our account.
+After paying, tap **I have made the payment** on the checkout page, then upload a screenshot of the transaction — the confirmation screen from your banking app or wallet. We check it against what arrives on our side before approving the order.
+
+Signed in? You can upload it later from **My Orders** instead. Checking out as a guest? You get a private link to your order that does the same thing, no sign-in needed. Either way you can swap the image for a different one right up until we review it.
 
 ## Typical Turnaround
 
-Most orders are verified within 1–2 hours during business hours (9am–9pm PKT). Orders sent outside those hours are usually picked up first thing the next morning. Weekend and public holiday orders can take a little longer.
+Most orders are confirmed within 1–2 hours during business hours (9am–9pm PKT). Orders sent outside those hours are usually picked up first thing the next morning. Weekend and public holiday orders can take a little longer.
 
 ## If Something Looks Wrong
 
-If the amount we receive doesn't match what was requested, we can't approve the order automatically — we'll message you on WhatsApp to sort it out, which usually just means confirming the amount and retrying. Orders aren't rejected outright for an honest mismatch; we'll always reach out first.`,
+If the amount we receive doesn't match what was requested, we can't approve the order — we'll get in touch to sort it out, which usually just means confirming the amount and retrying. Orders aren't rejected outright for an honest mismatch; we'll always reach out first.`,
   },
   {
     id: "guide-4",
@@ -167,7 +169,7 @@ If the amount we receive doesn't match what was requested, we can't approve the 
     isPublished: true,
     sortOrder: 2,
     updatedAt: "2026-02-28T11:00:00.000Z",
-    body: `We currently accept five payment methods. All of them are verified manually, so speed comes down to how fast you can send the payment and screenshot, not which method you pick — but a few notes below might help you choose.
+    body: `We currently accept five payment methods. Speed comes down to how fast you can send the payment, not which method you pick — but a few notes below might help you choose.
 
 ## Bank Transfer
 
@@ -179,7 +181,7 @@ Fast if you already have the app installed — send via Mobile Account to the nu
 
 ## Easypaisa
 
-Same idea as JazzCash — send the exact amount to the account shown, screenshot the confirmation, and you're done.
+Same idea as JazzCash — send the exact amount to the account shown and you're done.
 
 ## SadaPay
 
@@ -196,54 +198,54 @@ If you're ordering during business hours and want the fastest possible turnaroun
   {
     id: "guide-5",
     slug: "setting-up-your-account",
-    title: "Setting Up and Securing Your PSCBUNDLE Account",
+    title: "Getting Started with PSCBUNDLE",
     category: "account-setup",
     excerpt:
-      "Creating your account, verifying your phone number, and keeping it secure.",
+      "How ordering works the first time, verifying your phone number, and keeping your details safe.",
     isPublished: true,
     sortOrder: 1,
     updatedAt: "2026-02-14T15:45:00.000Z",
-    body: `Your PSCBUNDLE account is where your order history and revealed game credentials live — separate from the game accounts themselves.
+    body: `Your order history and everything you've bought live in one place, reachable from **My Orders**.
 
-## Creating Your Account
+## Ordering for the First Time
 
-You'll be asked for your name and phone number the first time you check out. There's no separate signup step — placing your first order creates your account automatically.
+You'll be asked for your name and phone number the first time you check out. There's no separate signup step — just place your order and you're set.
 
 ## Verifying Your Phone Number
 
 We verify phone numbers by SMS so we can reach you if there's an issue with an order (a payment mismatch, a stock question, anything time-sensitive). An unverified number can still place orders, but verification helps us reach you faster if something needs your attention.
 
-## Keeping Your Account Secure
+## Keeping Your Details Safe
 
-We don't currently support account passwords — access is tied to your verified phone number. Don't share your phone or any SMS codes with anyone claiming to be from our support team; we will never ask you to forward a verification code to us.`,
+Access is tied to your verified phone number. Don't share your phone or any SMS codes with anyone claiming to be from our support team; we will never ask you to forward a verification code to us.`,
   },
   {
     id: "guide-6",
     slug: "managing-game-credentials",
-    title: "Managing Your Game Credentials",
+    title: "Finding and Storing Your Order Details",
     category: "account-setup",
     excerpt:
-      "Where to find your login details after an order is approved, whether you can change the password, and how to store them safely.",
+      "Where to find everything after an order is approved, what not to change, and how to store it safely.",
     isPublished: true,
     sortOrder: 2,
     updatedAt: "2026-03-05T09:00:00.000Z",
-    body: `Once an order is approved, each game in it gets its own credential reveal on your order page.
+    body: `Once an order is approved, each item in it can be revealed on your order page.
 
-## Where to Find Your Credentials
+## Where to Find Them
 
-Go to **My Orders**, open the approved order, and you'll see a **Reveal Credentials** button under each game. Credentials are shown once per visit to that button — after revealing them, they stay visible on that page for as long as you're signed in, but treat the first reveal as your one chance to copy them down somewhere safe.
+Go to **My Orders**, open the approved order, and you'll see a **Reveal** button under each item. Details are shown once per visit to that button — after revealing them, they stay visible on that page for as long as you're signed in, but treat the first reveal as your one chance to copy them down somewhere safe.
 
-## Can I Change the Password?
+## Can I Change the Sign-in Details?
 
-We'd rather you didn't. These are shared-pool accounts we manage stock for — changing the password locks *us* out of an account we're still responsible for, and can flag the account for review on the platform's side. If you need a password change for a specific reason, message us first and we'll walk you through it safely.
+Please don't. We manage these on our side, and changing them can cut off your own access and void replacement or refund cover on your order. If you have a specific reason to change something, message us first and we'll walk you through it safely.
 
-## Storing Credentials Safely
+## Storing Them Safely
 
 Use a password manager if you have one. If not, a private note is fine — just avoid anywhere publicly accessible, like an unencrypted note synced to a shared device.
 
 ## Sharing Devices
 
-If you're playing on a shared family console or PC, sign out of the account when you're done rather than leaving it logged in, especially on Xbox and PlayStation where a signed-in profile can trigger purchases or changes without a password prompt.`,
+If you're playing on a shared family console or PC, sign out when you're done rather than leaving it signed in, especially on Xbox and PlayStation where a signed-in profile can trigger purchases or changes without a password prompt.`,
   },
   {
     id: "guide-7",
@@ -260,12 +262,12 @@ If you're playing on a shared family console or PC, sign out of the account when
 ## Double-Check the Basics
 
 - Copy the code again rather than retyping it — a single mismatched character (0 vs O, 1 vs I) is the most common cause of a failed redemption.
-- Make sure there's no leading or trailing space if you copied it from the credential page.
-- Confirm you're signed into the right platform account — not a secondary or child profile.
+- Make sure there's no leading or trailing space if you copied it from your order page.
+- Confirm you're signed in on the right platform profile — not a secondary or child profile.
 
 ## Common Platform-Specific Issues
 
-**Steam:** if we provided full account login details rather than a key, make sure you're signing *into that account* rather than trying to activate a product code — most of our PC titles work this way.
+**Steam:** if your order page shows sign-in details rather than a code, sign in with those directly rather than trying to activate a product code — most of our PC titles work this way.
 
 **PlayStation / Xbox:** codes are region-locked to the storefront they were generated for. If your console's region doesn't match, redemption will fail even with a correct code — message us with your order reference and we'll check it.
 
@@ -273,35 +275,35 @@ If you're playing on a shared family console or PC, sign out of the account when
 
 ## Still Not Working?
 
-Message us on WhatsApp with your order reference and a screenshot of the error. Don't keep retrying more than 2–3 times — some platforms temporarily lock further attempts after repeated failures, which makes it harder for us to diagnose from our side too.`,
+Message us with your order reference and a screenshot of the error. Don't keep retrying more than 2–3 times — some platforms temporarily lock further attempts after repeated failures, which makes it harder for us to diagnose from our side too.`,
   },
   {
     id: "guide-8",
     slug: "account-stopped-working",
-    title: "What Happens If an Account Stops Working",
+    title: "If Something Stops Working",
     category: "troubleshooting",
     excerpt:
-      "Why a shared game account can stop working after purchase, what we'll do about it, and what we can't guarantee.",
+      "What to do if an item stops working after purchase, what we'll do about it, and what we can't guarantee.",
     isPublished: true,
     sortOrder: 2,
     updatedAt: "2026-03-15T14:00:00.000Z",
-    body: `Because most of our accounts are shared-pool accounts rather than keys generated fresh per sale, there's a small risk an account can be locked, flagged, or otherwise stop working after you've already started using it. Here's how we handle that.
+    body: `Occasionally an item stops working after you've already started using it. It's uncommon, but here's how we handle it.
 
 ## Why This Can Happen
 
-Platforms occasionally run automated security checks that don't distinguish between a legitimate account transfer and something suspicious — a login from a new device or region can sometimes trigger a temporary hold, independent of anything you did wrong.
+Platforms run automated security checks that can't always tell a normal sign-in from a suspicious one — signing in from a new device or region sometimes triggers a temporary hold, independent of anything you did wrong.
 
 ## What We'll Do
 
-If your account stops working within a reasonable window after delivery, message us with your order reference and a description of what's happening (an error message, a "suspended" notice, anything specific helps). We'll either restore access, swap you to a working account from our pool, or — if neither is possible — issue store credit or a refund for that item, at our discretion, on a case-by-case basis.
+If something stops working within a reasonable window after delivery, message us with your order reference and a description of what's happening (an error message, a "suspended" notice, anything specific helps). We'll either restore your access, swap you to a working replacement, or — if neither is possible — issue store credit or a refund for that item, on a case-by-case basis.
 
 ## What We Can't Guarantee
 
-We can't promise an account will never be flagged by the platform down the line — that risk is inherent to shared accounts and is part of why prices are lower than a first-party purchase. We also can't help with issues caused by changing the account's own password or recovery details after delivery (see [managing your game credentials](/guides/managing-game-credentials)).
+We can't promise a platform will never flag something down the line. We also can't help with issues caused by changing the sign-in or recovery details yourself after delivery (see [finding and storing your order details](/guides/managing-game-credentials)).
 
 ## Reducing the Risk
 
-Avoid changing security-sensitive settings on the account (password, 2FA, linked email) unless we've specifically told you to. The less you alter about how the account was delivered, the less likely it is to trip a platform's automated checks.`,
+Avoid changing security-sensitive settings (password, 2FA, linked email) unless we've specifically told you to. The less you alter about how your order arrived, the less likely it is to trip a platform's automated checks.`,
   },
 ];
 

@@ -4,6 +4,7 @@ import GooglePhoneAuthPrompt from "@/src/components/account/GooglePhoneAuthPromp
 import OrderCard from "@/src/components/account/OrderCard";
 import { getGamesByIds, getPaymentMethodsByIds } from "@/src/lib/catalog";
 import { getGiftCardProductsForCodeIds } from "@/src/lib/gift-card-catalog";
+import { getHardwareProductsByIds } from "@/src/lib/hardware-catalog";
 import { getOrdersForUser } from "@/src/lib/order-queries";
 import { createClient } from "@/src/lib/supabase/server-session";
 
@@ -23,12 +24,17 @@ export default async function AccountPage() {
     ...new Set(orderItems.map((i) => i.giftCardCodeId).filter((id): id is string => Boolean(id))),
   ];
   const paymentMethodIds = [...new Set(orders.map((o) => o.paymentMethodId).filter((id): id is string => Boolean(id)))];
-  const [games, giftCardProductsByCodeId, paymentMethods] = await Promise.all([
+  const hardwareIds = [
+    ...new Set(orderItems.map((i) => i.hardwareProductId).filter((id): id is string => Boolean(id))),
+  ];
+  const [games, giftCardProductsByCodeId, hardware, paymentMethods] = await Promise.all([
     getGamesByIds(gameIds),
     getGiftCardProductsForCodeIds(giftCardCodeIds),
+    getHardwareProductsByIds(hardwareIds),
     getPaymentMethodsByIds(paymentMethodIds),
   ]);
   const giftCardProductsByCodeIdObj = Object.fromEntries(giftCardProductsByCodeId);
+  const hardwareById = Object.fromEntries(hardware.map((h) => [h.id, h]));
 
   const myOrders = [...orders].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -63,6 +69,7 @@ export default async function AccountPage() {
               items={orderItems.filter((item) => item.orderId === order.id)}
               games={games}
               giftCardProductsByCodeId={giftCardProductsByCodeIdObj}
+              hardwareById={hardwareById}
               paymentMethods={paymentMethods}
             />
           ))}

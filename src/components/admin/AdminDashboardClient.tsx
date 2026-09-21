@@ -34,7 +34,7 @@ import {
 import type { CredentialStockEntry } from "@/src/lib/admin-queries";
 import { formatPrice } from "@/src/lib/format";
 import { LOW_STOCK_THRESHOLD } from "@/src/lib/mock-data";
-import type { Game, GiftCardProduct, Order, OrderItem, PaymentMethod, Profile } from "@/src/types/database";
+import type { Game, GiftCardProduct, HardwareProduct, Order, OrderItem, PaymentMethod, Profile } from "@/src/types/database";
 
 const RECENT_ACTIVITY_COUNT = 10;
 
@@ -55,6 +55,7 @@ export default function AdminDashboardClient({
   customers,
   games,
   giftCardProductsByCodeId,
+  hardwareById,
   paymentMethods,
   allOrders,
   allOrderItems,
@@ -66,6 +67,7 @@ export default function AdminDashboardClient({
   customers: Profile[];
   games: Game[];
   giftCardProductsByCodeId: Record<string, GiftCardProduct>;
+  hardwareById: Record<string, HardwareProduct>;
   paymentMethods: PaymentMethod[];
   allOrders: Order[];
   allOrderItems: OrderItem[];
@@ -188,6 +190,7 @@ export default function AdminDashboardClient({
           customers={customers}
           games={games}
           giftCardProductsByCodeId={giftCardProductsByCodeId}
+          hardwareById={hardwareById}
           paymentMethods={paymentMethods}
           onClose={() => setSelectedId(null)}
         />
